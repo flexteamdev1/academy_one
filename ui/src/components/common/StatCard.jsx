@@ -1,39 +1,53 @@
 import React from 'react';
 import { Card, CardContent, Stack, Typography, Box } from '@mui/material';
 
-const StatCard = ({ title, value, trend, accent = 'primary' }) => (
+const StatCard = ({ title, value, trend, icon, bgColor, tone }) => (
   <Card
     sx={{
       height: '100%',
-      borderRadius: 4,
-      background: (theme) =>
-        `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${theme.palette.primary.light}22 100%)`,
+      borderRadius: 12,
+      overflow: 'hidden',
+      backgroundColor: bgColor,
+      border: '1px solid #EEE6DD',
     }}
   >
-    <CardContent>
-      <Stack spacing={1}>
-        <Typography variant="subtitle2" color="text.secondary" sx={{ textTransform: 'uppercase' }}>
-          {title}
-        </Typography>
-        <Stack direction="row" spacing={2} alignItems="flex-end">
-          <Typography variant="h4">{value}</Typography>
+    <CardContent sx={{ p: 3 }}>
+      <Stack spacing={2}>
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
           <Box
-            sx={(theme) => {
-              const palette = theme.palette[accent] || theme.palette.primary;
-              return {
-                px: 1.5,
-                py: 0.5,
-                borderRadius: 999,
-                fontSize: '0.75rem',
-                fontWeight: 600,
-                backgroundColor: palette.main,
-                color: palette.contrastText || theme.palette.primary.contrastText,
-              };
+            sx={{
+              width: 42,
+              height: 42,
+              borderRadius: '14px',
+              backgroundColor: '#FFFFFFAA',
+              display: 'grid',
+              placeItems: 'center',
+              color: tone,
+            }}
+          >
+            {icon}
+          </Box>
+          <Box
+            sx={{
+              px: 1.4,
+              py: 0.4,
+              borderRadius: 999,
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              backgroundColor: '#FFFFFF',
+              color: tone,
+              border: '1px solid #F0E7DD',
             }}
           >
             {trend}
           </Box>
         </Stack>
+        <Box>
+          <Typography variant="subtitle2" sx={{ color: tone }}>
+            {title}
+          </Typography>
+          <Typography variant="h4">{value}</Typography>
+        </Box>
       </Stack>
     </CardContent>
   </Card>

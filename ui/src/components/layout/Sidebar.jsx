@@ -21,14 +21,29 @@ const drawerWidth = 260;
 const SidebarContent = () => (
   <Stack sx={{ height: '100%' }}>
     <Box sx={{ px: 3, py: 3 }}>
-      <Typography variant="h5" sx={{ letterSpacing: '0.04em' }}>
-        Academy One
-      </Typography>
-      <Typography variant="subtitle2" color="text.secondary">
-        Admin Console
-      </Typography>
+      <Stack direction="row" spacing={1.5} alignItems="center">
+        <Box
+          sx={{
+            width: 44,
+            height: 44,
+            borderRadius: '14px',
+            background: 'linear-gradient(135deg, #5B5CE3 0%, #8E8FF0 100%)',
+            color: '#fff',
+            display: 'grid',
+            placeItems: 'center',
+            fontWeight: 700,
+          }}
+        >
+          A
+        </Box>
+        <Box>
+          <Typography variant="h6">Academy One</Typography>
+          <Typography variant="subtitle2" color="text.secondary">
+            Admin Portal
+          </Typography>
+        </Box>
+      </Stack>
     </Box>
-    <Divider />
     <List sx={{ px: 2, py: 2, flex: 1 }}>
       {navigation.map((item) => {
         const Icon = item.icon;
@@ -39,11 +54,13 @@ const SidebarContent = () => (
             to={item.path}
             sx={{
               mb: 1,
-              borderRadius: 3,
+              borderRadius: 999,
+              px: 2,
+              py: 1.25,
               '&.active': {
-                backgroundColor: 'primary.main',
-                color: 'primary.contrastText',
-                boxShadow: (theme) => `0 10px 24px ${theme.palette.primary.main}33`,
+                backgroundColor: '#F0EDFF',
+                color: 'primary.main',
+                boxShadow: 'inset 0 0 0 1px #E3DCFF',
                 '& .MuiListItemIcon-root': {
                   color: 'inherit',
                 },
@@ -62,18 +79,31 @@ const SidebarContent = () => (
       <Box
         sx={{
           p: 2,
-          borderRadius: 3,
-          background: (theme) =>
-            `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.light} 100%)`,
-          color: 'primary.contrastText',
+          borderRadius: 4,
+          backgroundColor: '#FFFFFF',
+          border: '1px solid #F0E7DD',
+          boxShadow: '0px 12px 28px rgba(31, 42, 55, 0.08)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.5,
         }}
       >
-        <Typography variant="subtitle2" sx={{ letterSpacing: '0.08em' }}>
-          QUICK TIP
-        </Typography>
-        <Typography variant="body2" sx={{ mt: 1 }}>
-          Review attendance daily to keep your data accurate.
-        </Typography>
+        <Box
+          sx={{
+            width: 40,
+            height: 40,
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #F5C6A5 0%, #E89AA3 100%)',
+          }}
+        />
+        <Box>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+            Alex Johnson
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            Super Admin
+          </Typography>
+        </Box>
       </Box>
     </Box>
   </Stack>
@@ -96,8 +126,8 @@ const Sidebar = () => {
           '& .MuiDrawer-paper': {
             width: drawerWidth,
             borderRight: 'none',
-            backgroundColor: 'background.paper',
-            boxShadow: isDesktop ? 'none' : (theme) => `0 20px 60px ${theme.palette.primary.main}33`,
+            backgroundColor: '#FFFDF9',
+            boxShadow: isDesktop ? 'none' : '0 20px 60px rgba(31, 42, 55, 0.12)',
           },
         }}
       >

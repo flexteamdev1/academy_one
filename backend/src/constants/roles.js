@@ -1,8 +1,9 @@
 const ROLES = {
-  SUPERADMIN: 'superadmin',
-  ADMIN: 'admin',
-  TEACHER: 'teacher',
-  STUDENT: 'student',
+  SUPER_ADMIN: 'SUPER_ADMIN',
+  ADMIN: 'ADMIN',
+  TEACHER: 'TEACHER',
+  STUDENT: 'STUDENT',
+  PARENT: 'PARENT',
 };
 
 const ROLE_VALUES = Object.values(ROLES);

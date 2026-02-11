@@ -3,74 +3,77 @@ import { createTheme } from "@mui/material/styles";
 const theme = createTheme({
   palette: {
     primary: {
-      main: "#1A233A", // Dark Navy for Primary Buttons/Text
-      light: "#2C3E50",
+      main: "#5B5CE3",
+      light: "#8E8FF0",
       contrastText: "#FFFFFF",
     },
     secondary: {
-      main: "#F48FB1", // Pastel Pink
+      main: "#F3A6C8",
+    },
+    success: {
+      main: "#2FAF74",
+    },
+    info: {
+      main: "#4C8EF7",
+    },
+    warning: {
+      main: "#F2B248",
     },
     background: {
-      default: "#F3E5F5", // Fallback, we will use gradient in CSS
+      default: "#FAF7F2",
       paper: "#FFFFFF",
     },
     text: {
-      primary: "#1A233A",
-      secondary: "#64748B",
+      primary: "#1F2A37",
+      secondary: "#6B7280",
     },
+    divider: "#EEE6DD",
   },
   typography: {
-    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-    h1: {
-      fontWeight: 700,
-      color: "#1A233A",
-    },
-    h2: {
-      fontWeight: 700,
-      color: "#1A233A",
-    },
-    h4: {
-      fontWeight: 700,
-      color: "#1A233A",
-    },
-    h5: {
-      fontWeight: 700,
-      color: "#1A233A", // "Welcome Back"
-    },
-    h6: {
-      fontWeight: 600,
-      color: "#1A233A",
-    },
-    subtitle1: {
-      color: "#64748B",
-    },
+    fontFamily: '"Plus Jakarta Sans", "Segoe UI", sans-serif',
+    h1: { fontWeight: 800, color: "#1F2A37" },
+    h2: { fontWeight: 800, color: "#1F2A37" },
+    h3: { fontWeight: 700, color: "#1F2A37" },
+    h4: { fontWeight: 700, color: "#1F2A37" },
+    h5: { fontWeight: 700, color: "#1F2A37" },
+    h6: { fontWeight: 600, color: "#1F2A37" },
+    subtitle1: { color: "#6B7280" },
     subtitle2: {
       fontWeight: 600,
-      color: "#64748B", // Label text like "ACADEMIC ID"
-      letterSpacing: "0.05em",
-      fontSize: "0.75rem",
+      color: "#7C7C7C",
+      letterSpacing: "0.08em",
+      fontSize: "0.72rem",
+      textTransform: "uppercase",
     },
+    body1: { color: "#1F2A37" },
+    body2: { color: "#6B7280" },
   },
   shape: {
-    borderRadius: 16,
+    borderRadius: 2,
   },
   components: {
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: "50px", // Pill shape
+          borderRadius: 10,
           textTransform: "none",
           fontWeight: 600,
-          padding: "12px 24px",
+          padding: "10px 22px",
           boxShadow: "none",
-          "&:hover": {
-            boxShadow: "0px 8px 20px rgba(26, 35, 58, 0.2)", // Softer shadow
-          },
         },
         containedPrimary: {
-          backgroundColor: "#1A233A",
+          backgroundColor: "#5B5CE3",
           "&:hover": {
-            backgroundColor: "#2C3E50",
+            backgroundColor: "#4B4CD8",
+            boxShadow: "0px 8px 18px rgba(91, 92, 227, 0.25)",
+          },
+        },
+        outlined: {
+          borderColor: "#E6DFD6",
+          color: "#1F2A37",
+          "&:hover": {
+            borderColor: "#D7CEC4",
+            backgroundColor: "#FFFDF9",
           },
         },
       },
@@ -78,63 +81,38 @@ const theme = createTheme({
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
-          borderRadius: "16px", // Slightly more rounded
-          backgroundColor: "#F8FAFC",
+          borderRadius: 10,
+          backgroundColor: "#FFFDF9",
           "& fieldset": {
-            border: "1px solid #E2E8F0", // Subtle border initially
+            border: "1px solid #EFE7DD",
           },
           "&:hover fieldset": {
-            borderColor: "#CBD5E1",
+            borderColor: "#E4DACE",
           },
           "&.Mui-focused fieldset": {
-            borderColor: "#1A233A",
+            borderColor: "#5B5CE3",
             borderWidth: "1px",
           },
         },
         input: {
-          padding: "16px",
-          fontSize: "1rem",
+          padding: "14px 16px",
+          fontSize: "0.95rem",
         },
       },
     },
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: "40px", // More rounded as in image
-          boxShadow: "0px 24px 64px rgba(0, 0, 0, 0.08)", // Deeper, softer shadow
+          borderRadius: 12,
+          border: "1px solid #F0E7DD",
+          boxShadow: "0px 18px 40px rgba(31, 42, 55, 0.06)",
         },
       },
     },
-    MuiToggleButton: {
+    MuiDrawer: {
       styleOverrides: {
-        root: {
-          border: "none",
-          borderRadius: "50px !important", // Pill shape
-          textTransform: "none",
-          fontWeight: 600,
-          color: "#64748B",
-          padding: "8px 24px",
-          "&.Mui-selected": {
-            backgroundColor: "#FFFFFF",
-            color: "#1A233A",
-            boxShadow: "0px 2px 8px rgba(0,0,0,0.05)",
-            "&:hover": {
-              backgroundColor: "#FFFFFF",
-            },
-          },
-          "&:hover": {
-            backgroundColor: "rgba(0,0,0,0.02)",
-          },
-        },
-      },
-    },
-    MuiToggleButtonGroup: {
-      styleOverrides: {
-        root: {
-          backgroundColor: "#F8FAFC",
-          padding: "6px",
-          borderRadius: "50px",
-          border: "1px solid #F1F5F9",
+        paper: {
+          borderRight: "1px solid #F0E7DD",
         },
       },
     },

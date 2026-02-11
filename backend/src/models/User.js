@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-const { ROLE_VALUES } = require('../constants/roles');
+const { ROLES, ROLE_VALUES } = require('../constants/roles');
 
 const userSchema = new mongoose.Schema(
   {
@@ -8,6 +8,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       lowercase: true,
+      trim: true,
       unique: true,
       index: true,
     },
@@ -23,6 +24,24 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
 
+    schoolId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'School',
+      required: function requiredSchoolId() {
+        return this.role !== ROLES.SUPER_ADMIN;
+      },
+      validate: {
+        validator: function validateSchoolId(value) {
+          if (this.role === ROLES.SUPER_ADMIN) {
+            return value == null;
+          }
+          return value != null;
+        },
+        message: 'schoolId is required for non-super admin users',
+      },
+      index: true,
+    },
+
     profile: {
       name: { type: String, required: true },
       phone: { type: String },
@@ -32,6 +51,16 @@ const userSchema = new mongoose.Schema(
     mustChangePassword: {
       type: Boolean,
       default: true,
+    },
+
+    status: {
+      type: String,
+      enum: ['active', 'blocked', 'suspended'],
+      default: 'active',
+    },
+
+    lastLogin: {
+      type: Date,
     },
 
     createdBy: {
@@ -58,5 +87,7 @@ userSchema.pre("save", async function () {
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
+
+userSchema.index({ schoolId: 1, role: 1 });
 
 module.exports = mongoose.model('User', userSchema);

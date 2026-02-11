@@ -15,7 +15,7 @@ const MainLayout = () => {
         display: 'flex',
         minHeight: '100vh',
         background: (theme) =>
-          `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${theme.palette.primary.light}22 100%)`,
+          `linear-gradient(180deg, ${theme.palette.background.default} 0%, #FFFDF9 60%, #FAF2EA 100%)`,
       }}
     >
       <Sidebar />

@@ -4,14 +4,15 @@ import {
   Avatar,
   Box,
   IconButton,
-  InputBase,
   Stack,
   Toolbar,
   Typography,
 } from '@mui/material';
 import MenuOutlined from '@mui/icons-material/MenuOutlined';
-import SearchOutlined from '@mui/icons-material/SearchOutlined';
 import NotificationsOutlined from '@mui/icons-material/NotificationsOutlined';
+import CalendarMonthOutlined from '@mui/icons-material/CalendarMonthOutlined';
+import KeyboardArrowDownRounded from '@mui/icons-material/KeyboardArrowDownRounded';
+import { Button } from '@mui/material';
 import { useUIDispatch } from '../../context/UIContext';
 
 const Header = ({ title }) => {
@@ -25,7 +26,6 @@ const Header = ({ title }) => {
       sx={{
         backgroundColor: 'transparent',
         color: 'text.primary',
-        backdropFilter: 'blur(10px)',
       }}
     >
       <Toolbar
@@ -47,47 +47,59 @@ const Header = ({ title }) => {
             <MenuOutlined />
           </IconButton>
           <Box>
-            <Typography variant="h5">{title}</Typography>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Typography variant="h5">{title}</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Portal / Main Dashboard
+              </Typography>
+            </Stack>
             <Typography variant="body2" color="text.secondary">
-              Welcome back{userInfo?.name ? `, ${userInfo.name}` : ''}
+              Monitor performance and academic operations in real time.
             </Typography>
           </Box>
         </Stack>
         <Stack direction="row" spacing={2} alignItems="center" sx={{ flex: 1, justifyContent: 'flex-end' }}>
-          <Box
-            sx={{
-              display: { xs: 'none', sm: 'flex' },
-              alignItems: 'center',
-              gap: 1,
-              px: 2,
-              py: 1,
-              borderRadius: 999,
-              backgroundColor: 'background.paper',
-              boxShadow: (theme) => `0 6px 20px ${theme.palette.primary.main}1A`,
-            }}
+          <Button
+            variant="outlined"
+            startIcon={<CalendarMonthOutlined fontSize="small" />}
+            endIcon={<KeyboardArrowDownRounded />}
+            sx={{ backgroundColor: '#FFFDF9' }}
           >
-            <SearchOutlined fontSize="small" />
-            <InputBase placeholder="Search" sx={{ fontSize: '0.9rem' }} />
-          </Box>
+            AY 2023-2024
+          </Button>
           <IconButton
             sx={{
-              backgroundColor: 'background.paper',
-              boxShadow: (theme) => `0 6px 16px ${theme.palette.primary.main}22`,
+              backgroundColor: '#FFFFFF',
+              border: '1px solid #EFE7DD',
             }}
           >
             <NotificationsOutlined fontSize="small" />
           </IconButton>
-          <Avatar
-            sx={{
-              width: 40,
-              height: 40,
-              bgcolor: 'primary.main',
-              color: 'primary.contrastText',
-              fontWeight: 600,
-            }}
-          >
-            {userInfo?.name ? userInfo.name.charAt(0).toUpperCase() : 'A'}
-          </Avatar>
+          <Box sx={{ position: 'relative' }}>
+            <Avatar
+              sx={{
+                width: 40,
+                height: 40,
+                bgcolor: 'primary.main',
+                color: 'primary.contrastText',
+                fontWeight: 600,
+              }}
+            >
+              {userInfo?.name ? userInfo.name.charAt(0).toUpperCase() : 'A'}
+            </Avatar>
+            <Box
+              sx={{
+                position: 'absolute',
+                right: 2,
+                top: 2,
+                width: 9,
+                height: 9,
+                borderRadius: '50%',
+                backgroundColor: '#F2B248',
+                border: '2px solid #FFFDF9',
+              }}
+            />
+          </Box>
         </Stack>
       </Toolbar>
     </AppBar>

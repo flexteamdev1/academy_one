@@ -25,7 +25,6 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
-  // eslint-disable-next-line no-unused-vars
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({

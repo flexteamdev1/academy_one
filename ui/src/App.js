@@ -26,10 +26,14 @@ function App() {
       <GlobalStyles
         styles={(theme) => ({
           body: {
-            background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${theme.palette.primary.light}22 100%)`,
+            background: `linear-gradient(180deg, ${theme.palette.background.default} 0%, #FFFDF9 60%, #FAF2EA 100%)`,
           },
           '@keyframes spin': {
             to: { transform: 'rotate(360deg)' },
+          },
+          '@keyframes fadeUp': {
+            from: { opacity: 0, transform: 'translateY(12px)' },
+            to: { opacity: 1, transform: 'translateY(0)' },
           },
         })}
       />

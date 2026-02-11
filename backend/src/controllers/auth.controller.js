@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const { ROLES } = require('../constants/roles');
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -11,9 +12,9 @@ const registerUser = async (req, res) => {
   try {
     const { email, password, role, name, phone } = req.body;
 
-    if (req.user.role !== 'superadmin') {
+    if (req.user.role !== ROLES.SUPER_ADMIN) {
       return res.status(403).json({
-        message: 'Only superadmin can create users',
+        message: 'Only super admin can create users',
       });
     }
 

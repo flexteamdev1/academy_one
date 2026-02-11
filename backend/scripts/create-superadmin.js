@@ -32,7 +32,7 @@ const run = async () => {
   const user = await User.create({
     email,
     password,
-    role: ROLES.ADMIN,
+    role: ROLES.SUPER_ADMIN,
     profile: { name, phone },
     mustChangePassword: true,
   });
