@@ -5,6 +5,7 @@ const UIDispatchContext = createContext(null);
 
 const initialState = {
   mobileSidebarOpen: false,
+  selectedAcademicYearId: localStorage.getItem('selectedAcademicYearId') || '',
 };
 
 const uiReducer = (state, action) => {
@@ -15,6 +16,8 @@ const uiReducer = (state, action) => {
       return { ...state, mobileSidebarOpen: false };
     case 'TOGGLE_MOBILE_SIDEBAR':
       return { ...state, mobileSidebarOpen: !state.mobileSidebarOpen };
+    case 'SET_ACADEMIC_YEAR':
+      return { ...state, selectedAcademicYearId: action.payload || '' };
     default:
       return state;
   }

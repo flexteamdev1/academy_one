@@ -14,8 +14,7 @@ const MainLayout = () => {
       sx={{
         display: 'flex',
         minHeight: '100vh',
-        background: (theme) =>
-          `linear-gradient(180deg, ${theme.palette.background.default} 0%, #FFFDF9 60%, #FAF2EA 100%)`,
+        backgroundColor: (theme) => theme.customColors.layoutBg,
       }}
     >
       <Sidebar />
@@ -26,14 +25,20 @@ const MainLayout = () => {
           display: 'flex',
           flexDirection: 'column',
           minHeight: '100vh',
+          minWidth: 0,
+          overflowX: 'hidden',
+          backgroundColor: (theme) => theme.customColors.layoutBg,
         }}
       >
-        <Header title={current?.label || 'Academy One'} />
+        <Header
+          title={current?.headerTitle || current?.label || 'Dashboard Overview'}
+          breadcrumb={current?.breadcrumb || 'Main Dashboard'}
+        />
         <Box
           sx={{
-            px: { xs: 2, md: 4 },
-            pb: 4,
-            pt: { xs: 2, md: 3 },
+            px: { xs: 1.5, md: 3 },
+            py: { xs: 2, md: 2.5 },
+            width: '100%',
             flex: 1,
           }}
         >

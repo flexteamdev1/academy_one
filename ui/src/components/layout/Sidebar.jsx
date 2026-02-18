@@ -1,7 +1,9 @@
 import React from 'react';
 import {
+  Avatar,
   Box,
-  Divider,
+  Button,
+  Collapse,
   Drawer,
   List,
   ListItemButton,
@@ -11,109 +13,301 @@ import {
   Typography,
   useMediaQuery,
 } from '@mui/material';
+import SchoolOutlined from '@mui/icons-material/SchoolOutlined';
+import HowToRegOutlined from '@mui/icons-material/HowToRegOutlined';
+import PaymentsOutlined from '@mui/icons-material/PaymentsOutlined';
+import BarChartOutlined from '@mui/icons-material/BarChartOutlined';
+import SettingsOutlined from '@mui/icons-material/SettingsOutlined';
+import ContactSupportOutlined from '@mui/icons-material/ContactSupportOutlined';
+import LogoutOutlined from '@mui/icons-material/LogoutOutlined';
 import { NavLink } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
 import navigation from '../../data/navigation';
 import { useUIDispatch, useUIState } from '../../context/UIContext';
+import { useNavigate } from 'react-router-dom';
+import { getUserInfo, getUserRole } from '../../utils/auth';
 
 const drawerWidth = 260;
+const DEFAULT_ROLE = '';
+const ALL_ROLES = ['super_admin', 'admin', 'teacher', 'student', 'parent'];
 
-const SidebarContent = () => (
+const secondaryItems = [
+  { label: 'Teachers', icon: SchoolOutlined, roles: ['super_admin', 'admin'] },
+  { label: 'Admissions', icon: HowToRegOutlined, roles: ['super_admin', 'admin'] },
+  { label: 'Fees', icon: PaymentsOutlined, roles: ['super_admin', 'admin'] },
+  { label: 'Reports', icon: BarChartOutlined, roles: ['super_admin', 'admin'] },
+];
+
+const systemItems = [
+  { label: 'Settings', icon: SettingsOutlined, roles: ['super_admin', 'admin'] },
+  { label: 'Support', icon: ContactSupportOutlined, roles: ALL_ROLES },
+];
+
+const SidebarContent = ({
+  onNavigate,
+  onToggleProfile,
+  profileOpen,
+  onLogout,
+  visibleNavigation,
+  visibleSecondaryItems,
+  visibleSystemItems,
+  userName,
+  userRole,
+}) => (
   <Stack sx={{ height: '100%' }}>
     <Box sx={{ px: 3, py: 3 }}>
-      <Stack direction="row" spacing={1.5} alignItems="center">
+      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ minHeight: 64 }}>
         <Box
           sx={{
-            width: 44,
-            height: 44,
-            borderRadius: '14px',
-            background: 'linear-gradient(135deg, #5B5CE3 0%, #8E8FF0 100%)',
-            color: '#fff',
-            display: 'grid',
-            placeItems: 'center',
-            fontWeight: 700,
+            width: 40,
+            height: 40,
+            borderRadius: (theme) => theme.customRadius.md,
+            backgroundColor: 'primary.main',
+            color: 'primary.contrastText',
+            p: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
-          A
+          <svg
+            viewBox="0 0 48 48"
+            fill="currentColor"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+          >
+            <path d="M24 18.4228L42 11.475V34.3663C42 34.7796 41.7457 35.1504 41.3601 35.2992L24 42V18.4228Z" />
+            <path d="M24 8.18819L33.4123 11.574L24 15.2071L14.5877 11.574L24 8.18819ZM9 15.8487L21 20.4805V37.6263L9 32.9945V15.8487ZM27 37.6263V20.4805L39 15.8487V32.9945L27 37.6263ZM25.354 2.29885C24.4788 1.98402 23.5212 1.98402 22.646 2.29885L4.98454 8.65208C3.7939 9.08038 3 10.2097 3 11.475V34.3663C3 36.0196 4.01719 37.5026 5.55962 38.098L22.9197 44.7987C23.6149 45.0671 24.3851 45.0671 25.0803 44.7987L42.4404 38.098C43.9828 37.5026 45 36.0196 45 34.3663V11.475C45 10.2097 44.2061 9.08038 43.0155 8.65208L25.354 2.29885Z" />
+          </svg>
         </Box>
         <Box>
-          <Typography variant="h6">Academy One</Typography>
-          <Typography variant="subtitle2" color="text.secondary">
+          <Typography sx={{ fontSize: '1.05rem', fontWeight: 700, lineHeight: 1.2 }}>
+            Academy One
+          </Typography>
+          <Typography
+            sx={{
+              color: 'text.secondary',
+              fontSize: '0.62rem',
+              textTransform: 'uppercase',
+              letterSpacing: '0.14em',
+              fontWeight: 700,
+              mt: 0.4,
+            }}
+          >
             Admin Portal
           </Typography>
         </Box>
       </Stack>
     </Box>
-    <List sx={{ px: 2, py: 2, flex: 1 }}>
-      {navigation.map((item) => {
+
+    <List sx={{ px: 2, py: 1.5, flex: 1 }}>
+      {visibleNavigation.map((item) => {
         const Icon = item.icon;
         return (
           <ListItemButton
             key={item.path}
             component={NavLink}
             to={item.path}
+            onClick={onNavigate}
             sx={{
               mb: 1,
-              borderRadius: 999,
-              px: 2,
-              py: 1.25,
+              borderRadius: (theme) => theme.customRadius.lg,
+              px: 1.5,
+              py: 1.1,
               '&.active': {
-                backgroundColor: '#F0EDFF',
+                backgroundColor: (theme) => theme.customColors.sidebarActiveBg,
                 color: 'primary.main',
-                boxShadow: 'inset 0 0 0 1px #E3DCFF',
+                borderRight: '4px solid',
+                borderRightColor: 'primary.main',
                 '& .MuiListItemIcon-root': {
                   color: 'inherit',
                 },
               },
             }}
           >
-            <ListItemIcon sx={{ minWidth: 40, color: 'text.secondary' }}>
+            <ListItemIcon sx={{ minWidth: 34, color: 'text.secondary' }}>
               <Icon fontSize="small" />
             </ListItemIcon>
-            <ListItemText primary={item.label} />
+            <ListItemText
+              primary={item.label}
+              primaryTypographyProps={{ fontWeight: 600, fontSize: '0.88rem' }}
+            />
           </ListItemButton>
         );
       })}
+
+      {visibleSecondaryItems.map((item) => {
+        const Icon = item.icon;
+        return (
+          <ListItemButton
+            key={item.label}
+            sx={{
+              mb: 1,
+              borderRadius: (theme) => theme.customRadius.lg,
+              px: 1.5,
+              py: 1.1,
+              color: 'text.secondary',
+              '&:hover': {
+                backgroundColor: (theme) => theme.customColors.sidebarItemHoverBg,
+                color: 'text.primary',
+              },
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 34, color: 'inherit' }}>
+              <Icon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText
+              primary={item.label}
+              primaryTypographyProps={{ fontWeight: 500, fontSize: '0.88rem' }}
+            />
+          </ListItemButton>
+        );
+      })}
+
+      <Box sx={{ mt: 1.5, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+        <Typography
+          sx={{
+            px: 1.5,
+            mb: 1,
+            color: 'text.secondary',
+            fontSize: '0.62rem',
+            fontWeight: 700,
+            letterSpacing: '0.14em',
+            textTransform: 'uppercase',
+          }}
+        >
+          Systems
+        </Typography>
+        {visibleSystemItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <ListItemButton
+              key={item.label}
+              sx={{
+                mb: 1,
+                borderRadius: (theme) => theme.customRadius.lg,
+                px: 1.5,
+                py: 1.1,
+                color: 'text.secondary',
+                '&:hover': {
+                  backgroundColor: (theme) => theme.customColors.sidebarItemHoverBg,
+                  color: 'text.primary',
+                },
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 34, color: 'inherit' }}>
+                <Icon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText
+                primary={item.label}
+                primaryTypographyProps={{ fontWeight: 500, fontSize: '0.88rem' }}
+              />
+            </ListItemButton>
+          );
+        })}
+      </Box>
     </List>
-    <Box sx={{ px: 3, pb: 3 }}>
+
+    <Box sx={{ px: 2.2, pb: 2.2, mt: 'auto' }}>
       <Box
         sx={{
-          p: 2,
-          borderRadius: 4,
-          backgroundColor: '#FFFFFF',
-          border: '1px solid #F0E7DD',
-          boxShadow: '0px 12px 28px rgba(31, 42, 55, 0.08)',
+          p: 1.4,
+          borderRadius: (theme) => theme.customRadius.lg,
+          backgroundColor: (theme) => theme.customColors.mutedSurface,
+          border: '1px solid',
+          borderColor: (theme) => theme.customColors.mutedBorder,
           display: 'flex',
           alignItems: 'center',
-          gap: 1.5,
+          gap: 1.4,
+          cursor: 'pointer',
         }}
+        onClick={onToggleProfile}
       >
-        <Box
+        <Avatar
           sx={{
-            width: 40,
-            height: 40,
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, #F5C6A5 0%, #E89AA3 100%)',
+            width: 36,
+            height: 36,
+            bgcolor: (theme) => theme.customColors.avatarWarmBg,
+            color: (theme) => theme.customColors.avatarWarmText,
           }}
-        />
-        <Box>
-          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-            Alex Johnson
+        >
+          A
+        </Avatar>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography sx={{ fontSize: '0.76rem', fontWeight: 700 }} noWrap>
+            {userName || 'User'}
           </Typography>
-          <Typography variant="caption" color="text.secondary">
-            Super Admin
+          <Typography
+            sx={{
+              color: 'text.secondary',
+              fontSize: '0.62rem',
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              fontWeight: 600,
+            }}
+            noWrap
+          >
+            {String(userRole || 'user').replace('_', ' ')}
           </Typography>
         </Box>
       </Box>
+      <Collapse in={profileOpen}>
+        <Button
+          fullWidth
+          startIcon={<LogoutOutlined />}
+          onClick={onLogout}
+          sx={{
+            mt: 1,
+            justifyContent: 'flex-start',
+            borderRadius: (theme) => theme.customRadius.md,
+            border: '1px solid',
+            borderColor: (theme) => theme.customColors.mutedBorder,
+            color: (theme) => theme.customColors.dangerText,
+            backgroundColor: (theme) => theme.customColors.stone50,
+            '&:hover': {
+              backgroundColor: (theme) => theme.customColors.stone100,
+            },
+          }}
+        >
+          Logout
+        </Button>
+      </Collapse>
     </Box>
   </Stack>
 );
 
 const Sidebar = () => {
+  const [profileOpen, setProfileOpen] = React.useState(false);
   const theme = useTheme();
   const { mobileSidebarOpen } = useUIState();
   const dispatch = useUIDispatch();
+  const navigate = useNavigate();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
+  const userInfo = getUserInfo();
+  const userRole = getUserRole() || DEFAULT_ROLE;
+  const userName = String(userInfo?.name || userInfo?.user?.name || '').trim();
+  const canAccess = (item) => !item.roles || item.roles.includes(userRole);
+  const visibleNavigation = navigation.filter(canAccess);
+  const primaryLabels = new Set(
+    visibleNavigation.map((item) => String(item.label || '').trim().toLowerCase())
+  );
+  const visibleSecondaryItems = secondaryItems
+    .filter(canAccess)
+    .filter((item) => !primaryLabels.has(String(item.label || '').trim().toLowerCase()));
+  const visibleSystemItems = systemItems.filter(canAccess);
+
+  const closeMobileSidebar = () => {
+    if (!isDesktop) {
+      dispatch({ type: 'CLOSE_MOBILE_SIDEBAR' });
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('userInfo');
+    dispatch({ type: 'CLOSE_MOBILE_SIDEBAR' });
+    navigate('/login', { replace: true });
+  };
 
   return (
     <Box component="nav" sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}>
@@ -125,13 +319,24 @@ const Sidebar = () => {
         sx={{
           '& .MuiDrawer-paper': {
             width: drawerWidth,
-            borderRight: 'none',
-            backgroundColor: '#FFFDF9',
+            borderRight: '1px solid',
+            borderRightColor: 'divider',
+            backgroundColor: 'background.paper',
             boxShadow: isDesktop ? 'none' : '0 20px 60px rgba(31, 42, 55, 0.12)',
           },
         }}
       >
-        <SidebarContent />
+        <SidebarContent
+          onNavigate={closeMobileSidebar}
+          onToggleProfile={() => setProfileOpen((prev) => !prev)}
+          profileOpen={profileOpen}
+          onLogout={handleLogout}
+          visibleNavigation={visibleNavigation}
+          visibleSecondaryItems={visibleSecondaryItems}
+          visibleSystemItems={visibleSystemItems}
+          userName={userName}
+          userRole={userRole}
+        />
       </Drawer>
     </Box>
   );

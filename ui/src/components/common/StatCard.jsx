@@ -3,13 +3,14 @@ import { Card, CardContent, Stack, Typography, Box } from '@mui/material';
 
 const StatCard = ({ title, value, trend, icon, bgColor, tone }) => (
   <Card
-    sx={{
+    sx={(theme) => ({
       height: '100%',
-      borderRadius: 12,
+      borderRadius: theme.customRadius.lg,
       overflow: 'hidden',
       backgroundColor: bgColor,
-      border: '1px solid #EEE6DD',
-    }}
+      border: `1px solid ${theme.customColors.softBorder}`,
+      boxShadow: '0 10px 24px rgba(15, 23, 42, 0.04)',
+    })}
   >
     <CardContent sx={{ p: 3 }}>
       <Stack spacing={2}>
@@ -18,8 +19,8 @@ const StatCard = ({ title, value, trend, icon, bgColor, tone }) => (
             sx={{
               width: 42,
               height: 42,
-              borderRadius: '14px',
-              backgroundColor: '#FFFFFFAA',
+              borderRadius: (theme) => theme.customRadius.md,
+              backgroundColor: (theme) => theme.customColors.overlayWhite60,
               display: 'grid',
               placeItems: 'center',
               color: tone,
@@ -28,16 +29,16 @@ const StatCard = ({ title, value, trend, icon, bgColor, tone }) => (
             {icon}
           </Box>
           <Box
-            sx={{
+            sx={(theme) => ({
               px: 1.4,
               py: 0.4,
               borderRadius: 999,
               fontSize: '0.75rem',
               fontWeight: 600,
-              backgroundColor: '#FFFFFF',
+              backgroundColor: theme.palette.background.paper,
               color: tone,
-              border: '1px solid #F0E7DD',
-            }}
+              border: `1px solid ${theme.customColors.softBorder}`,
+            })}
           >
             {trend}
           </Box>
