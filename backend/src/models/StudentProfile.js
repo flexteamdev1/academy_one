@@ -1,104 +1,91 @@
 const mongoose = require('mongoose');
+const { STUDENT_GENDER, STUDENT_STATUS } = require('../constants/enums');
 
-const studentProfileSchema = new mongoose.Schema(
-  {
-    schoolId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'School',
-      required: true,
-      index: true,
-    },
-
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-    },
-
-    admissionNo: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-
-    rollNo: {
-      type: String,
-      trim: true,
-    },
-
-    section: {
-      type: String,
-      trim: true,
-    },
-
-    firstName: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-
-    lastName: {
-      type: String,
-      trim: true,
-    },
-
-    dob: Date,
-
-    gender: {
-      type: String,
-      enum: ['MALE', 'FEMALE', 'OTHER'],
-    },
-
-    classId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Class',
-      required: true,
-    },
-
-    parentIds: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Parent',
-      },
-    ],
-
-    email: {
-      type: String,
-      lowercase: true,
-      trim: true,
-    },
-
-    phone: {
-      type: String,
-      trim: true,
-    },
-
-    bloodGroup: {
-      type: String,
-      trim: true,
-    },
-
-    status: {
-      type: String,
-      enum: ['active', 'passout', 'dropout'],
-      default: 'active',
-    },
-
-    joinedAt: Date,
+const studentProfileSchema = new mongoose.Schema({
+  admissionNo: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true
   },
-  { timestamps: true }
-);
 
-studentProfileSchema.index(
-  { schoolId: 1, admissionNo: 1 },
-  { unique: true }
-);
-studentProfileSchema.index(
-  { schoolId: 1, classId: 1, rollNo: 1 },
-  { unique: true, sparse: true }
-);
-studentProfileSchema.index(
-  { schoolId: 1, userId: 1 },
-  { unique: true, sparse: true }
-);
+  name: {
+    type: String,
+    required: true
+  },
+
+  email: {
+    type: String,
+    lowercase: true,
+    trim: true
+  },
+
+  gender: {
+    type: String,
+    enum: Object.values(STUDENT_GENDER),
+    required: true
+  },
+
+  dob: {
+    type: Date,
+    required: true
+  },
+
+  classId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Class",
+    required: false,
+    index: true
+  },
+
+  academicYearId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'AcademicYear',
+    default: null,
+    index: true,
+  },
+
+  grade: {
+    type: String,
+    trim: true
+  },
+
+  sectionName: {
+    type: String,
+    required: true,
+    uppercase: true,
+    maxlength: 2
+  },
+
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: null
+  },
+
+  parentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Parent",
+    default: null,
+    index: true
+  },
+
+  profilePhotoUrl: {
+    type: String
+  },
+
+  profilePhotoPublicId: {
+    type: String
+  },
+
+  status: {
+    type: String,
+    enum: Object.values(STUDENT_STATUS),
+    default: STUDENT_STATUS.ACTIVE
+  }
+
+}, { timestamps: true });
+
+studentProfileSchema.index({ grade: 1, sectionName: 1 });
 
 module.exports = mongoose.model('StudentProfile', studentProfileSchema);

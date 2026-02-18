@@ -1,14 +1,8 @@
 const mongoose = require('mongoose');
+const { ENROLLMENT_STATUS } = require('../constants/enums');
 
 const enrollmentSchema = new mongoose.Schema(
   {
-    schoolId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'School',
-      required: true,
-      index: true,
-    },
-
     studentId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'StudentProfile',
@@ -29,15 +23,15 @@ const enrollmentSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ['active', 'completed'],
-      default: 'active',
+      enum: Object.values(ENROLLMENT_STATUS),
+      default: ENROLLMENT_STATUS.ACTIVE,
     },
   },
   { timestamps: true }
 );
 
 enrollmentSchema.index(
-  { schoolId: 1, studentId: 1, classId: 1, academicYear: 1 },
+  { studentId: 1, classId: 1, academicYear: 1 },
   { unique: true }
 );
 

@@ -1,56 +1,37 @@
 const mongoose = require('mongoose');
+const { FEE_STATUS } = require('../constants/enums');
 
-const itemSchema = new mongoose.Schema(
-  {
-    title: { type: String, required: true, trim: true },
-    amount: { type: Number, required: true, min: 0 },
+const feeSchema = new mongoose.Schema({
+  studentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Student",
+    required: true
   },
-  { _id: false }
-);
 
-const feeStructureSchema = new mongoose.Schema(
-  {
-    schoolId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'School',
-      required: true,
-      index: true,
-    },
-
-    classId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Class',
-      required: true,
-    },
-
-    academicYear: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-
-    totalAmount: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
-
-    items: {
-      type: [itemSchema],
-      default: [],
-    },
-
-    isActive: {
-      type: Boolean,
-      default: true,
-    },
+  academicYearId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "AcademicYear",
+    required: true
   },
-  { timestamps: true }
-);
 
-feeStructureSchema.index(
-  { schoolId: 1, classId: 1, academicYear: 1 },
-  { unique: true }
-);
+  totalAmount: {
+    type: Number,
+    min: 0,
+    required: true
+  },
 
-module.exports = mongoose.model('FeeStructure', feeStructureSchema);
+  paidAmount: {
+    type: Number,
+    min: 0,
+    default: 0
+  },
+
+  status: {
+    type: String,
+    enum: Object.values(FEE_STATUS),
+    default: FEE_STATUS.PENDING
+  }
+
+}, { timestamps: true });
+
+module.exports = mongoose.model('FeeStructure', feeSchema);

@@ -3,13 +3,6 @@ const { ROLE_VALUES } = require('../constants/roles');
 
 const noticeSchema = new mongoose.Schema(
   {
-    schoolId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'School',
-      required: true,
-      index: true,
-    },
-
     title: {
       type: String,
       required: true,
@@ -22,6 +15,12 @@ const noticeSchema = new mongoose.Schema(
       trim: true,
     },
 
+    status: {
+      type: String,
+      enum: ['PUBLISHED', 'DRAFT', 'SCHEDULED', 'ARCHIVED'],
+      default: 'PUBLISHED',
+    },
+
     visibleFor: [
       {
         type: String,
@@ -29,16 +28,51 @@ const noticeSchema = new mongoose.Schema(
       },
     ],
 
+    grades: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+
+    channels: [
+      {
+        type: String,
+        enum: ['IN_APP', 'EMAIL', 'SMS'],
+      },
+    ],
+
+    attachments: [
+      {
+        name: {
+          type: String,
+          trim: true,
+        },
+        size: {
+          type: String,
+          trim: true,
+        },
+      },
+    ],
+
     publishedAt: Date,
+
+    scheduledAt: Date,
 
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     },
+
+    createdByName: {
+      type: String,
+      trim: true,
+      default: '',
+    },
   },
   { timestamps: true }
 );
 
-noticeSchema.index({ schoolId: 1, publishedAt: -1 });
+noticeSchema.index({ publishedAt: -1 });
 
 module.exports = mongoose.model('Notice', noticeSchema);

@@ -2,13 +2,6 @@ const mongoose = require('mongoose');
 
 const parentSchema = new mongoose.Schema(
   {
-    schoolId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'School',
-      required: true,
-      index: true,
-    },
-
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
@@ -61,7 +54,7 @@ const parentSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-parentSchema.index({ schoolId: 1, userId: 1 }, { unique: true, sparse: true });
-parentSchema.index({ schoolId: 1, email: 1 }, { sparse: true });
+parentSchema.index({ userId: 1 }, { unique: true, sparse: true });
+parentSchema.index({ email: 1 }, { sparse: true });
 
 module.exports = mongoose.model('Parent', parentSchema);
