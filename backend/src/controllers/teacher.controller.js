@@ -23,6 +23,34 @@ const normalizeSubjects = (subjects) => {
   return [];
 };
 
+const employeePattern = /^TE-(\d{4})-(\d{4})$/;
+
+const generateEmployeeId = async () => {
+  const year = new Date().getFullYear();
+  const prefix = `TE-${year}-`;
+
+  const latest = await Teacher.findOne({
+    employeeId: { $regex: `^${prefix}` },
+  })
+    .sort({ createdAt: -1 })
+    .select('employeeId');
+
+  let seq = 1;
+  const latestId = latest?.employeeId || '';
+  const match = latestId.match(employeePattern);
+  if (match && Number(match[1]) === year) {
+    seq = Number(match[2]) + 1;
+  }
+
+  while (true) {
+    const candidate = `${prefix}${String(seq).padStart(4, '0')}`;
+    // eslint-disable-next-line no-await-in-loop
+    const exists = await Teacher.exists({ employeeId: candidate });
+    if (!exists) return candidate;
+    seq += 1;
+  }
+};
+
 const listTeachers = async (req, res) => {
   try {
     const page = Math.max(1, Number(req.query.page) || 1);
@@ -96,7 +124,8 @@ const getTeacherStats = async (req, res) => {
 
 const createTeacher = async (req, res) => {
   try {
-    const teacherSlug = slugify(req.body.employeeId || req.body.firstName) || 'teacher';
+    const employeeId = await generateEmployeeId();
+    const teacherSlug = slugify(employeeId || req.body.firstName) || 'teacher';
     const uploadedPhoto = await uploadImageToCloudinary({
       file: req.file,
       folder: getCloudinaryFolder('teacher'),
@@ -104,7 +133,7 @@ const createTeacher = async (req, res) => {
     });
 
     const payload = {
-      employeeId: req.body.employeeId,
+      employeeId,
       firstName: req.body.firstName,
       lastName: req.body.lastName,
       email: req.body.email,
@@ -137,7 +166,7 @@ const updateTeacher = async (req, res) => {
       return res.status(404).json({ message: 'Teacher not found' });
     }
 
-    const teacherSlug = slugify(req.body.employeeId || existing.employeeId || req.body.firstName || existing.firstName) || 'teacher';
+    const teacherSlug = slugify(existing.employeeId || req.body.firstName || existing.firstName) || 'teacher';
     const uploadedPhoto = await uploadImageToCloudinary({
       file: req.file,
       folder: getCloudinaryFolder('teacher'),
@@ -151,7 +180,6 @@ const updateTeacher = async (req, res) => {
     const removeProfilePhoto = parseBoolean(req.body.removeProfilePhoto);
 
     const updateData = {
-      employeeId: req.body.employeeId,
       firstName: req.body.firstName,
       lastName: req.body.lastName,
       email: req.body.email,

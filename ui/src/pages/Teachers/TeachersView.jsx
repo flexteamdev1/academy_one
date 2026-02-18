@@ -17,25 +17,24 @@ import SearchOutlined from '@mui/icons-material/SearchOutlined';
 import FilterListOutlined from '@mui/icons-material/FilterListOutlined';
 import FileDownloadOutlined from '@mui/icons-material/FileDownloadOutlined';
 import PersonAddAlt1Outlined from '@mui/icons-material/PersonAddAlt1Outlined';
-import MoreVertOutlined from '@mui/icons-material/MoreVertOutlined';
 import MailOutlineOutlined from '@mui/icons-material/MailOutlineOutlined';
 import CallOutlined from '@mui/icons-material/CallOutlined';
 import CalendarMonthOutlined from '@mui/icons-material/CalendarMonthOutlined';
 import EditOutlined from '@mui/icons-material/EditOutlined';
 import DeleteOutlineOutlined from '@mui/icons-material/DeleteOutlineOutlined';
+import VisibilityOutlined from '@mui/icons-material/VisibilityOutlined';
 import ChevronLeftRounded from '@mui/icons-material/ChevronLeftRounded';
 import ChevronRightRounded from '@mui/icons-material/ChevronRightRounded';
 import HowToRegOutlined from '@mui/icons-material/HowToRegOutlined';
 import MenuBookOutlined from '@mui/icons-material/MenuBookOutlined';
 import VerifiedOutlined from '@mui/icons-material/VerifiedOutlined';
 import HistoryOutlined from '@mui/icons-material/HistoryOutlined';
-import AddRounded from '@mui/icons-material/AddRounded';
 import PageCard from '../../components/common/PageCard';
 
 const TeachersView = ({
   stats,
-  q,
-  setQ,
+  searchQuery,
+  setSearchQuery,
   status,
   setStatus,
   handleSearchSubmit,
@@ -44,6 +43,7 @@ const TeachersView = ({
   loading,
   teachers,
   openEditDialog,
+  openViewDialog,
   setConfirmDelete,
   formatJoined,
   colorTrack,
@@ -71,7 +71,7 @@ const TeachersView = ({
         </Typography>
       </Box>
 
-      <Stack direction="row" spacing={1.2}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.2}>
         <Button variant="outlined" startIcon={<FileDownloadOutlined />}>
           Export List
         </Button>
@@ -128,8 +128,8 @@ const TeachersView = ({
         <TextField
           fullWidth
           placeholder="Search teachers..."
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -204,10 +204,13 @@ const TeachersView = ({
                         {(teacher.firstName?.[0] || '') + (teacher.lastName?.[0] || '')}
                       </Box>
 
-                      <Stack direction="row" spacing={0.2}>
-                        <IconButton size="small" onClick={() => openEditDialog(teacher)}>
-                          <EditOutlined fontSize="small" />
-                        </IconButton>
+                    <Stack direction="row" spacing={0.2}>
+                      <IconButton size="small" onClick={() => openViewDialog(teacher)}>
+                        <VisibilityOutlined fontSize="small" />
+                      </IconButton>
+                      <IconButton size="small" onClick={() => openEditDialog(teacher)}>
+                        <EditOutlined fontSize="small" />
+                      </IconButton>
                         <IconButton
                           size="small"
                           onClick={() =>
@@ -215,9 +218,6 @@ const TeachersView = ({
                           }
                         >
                           <DeleteOutlineOutlined fontSize="small" />
-                        </IconButton>
-                        <IconButton size="small">
-                          <MoreVertOutlined fontSize="small" />
                         </IconButton>
                       </Stack>
                     </Stack>

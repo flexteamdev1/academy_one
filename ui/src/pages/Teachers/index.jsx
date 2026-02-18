@@ -11,13 +11,13 @@ import {
 import { FILTER_ALL, TEACHER_STATUS } from '../../constants/enums';
 import TeachersView from './TeachersView';
 import TeacherFormDialog from './TeacherFormDialog';
+import TeacherDetailsDialog from './TeacherDetailsDialog';
 
 const LIMIT = 12;
 
 const emptyForm = {
   firstName: '',
   lastName: '',
-  employeeId: '',
   email: '',
   phone: '',
   qualification: '',
@@ -42,7 +42,7 @@ const Teachers = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const [q, setQ] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [status, setStatus] = useState(FILTER_ALL);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -52,6 +52,8 @@ const Teachers = () => {
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [viewTeacher, setViewTeacher] = useState(null);
 
   const [confirmDelete, setConfirmDelete] = useState({ open: false, id: '', name: '' });
   const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
@@ -64,7 +66,7 @@ const Teachers = () => {
 
     try {
       const params = { page, limit: LIMIT };
-      if (q.trim()) params.q = q.trim();
+      if (searchQuery.trim()) params.q = searchQuery.trim();
       if (status !== FILTER_ALL) params.status = status;
 
       const [listRes, statsRes] = await Promise.all([listTeachers(params), getTeacherStats()]);
@@ -103,7 +105,6 @@ const Teachers = () => {
     setForm({
       firstName: teacher.firstName || '',
       lastName: teacher.lastName || '',
-      employeeId: teacher.employeeId || '',
       email: teacher.email || '',
       phone: teacher.phone || '',
       qualification: teacher.qualification || '',
@@ -113,6 +114,11 @@ const Teachers = () => {
       status: teacher.status || TEACHER_STATUS.ACTIVE,
     });
     setDialogOpen(true);
+  };
+
+  const openViewDialog = (teacher) => {
+    setViewTeacher(teacher);
+    setViewDialogOpen(true);
   };
 
   const handleDialogSubmit = async () => {
@@ -166,8 +172,8 @@ const Teachers = () => {
     <Box>
       <TeachersView
         stats={stats}
-        q={q}
-        setQ={setQ}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
         status={status}
         setStatus={setStatus}
         handleSearchSubmit={handleSearchSubmit}
@@ -176,6 +182,7 @@ const Teachers = () => {
         loading={loading}
         teachers={teachers}
         openEditDialog={openEditDialog}
+        openViewDialog={openViewDialog}
         setConfirmDelete={setConfirmDelete}
         formatJoined={formatJoined}
         colorTrack={colorTrack}
@@ -196,6 +203,17 @@ const Teachers = () => {
         form={form}
         setForm={setForm}
         TEACHER_STATUS={TEACHER_STATUS}
+      />
+
+      <TeacherDetailsDialog
+        open={viewDialogOpen}
+        onClose={() => setViewDialogOpen(false)}
+        teacher={viewTeacher}
+        onEdit={() => {
+          if (!viewTeacher) return;
+          setViewDialogOpen(false);
+          openEditDialog(viewTeacher);
+        }}
       />
 
       <DeleteConfirmDialog

@@ -7,18 +7,18 @@ const toServiceError = (error, fallback) => {
   throw wrapped;
 };
 
-export const listTeachers = async (params = {}) => {
+export const listTeachers = async (params = {}, options = {}) => {
   try {
-    const response = await apiClient.get('/teachers', { params });
+    const response = await apiClient.get('/teachers', { params, signal: options.signal });
     return response.data;
   } catch (error) {
     toServiceError(error, 'Failed to load teachers');
   }
 };
 
-export const getTeacherStats = async () => {
+export const getTeacherStats = async (options = {}) => {
   try {
-    const response = await apiClient.get('/teachers/stats');
+    const response = await apiClient.get('/teachers/stats', { signal: options.signal });
     return response.data;
   } catch (error) {
     toServiceError(error, 'Failed to load teacher stats');
