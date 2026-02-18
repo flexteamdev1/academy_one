@@ -1,0 +1,407 @@
+import React, { useEffect, useMemo, useState } from 'react';
+import { Alert, Box, Snackbar } from '@mui/material';
+import PersonOutlined from '@mui/icons-material/PersonOutlined';
+import VerifiedUserOutlined from '@mui/icons-material/VerifiedUserOutlined';
+import UpcomingOutlined from '@mui/icons-material/UpcomingOutlined';
+import DeleteConfirmDialog from '../../components/common/DeleteConfirmDialog';
+import {
+  createStudent,
+  deleteStudent,
+  getStudentStats,
+  listStudents,
+  updateStudent,
+} from '../../services/studentService';
+import { listClasses } from '../../services/classService';
+import { getUserRole } from '../../utils/auth';
+import { useUIState } from '../../context/UIContext';
+import { FILTER_ALL, STUDENT_GENDER, STUDENT_STATUS, USER_ROLES } from '../../constants/enums';
+import StudentsView from './StudentsView';
+import StudentFormDialog from './StudentCreateDialog';
+
+const LIMIT = 10;
+
+const emptyForm = {
+  name: '',
+  email: '',
+  gender: STUDENT_GENDER.MALE,
+  dob: '',
+  classId: '',
+  grade: '',
+  sectionName: '',
+  status: STUDENT_STATUS.ACTIVE,
+  parentFirstName: '',
+  parentLastName: '',
+  parentEmail: '',
+  parentPhone: '',
+  parentRelation: '',
+  parentOccupation: '',
+  parentEmergencyContact: '',
+  profilePhoto: null,
+  removeProfilePhoto: false,
+};
+
+const metricSpec = [
+  {
+    key: 'attendanceRate',
+    title: 'Attendance (Today)',
+    icon: PersonOutlined,
+    container: 'pastelMint',
+    border: 'mintDark',
+    iconColor: 'successMain',
+    textColor: 'successDeep',
+    formatter: (value) => `${value || 0}%`,
+  },
+  {
+    key: 'verifiedProfiles',
+    title: 'Verified Profiles',
+    icon: VerifiedUserOutlined,
+    container: 'pastelBlue',
+    border: 'blueDark',
+    iconColor: 'infoMain',
+    textColor: 'infoDeep',
+    formatter: (value) => `${value || 0}%`,
+  },
+  {
+    key: 'newEnrollments',
+    title: 'New Enrollments',
+    icon: UpcomingOutlined,
+    container: 'pastelLavender',
+    border: 'lavenderDark',
+    iconColor: 'lavenderMain',
+    textColor: 'purpleDeep',
+    formatter: (value) => `${value || 0}`,
+  },
+];
+
+const statusChipSx = (status, theme) => {
+  if (status === STUDENT_STATUS.ACTIVE) {
+    return {
+      backgroundColor: theme.customColors.pastelMint,
+      color: theme.palette.success.main,
+      borderColor: theme.customColors.mintDark,
+    };
+  }
+
+  return {
+    backgroundColor: theme.customColors.stone100,
+    color: theme.customColors.stone400,
+    borderColor: theme.customColors.stone200,
+  };
+};
+
+const Students = () => {
+  const { selectedAcademicYearId } = useUIState();
+  const role = getUserRole();
+  const canManage = role === USER_ROLES.SUPER_ADMIN || role === USER_ROLES.ADMIN;
+  const [students, setStudents] = useState([]);
+  const [stats, setStats] = useState({
+    attendanceRate: 0,
+    verifiedProfiles: 0,
+    newEnrollments: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const [q, setQ] = useState('');
+  const [grade, setGrade] = useState(FILTER_ALL);
+  const [section, setSection] = useState(FILTER_ALL);
+  const [status, setStatus] = useState(FILTER_ALL);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogMode, setDialogMode] = useState('create');
+  const [editingId, setEditingId] = useState('');
+  const [form, setForm] = useState(emptyForm);
+  const [photoPreview, setPhotoPreview] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [dispatchInfo, setDispatchInfo] = useState(null);
+  const [classCatalog, setClassCatalog] = useState([]);
+
+  const [deleteState, setDeleteState] = useState({ open: false, id: '', name: '' });
+  const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
+
+  const totalPages = Math.max(1, Math.ceil(total / LIMIT));
+
+  const loadData = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      const params = { page, limit: LIMIT };
+      if (q.trim()) params.q = q.trim();
+      if (grade !== FILTER_ALL) params.grade = grade;
+      if (section !== FILTER_ALL) params.section = section;
+      if (status !== FILTER_ALL) params.status = status;
+
+      const [listRes, statsRes] = await Promise.all([
+        listStudents(params),
+        getStudentStats(),
+      ]);
+
+      setStudents(listRes.items || []);
+      setTotal(listRes.pagination?.total || 0);
+      setStats(statsRes || {});
+    } catch (err) {
+      setError(err.message || 'Failed to load students');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, grade, section, status, selectedAcademicYearId]);
+
+  useEffect(() => {
+    return () => {
+      if (photoPreview) URL.revokeObjectURL(photoPreview);
+    };
+  }, [photoPreview]);
+
+  const gradeOptions = useMemo(() => {
+    const values = new Set(students.map((item) => item.grade).filter(Boolean));
+    return Array.from(values).sort();
+  }, [students]);
+
+  const sectionOptions = useMemo(() => {
+    const values = new Set(students.map((item) => item.sectionName).filter(Boolean));
+    return Array.from(values).sort();
+  }, [students]);
+
+  const handleSearchSubmit = (event) => {
+    event.preventDefault();
+    setPage(1);
+    loadData();
+  };
+
+  const openCreateDialog = () => {
+    setForm(emptyForm);
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhotoPreview('');
+    setDialogMode('create');
+    setEditingId('');
+    setDialogOpen(true);
+  };
+
+  const openEditDialog = (student) => {
+    setDialogMode('edit');
+    setEditingId(student._id);
+    setForm({
+      ...emptyForm,
+      name: student.name || '',
+      email: student.email || '',
+      gender: student.gender || STUDENT_GENDER.MALE,
+      dob: student.dob ? String(student.dob).slice(0, 10) : '',
+      classId: student.classId || '',
+      grade: student.grade || '',
+      sectionName: student.sectionName || '',
+      status: student.status || STUDENT_STATUS.ACTIVE,
+      profilePhoto: null,
+      removeProfilePhoto: false,
+    });
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhotoPreview(student.profilePhotoUrl || '');
+    setDialogOpen(true);
+  };
+
+  const handlePhotoChange = (file) => {
+    setForm((prev) => ({ ...prev, profilePhoto: file || null, removeProfilePhoto: false }));
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhotoPreview(file ? URL.createObjectURL(file) : '');
+  };
+
+  const handleRemovePhoto = () => {
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhotoPreview('');
+    setForm((prev) => ({ ...prev, profilePhoto: null, removeProfilePhoto: true }));
+  };
+
+  const handleSubmitStudent = async () => {
+    if (!form.grade || !form.sectionName) {
+      setToast({ open: true, severity: 'error', message: 'Please select grade and section' });
+      return;
+    }
+
+    setSubmitting(true);
+
+    try {
+      const payload = {
+        name: form.name.trim(),
+        email: form.email.trim(),
+        gender: form.gender,
+        dob: form.dob,
+        classId: form.classId || undefined,
+        grade: form.grade.trim(),
+        sectionName: form.sectionName.trim().toUpperCase(),
+        profilePhoto: form.profilePhoto,
+        status: dialogMode === 'edit' ? form.status : undefined,
+        removeProfilePhoto: dialogMode === 'edit' ? form.removeProfilePhoto : undefined,
+      };
+
+      if (dialogMode === 'create') {
+        payload.parentFirstName = form.parentFirstName.trim();
+        payload.parentLastName = form.parentLastName.trim();
+        payload.parentEmail = form.parentEmail.trim();
+        payload.parentPhone = form.parentPhone.trim();
+        payload.parentRelation = form.parentRelation.trim();
+        payload.parentOccupation = form.parentOccupation.trim();
+        payload.parentEmergencyContact = form.parentEmergencyContact.trim();
+      }
+
+      if (dialogMode === 'create') {
+        const response = await createStudent(payload);
+        setDispatchInfo(response.accountDispatch || null);
+        setToast({ open: true, severity: 'success', message: 'Student created successfully' });
+        setPage(1);
+      } else {
+        await updateStudent(editingId, payload);
+        setToast({ open: true, severity: 'success', message: 'Student updated successfully' });
+      }
+
+      setDialogOpen(false);
+      await loadData();
+    } catch (err) {
+      setToast({ open: true, severity: 'error', message: err.message || 'Unable to save student' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  useEffect(() => {
+    const loadClassCatalog = async () => {
+      try {
+        const response = await listClasses({
+          page: 1,
+          limit: 100,
+          status: STUDENT_STATUS.ACTIVE,
+        });
+        setClassCatalog(response.items || []);
+      } catch (_error) {
+        setClassCatalog([]);
+      }
+    };
+
+    loadClassCatalog();
+  }, []);
+
+  const dialogGradeOptions = useMemo(() => {
+    const values = new Set(classCatalog.map((item) => String(item.name || '').trim()).filter(Boolean));
+    return Array.from(values).sort();
+  }, [classCatalog]);
+
+  const dialogSectionOptions = useMemo(() => {
+    if (!form.grade) return [];
+
+    const matchedClasses = classCatalog.filter((item) => String(item.name || '').trim() === form.grade);
+    const values = new Set();
+    matchedClasses.forEach((item) => {
+      (item.sections || []).forEach((sectionItem) => {
+        const sectionName = String(sectionItem.name || '').trim().toUpperCase();
+        if (sectionName) values.add(sectionName);
+      });
+    });
+
+    return Array.from(values).sort();
+  }, [classCatalog, form.grade]);
+
+  const resolveClassId = (nextGrade, nextSection) => {
+    if (!nextGrade || !nextSection) return '';
+    const matched = classCatalog.find(
+      (item) =>
+        String(item.name || '').trim() === nextGrade &&
+        (item.sections || []).some(
+          (sectionItem) => String(sectionItem.name || '').trim().toUpperCase() === nextSection
+        )
+    );
+    return matched?._id || '';
+  };
+
+  const handleDeleteStudent = async () => {
+    try {
+      await deleteStudent(deleteState.id);
+      setDeleteState({ open: false, id: '', name: '' });
+      setToast({ open: true, severity: 'success', message: 'Student deleted successfully' });
+      await loadData();
+    } catch (err) {
+      setToast({ open: true, severity: 'error', message: err.message || 'Unable to delete student' });
+    }
+  };
+
+  return (
+    <Box>
+      <StudentsView
+        canManage={canManage}
+        openCreateDialog={openCreateDialog}
+        dispatchInfo={dispatchInfo}
+        q={q}
+        setQ={setQ}
+        handleSearchSubmit={handleSearchSubmit}
+        grade={grade}
+        setGrade={setGrade}
+        section={section}
+        setSection={setSection}
+        status={status}
+        setStatus={setStatus}
+        gradeOptions={gradeOptions}
+        sectionOptions={sectionOptions}
+        FILTER_ALL={FILTER_ALL}
+        STUDENT_STATUS={STUDENT_STATUS}
+        error={error}
+        students={students}
+        openEditDialog={openEditDialog}
+        setDeleteState={setDeleteState}
+        page={page}
+        setPage={setPage}
+        totalPages={totalPages}
+        total={total}
+        loading={loading}
+        metricSpec={metricSpec}
+        stats={stats}
+        statusChipSx={statusChipSx}
+      />
+
+      {canManage ? (
+        <>
+          <StudentFormDialog
+            dialogOpen={dialogOpen}
+            setDialogOpen={setDialogOpen}
+            submitting={submitting}
+            handleSubmitStudent={handleSubmitStudent}
+            dialogMode={dialogMode}
+            form={form}
+            setForm={setForm}
+            STUDENT_GENDER={STUDENT_GENDER}
+            STUDENT_STATUS={STUDENT_STATUS}
+            dialogGradeOptions={dialogGradeOptions}
+            dialogSectionOptions={dialogSectionOptions}
+            resolveClassId={resolveClassId}
+            handlePhotoChange={handlePhotoChange}
+            photoPreview={photoPreview}
+            handleRemovePhoto={handleRemovePhoto}
+          />
+
+          <DeleteConfirmDialog
+            open={deleteState.open}
+            onClose={() => setDeleteState({ open: false, id: '', name: '' })}
+            onConfirm={handleDeleteStudent}
+            title="Delete Student Record?"
+            itemName={deleteState.name}
+            description={`You are about to remove ${deleteState.name || 'this student'} from the registry. This action is permanent and will delete all associated attendance and academic data.`}
+            confirmLabel="Delete"
+            cancelLabel="Keep Record"
+          />
+        </>
+      ) : null}
+
+      <Snackbar open={toast.open} autoHideDuration={3500} onClose={() => setToast((prev) => ({ ...prev, open: false }))}>
+        <Alert severity={toast.severity} onClose={() => setToast((prev) => ({ ...prev, open: false }))}>
+          {toast.message}
+        </Alert>
+      </Snackbar>
+    </Box>
+  );
+};
+
+export default Students;
