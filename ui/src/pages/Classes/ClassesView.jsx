@@ -78,12 +78,12 @@ const ClassesView = ({
           startIcon={<AddRounded />}
           onClick={openCreateDialog}
           sx={{
-            backgroundColor: (theme) => theme.customColors.pastelBlue,
+            backgroundColor: (theme) => theme.palette.info.light,
             border: '1px solid',
-            borderColor: (theme) => theme.customColors.blueDark,
-            color: (theme) => theme.customColors.infoDeep,
+            borderColor: (theme) => theme.palette.info.main,
+            color: (theme) => theme.palette.info.dark,
             fontWeight: 700,
-            '&:hover': { backgroundColor: (theme) => theme.customColors.blueDark },
+            '&:hover': { backgroundColor: (theme) => theme.palette.info.main },
           }}
         >
           Create Class
@@ -99,14 +99,11 @@ const ClassesView = ({
             <PageCard
               sx={{
                 p: 2,
-                border: '1px solid',
-                borderColor: (theme) => theme.customColors[metric.border] || theme.customColors.stone200,
-                backgroundColor: (theme) => theme.customColors[metric.bg],
                 boxShadow: 'none',
               }}
             >
               <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.3 }}>
-                <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.11em', textTransform: 'uppercase', color: (theme) => theme.customColors.stone400 }}>
+                <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.11em', textTransform: 'uppercase', color: (theme) => theme.palette.grey[500] }}>
                   {metric.label}
                 </Typography>
                 <Avatar
@@ -189,10 +186,10 @@ const ClassesView = ({
           <IconButton
             type="submit"
             sx={(theme) => ({
-              borderRadius: theme.customRadius.md,
+              borderRadius: theme.shape.borderRadius,
               border: '1px solid',
-              borderColor: theme.customColors.stone200,
-              backgroundColor: theme.customColors.stone100,
+              borderColor: theme.palette.grey[200],
+              backgroundColor: theme.palette.grey[100],
             })}
           >
             <FilterListOutlined />
@@ -223,8 +220,8 @@ const ClassesView = ({
               <TableRow
                 key={item._id}
                 sx={{
-                  '& .MuiTableCell-root': { borderBottomColor: (theme) => theme.customColors.stone100 },
-                  '&:hover': { backgroundColor: (theme) => theme.customColors.stone50 },
+                  '& .MuiTableCell-root': { borderBottomColor: (theme) => theme.palette.grey[100] },
+                  '&:hover': { backgroundColor: (theme) => theme.palette.grey[50] },
                 }}
               >
                 <TableCell>
@@ -244,10 +241,10 @@ const ClassesView = ({
                           alignSelf: 'flex-start',
                           height: 20,
                           fontWeight: 700,
-                          backgroundColor: (theme) => theme.customColors.pastelMint,
-                          color: (theme) => theme.customColors.successDeep,
+                          backgroundColor: (theme) => theme.palette.success.light,
+                          color: (theme) => theme.palette.success.dark,
                           border: '1px solid',
-                          borderColor: (theme) => theme.customColors.mintDark,
+                          borderColor: (theme) => theme.palette.success.main,
                         }}
                       />
                     ) : null}
@@ -264,10 +261,10 @@ const ClassesView = ({
                         sx={{
                           height: 24,
                           borderRadius: '999px',
-                          backgroundColor: (theme) => theme.customColors.pastelBlue,
+                          backgroundColor: (theme) => theme.palette.info.light,
                           border: '1px solid',
-                          borderColor: (theme) => theme.customColors.blueDark,
-                          color: (theme) => theme.customColors.infoDeep,
+                          borderColor: (theme) => theme.palette.info.main,
+                          color: (theme) => theme.palette.info.dark,
                           fontWeight: 600,
                         }}
                       />
@@ -292,16 +289,16 @@ const ClassesView = ({
                       letterSpacing: '0.04em',
                       backgroundColor:
                         item.status === CLASS_STATUS.ACTIVE
-                          ? (theme) => theme.customColors.pastelMint
-                          : (theme) => theme.customColors.stone100,
+                          ? (theme) => theme.palette.success.light
+                          : (theme) => theme.palette.grey[100],
                       borderColor:
                         item.status === CLASS_STATUS.ACTIVE
-                          ? (theme) => theme.customColors.mintDark
-                          : (theme) => theme.customColors.stone200,
+                          ? (theme) => theme.palette.success.main
+                          : (theme) => theme.palette.grey[200],
                       color:
                         item.status === CLASS_STATUS.ACTIVE
-                          ? (theme) => theme.customColors.successDeep
-                          : (theme) => theme.customColors.stone400,
+                          ? (theme) => theme.palette.success.dark
+                          : (theme) => theme.palette.grey[500],
                     }}
                   />
                 </TableCell>
@@ -311,14 +308,14 @@ const ClassesView = ({
                     <IconButton
                       size="small"
                       onClick={() => openEditDialog(item)}
-                      sx={{ mr: 0.5, color: (theme) => theme.customColors.infoDeep }}
+                      sx={{ mr: 0.5, color: (theme) => theme.palette.info.dark }}
                     >
                       <EditOutlined fontSize="small" />
                     </IconButton>
                     <IconButton
                       size="small"
                       onClick={() => setDeleteState({ open: true, id: item._id, name: item.name })}
-                      sx={{ color: (theme) => theme.customColors.dangerText }}
+                      sx={{ color: (theme) => theme.palette.error.main }}
                     >
                       <DeleteOutlineOutlined fontSize="small" />
                     </IconButton>
@@ -349,8 +346,8 @@ const ClassesView = ({
           px: 2,
           py: 1.5,
           borderTop: '1px solid',
-          borderColor: (theme) => theme.customColors.stone100,
-          backgroundColor: (theme) => theme.customColors.stone50,
+          borderColor: (theme) => theme.palette.grey[100],
+          backgroundColor: (theme) => theme.palette.grey[50],
         }}
       >
         <Typography
@@ -359,7 +356,7 @@ const ClassesView = ({
             fontWeight: 700,
             letterSpacing: '0.12em',
             textTransform: 'uppercase',
-            color: (theme) => theme.customColors.stone400,
+            color: (theme) => theme.palette.grey[500],
           }}
         >
           Showing {items.length ? (page - 1) * LIMIT + 1 : 0} to {(page - 1) * LIMIT + items.length} of {total} classes
@@ -370,7 +367,7 @@ const ClassesView = ({
             size="small"
             disabled={page <= 1}
             onClick={() => setPage((prev) => prev - 1)}
-            sx={{ border: '1px solid', borderColor: (theme) => theme.customColors.stone200 }}
+            sx={{ border: '1px solid', borderColor: (theme) => theme.palette.grey[200] }}
           >
             <ChevronLeftRounded fontSize="small" />
           </IconButton>
@@ -383,7 +380,7 @@ const ClassesView = ({
               border: '1px solid',
               borderColor: 'primary.main',
               color: 'primary.main',
-              backgroundColor: (theme) => theme.customColors.pastelLavender,
+              backgroundColor: (theme) => theme.palette.secondary.light,
               fontWeight: 700,
             }}
           >
@@ -393,7 +390,7 @@ const ClassesView = ({
             size="small"
             disabled={page >= totalPages}
             onClick={() => setPage((prev) => prev + 1)}
-            sx={{ border: '1px solid', borderColor: (theme) => theme.customColors.stone200 }}
+            sx={{ border: '1px solid', borderColor: (theme) => theme.palette.grey[200] }}
           >
             <ChevronRightRounded fontSize="small" />
           </IconButton>

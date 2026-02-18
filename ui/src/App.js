@@ -60,7 +60,7 @@ function App() {
       <GlobalStyles
         styles={(theme) => ({
           body: {
-            background: `linear-gradient(180deg, ${theme.palette.background.default} 0%, ${theme.customColors.stone50} 60%, ${theme.customColors.warmSidebar} 100%)`,
+            backgroundColor: theme.palette.background.default,
           },
           '@keyframes spin': {
             to: { transform: 'rotate(360deg)' },

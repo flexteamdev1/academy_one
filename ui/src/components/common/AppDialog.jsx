@@ -13,10 +13,12 @@ const AppDialog = ({
   secondaryAction,
 }) => (
   <Dialog open={open} onClose={onClose} maxWidth={maxWidth} fullWidth={fullWidth}>
-    {title ? <DialogTitle>{title}</DialogTitle> : null}
-    <DialogContent dividers={contentDividers}>{children}</DialogContent>
+    {title ? <DialogTitle sx={{ px: 3, pt: 3, pb: 1.5 }}>{title}</DialogTitle> : null}
+    <DialogContent dividers={contentDividers} sx={{ px: 3, pb: 3 }}>
+      {children}
+    </DialogContent>
     {(primaryAction || secondaryAction) ? (
-      <DialogActions>
+      <DialogActions sx={{ px: 3, pb: 2, pt: 2 }}>
         {secondaryAction ? (
           <Button onClick={secondaryAction.onClick} disabled={secondaryAction.disabled}>
             {secondaryAction.label}

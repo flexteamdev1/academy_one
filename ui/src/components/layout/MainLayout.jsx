@@ -14,7 +14,7 @@ const MainLayout = () => {
       sx={{
         display: 'flex',
         minHeight: '100vh',
-        backgroundColor: (theme) => theme.customColors.layoutBg,
+        backgroundColor: (theme) => theme.palette.background.default,
       }}
     >
       <Sidebar />
@@ -27,7 +27,7 @@ const MainLayout = () => {
           minHeight: '100vh',
           minWidth: 0,
           overflowX: 'hidden',
-          backgroundColor: (theme) => theme.customColors.layoutBg,
+          backgroundColor: (theme) => theme.palette.background.default,
         }}
       >
         <Header

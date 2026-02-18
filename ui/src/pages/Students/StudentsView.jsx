@@ -25,6 +25,7 @@ import SearchOutlined from '@mui/icons-material/SearchOutlined';
 import FilterListOutlined from '@mui/icons-material/FilterListOutlined';
 import DeleteOutlineOutlined from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlined from '@mui/icons-material/EditOutlined';
+import VisibilityOutlined from '@mui/icons-material/VisibilityOutlined';
 import ChevronLeftRounded from '@mui/icons-material/ChevronLeftRounded';
 import ChevronRightRounded from '@mui/icons-material/ChevronRightRounded';
 import PageCard from '../../components/common/PageCard';
@@ -50,6 +51,7 @@ const StudentsView = ({
   error,
   students,
   openEditDialog,
+  openViewDialog,
   setDeleteState,
   page,
   setPage,
@@ -78,30 +80,30 @@ const StudentsView = ({
       </Box>
 
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.2}>
-        <Button
+        {/* <Button
           startIcon={<DownloadOutlined />}
           sx={{
-            backgroundColor: (theme) => theme.customColors.pastelMint,
+            backgroundColor: (theme) => theme.palette.success.light,
             border: '1px solid',
-            borderColor: (theme) => theme.customColors.mintDark,
-            color: (theme) => theme.customColors.successDeep,
+            borderColor: (theme) => theme.palette.success.main,
+            color: (theme) => theme.palette.success.dark,
             fontWeight: 700,
-            '&:hover': { backgroundColor: (theme) => theme.customColors.mintDark },
+            '&:hover': { backgroundColor: (theme) => theme.palette.success.main },
           }}
         >
           Export List
-        </Button>
+        </Button> */}
         <Button
           startIcon={<PersonAddAlt1Outlined />}
           onClick={openCreateDialog}
           disabled={!canManage}
           sx={{
-            backgroundColor: (theme) => theme.customColors.pastelBlue,
+            backgroundColor: (theme) => theme.palette.info.light,
             border: '1px solid',
-            borderColor: (theme) => theme.customColors.blueDark,
-            color: (theme) => theme.customColors.infoDeep,
+            borderColor: (theme) => theme.palette.info.main,
+            color: (theme) => theme.palette.info.dark,
             fontWeight: 700,
-            '&:hover': { backgroundColor: (theme) => theme.customColors.blueDark },
+            '&:hover': { backgroundColor: (theme) => theme.palette.info.main },
           }}
         >
           {canManage ? 'Add Student' : 'Read Only'}
@@ -131,27 +133,27 @@ const StudentsView = ({
                 </InputAdornment>
               ),
             }}
-            sx={{ '& .MuiOutlinedInput-root': { backgroundColor: (theme) => theme.customColors.stone50 } }}
+            sx={{ '& .MuiOutlinedInput-root': { backgroundColor: (theme) => theme.palette.grey[50] } }}
           />
         </Box>
 
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.2} sx={{ width: { xs: '100%', lg: 'auto' } }}>
           <FormControl size="small" sx={{ minWidth: 150 }}>
-            <Select value={grade} onChange={(e) => { setGrade(e.target.value); setPage(1); }} sx={{ backgroundColor: (theme) => theme.customColors.stone50 }}>
+            <Select value={grade} onChange={(e) => { setGrade(e.target.value); setPage(1); }} sx={{ backgroundColor: (theme) => theme.palette.grey[50] }}>
               <MenuItem value={FILTER_ALL}>All Grades</MenuItem>
               {gradeOptions.map((item) => <MenuItem key={item} value={item}>{item}</MenuItem>)}
             </Select>
           </FormControl>
 
           <FormControl size="small" sx={{ minWidth: 150 }}>
-            <Select value={section} onChange={(e) => { setSection(e.target.value); setPage(1); }} sx={{ backgroundColor: (theme) => theme.customColors.stone50 }}>
+            <Select value={section} onChange={(e) => { setSection(e.target.value); setPage(1); }} sx={{ backgroundColor: (theme) => theme.palette.grey[50] }}>
               <MenuItem value={FILTER_ALL}>All Sections</MenuItem>
               {sectionOptions.map((item) => <MenuItem key={item} value={item}>{item}</MenuItem>)}
             </Select>
           </FormControl>
 
           <FormControl size="small" sx={{ minWidth: 150 }}>
-            <Select value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }} sx={{ backgroundColor: (theme) => theme.customColors.stone50 }}>
+            <Select value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }} sx={{ backgroundColor: (theme) => theme.palette.grey[50] }}>
               <MenuItem value={FILTER_ALL}>All Status</MenuItem>
               <MenuItem value={STUDENT_STATUS.ACTIVE}>Active</MenuItem>
               <MenuItem value={STUDENT_STATUS.DROPPED}>Dropped</MenuItem>
@@ -162,10 +164,10 @@ const StudentsView = ({
           <IconButton
             type="submit"
             sx={(theme) => ({
-              borderRadius: theme.customRadius.md,
+              borderRadius: theme.shape.borderRadius,
               border: '1px solid',
-              borderColor: theme.customColors.stone200,
-              backgroundColor: theme.customColors.stone100,
+              borderColor: theme.palette.grey[200],
+              backgroundColor: theme.palette.grey[100],
             })}
           >
             <FilterListOutlined />
@@ -196,8 +198,8 @@ const StudentsView = ({
               <TableRow
                 key={student._id}
                 sx={{
-                  '& .MuiTableCell-root': { borderBottomColor: (theme) => theme.customColors.stone100 },
-                  '&:hover': { backgroundColor: (theme) => theme.customColors.stone50 },
+                  '& .MuiTableCell-root': { borderBottomColor: (theme) => theme.palette.grey[100] },
+                  '&:hover': { backgroundColor: (theme) => theme.palette.grey[50] },
                 }}
               >
                 <TableCell>
@@ -211,8 +213,8 @@ const StudentsView = ({
                         fontWeight: 700,
                         fontSize: '0.82rem',
                         border: '1px solid',
-                        borderColor: theme.customColors.stone200,
-                        backgroundColor: theme.customColors.pastelBlue,
+                        borderColor: theme.palette.grey[200],
+                        backgroundColor: theme.palette.info.light,
                         color: theme.palette.info.main,
                       })}
                     >
@@ -221,7 +223,7 @@ const StudentsView = ({
 
                     <Box>
                       <Typography sx={{ fontSize: '0.9rem', fontWeight: 700 }}>{student.name}</Typography>
-                      <Typography sx={{ fontSize: '0.76rem', color: (theme) => theme.customColors.stone400 }}>
+                      <Typography sx={{ fontSize: '0.76rem', color: (theme) => theme.palette.grey[500] }}>
                         {student.email || student.parentId?.email || 'N/A'}
                       </Typography>
                     </Box>
@@ -259,9 +261,16 @@ const StudentsView = ({
                 <TableCell align="right">
                   <IconButton
                     size="small"
+                    onClick={() => openViewDialog(student)}
+                    sx={{ color: (theme) => theme.palette.warning.main }}
+                  >
+                    <VisibilityOutlined fontSize="small" />
+                  </IconButton>
+                  <IconButton
+                    size="small"
                     disabled={!canManage}
                     onClick={() => openEditDialog(student)}
-                    sx={{ color: (theme) => theme.customColors.infoDeep }}
+                    sx={{ color: (theme) => theme.palette.info.dark }}
                   >
                     <EditOutlined fontSize="small" />
                   </IconButton>
@@ -269,7 +278,7 @@ const StudentsView = ({
                     size="small"
                     disabled={!canManage}
                     onClick={() => setDeleteState({ open: true, id: student._id, name: student.name })}
-                    sx={{ color: (theme) => theme.customColors.dangerText }}
+                    sx={{ color: (theme) => theme.palette.error.main }}
                   >
                     <DeleteOutlineOutlined fontSize="small" />
                   </IconButton>
@@ -298,22 +307,22 @@ const StudentsView = ({
           px: 2,
           py: 1.5,
           borderTop: '1px solid',
-          borderColor: (theme) => theme.customColors.stone100,
-          backgroundColor: (theme) => theme.customColors.stone50,
+          borderColor: (theme) => theme.palette.grey[100],
+          backgroundColor: (theme) => theme.palette.grey[50],
         }}
       >
-        <Typography sx={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: (theme) => theme.customColors.stone400 }}>
+        <Typography sx={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: (theme) => theme.palette.grey[500] }}>
           Showing {students.length ? (page - 1) * 10 + 1 : 0} to {(page - 1) * 10 + students.length} of {total} students
         </Typography>
 
         <Stack direction="row" spacing={0.8} alignItems="center">
-          <IconButton size="small" disabled={page <= 1} onClick={() => setPage((prev) => prev - 1)} sx={{ border: '1px solid', borderColor: (theme) => theme.customColors.stone200 }}>
+          <IconButton size="small" disabled={page <= 1} onClick={() => setPage((prev) => prev - 1)} sx={{ border: '1px solid', borderColor: (theme) => theme.palette.grey[200] }}>
             <ChevronLeftRounded fontSize="small" />
           </IconButton>
-          <Button size="small" sx={{ minWidth: 56, px: 1, py: 0.5, border: '1px solid', borderColor: 'primary.main', color: 'primary.main', backgroundColor: (theme) => theme.customColors.pastelLavender, fontWeight: 700 }}>
+          <Button size="small" sx={{ minWidth: 56, px: 1, py: 0.5, border: '1px solid', borderColor: 'primary.main', color: 'primary.main', backgroundColor: (theme) => theme.palette.secondary.light, fontWeight: 700 }}>
             {page}/{totalPages}
           </Button>
-          <IconButton size="small" disabled={page >= totalPages} onClick={() => setPage((prev) => prev + 1)} sx={{ border: '1px solid', borderColor: (theme) => theme.customColors.stone200 }}>
+          <IconButton size="small" disabled={page >= totalPages} onClick={() => setPage((prev) => prev + 1)} sx={{ border: '1px solid', borderColor: (theme) => theme.palette.grey[200] }}>
             <ChevronRightRounded fontSize="small" />
           </IconButton>
         </Stack>
@@ -328,30 +337,27 @@ const StudentsView = ({
             key={metric.key}
             sx={{
               p: 2.2,
-              border: '1px solid',
-              borderColor: (theme) => theme.customColors[metric.border],
-              backgroundColor: (theme) => theme.customColors[metric.container],
               boxShadow: 'none',
             }}
           >
             <Stack direction="row" spacing={1.4} alignItems="center">
               <Box
-                sx={(theme) => ({
+                sx={{
                   p: 1,
-                  borderRadius: theme.customRadius.md,
-                  backgroundColor: theme.customColors.overlayWhite60,
-                  color: theme.customColors[metric.iconColor],
+                  borderRadius: 1,
+                  bgcolor: 'background.paper',
+                  color: 'text.secondary',
                   display: 'grid',
                   placeItems: 'center',
-                })}
+                }}
               >
                 <MetricIcon fontSize="small" />
               </Box>
               <Box>
-                <Typography sx={{ fontSize: '0.64rem', fontWeight: 700, letterSpacing: '0.11em', textTransform: 'uppercase', color: (theme) => theme.customColors[metric.textColor], opacity: 0.85 }}>
+                <Typography sx={{ fontSize: '0.64rem', fontWeight: 700, letterSpacing: '0.11em', textTransform: 'uppercase', color: 'text.secondary', opacity: 0.85 }}>
                   {metric.title}
                 </Typography>
-                <Typography sx={{ fontSize: '1.6rem', fontWeight: 700, color: (theme) => theme.customColors.charcoalText }}>
+                <Typography sx={{ fontSize: '1.6rem', fontWeight: 700, color: (theme) => theme.palette.text.primary }}>
                   {metric.formatter(stats[metric.key])}
                 </Typography>
               </Box>

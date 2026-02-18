@@ -5,14 +5,14 @@ const AppTableHead = ({ columns = [] }) => (
   <TableHead>
     <TableRow
       sx={{
-        backgroundColor: (theme) => theme.customColors.stone50,
+        backgroundColor: (theme) => theme.palette.grey[50],
         '& .MuiTableCell-root': {
           fontSize: '0.72rem',
           fontWeight: 700,
           letterSpacing: '0.08em',
           textTransform: 'uppercase',
-          color: (theme) => theme.customColors.stone400,
-          borderBottomColor: (theme) => theme.customColors.stone100,
+          color: (theme) => theme.palette.grey[500],
+          borderBottomColor: (theme) => theme.palette.grey[100],
         },
       }}
     >

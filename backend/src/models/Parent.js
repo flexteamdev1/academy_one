@@ -48,6 +48,7 @@ const parentSchema = new mongoose.Schema(
 
     emergencyContact: {
       type: String,
+      required: true,
       trim: true,
     },
   },

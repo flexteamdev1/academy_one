@@ -61,7 +61,7 @@ const SidebarContent = ({
           sx={{
             width: 40,
             height: 40,
-            borderRadius: (theme) => theme.customRadius.md,
+            borderRadius: (theme) => theme.shape.borderRadius,
             backgroundColor: 'primary.main',
             color: 'primary.contrastText',
             p: 1,
@@ -112,11 +112,11 @@ const SidebarContent = ({
             onClick={onNavigate}
             sx={{
               mb: 1,
-              borderRadius: (theme) => theme.customRadius.lg,
+              borderRadius: (theme) => theme.shape.borderRadius,
               px: 1.5,
               py: 1.1,
               '&.active': {
-                backgroundColor: (theme) => theme.customColors.sidebarActiveBg,
+                backgroundColor: (theme) => theme.palette.action.selected,
                 color: 'primary.main',
                 borderRight: '4px solid',
                 borderRightColor: 'primary.main',
@@ -144,12 +144,12 @@ const SidebarContent = ({
             key={item.label}
             sx={{
               mb: 1,
-              borderRadius: (theme) => theme.customRadius.lg,
+              borderRadius: (theme) => theme.shape.borderRadius,
               px: 1.5,
               py: 1.1,
               color: 'text.secondary',
               '&:hover': {
-                backgroundColor: (theme) => theme.customColors.sidebarItemHoverBg,
+                backgroundColor: (theme) => theme.palette.action.hover,
                 color: 'text.primary',
               },
             }}
@@ -186,12 +186,12 @@ const SidebarContent = ({
               key={item.label}
               sx={{
                 mb: 1,
-                borderRadius: (theme) => theme.customRadius.lg,
+                borderRadius: (theme) => theme.shape.borderRadius,
                 px: 1.5,
                 py: 1.1,
                 color: 'text.secondary',
                 '&:hover': {
-                  backgroundColor: (theme) => theme.customColors.sidebarItemHoverBg,
+                  backgroundColor: (theme) => theme.palette.action.hover,
                   color: 'text.primary',
                 },
               }}
@@ -213,10 +213,10 @@ const SidebarContent = ({
       <Box
         sx={{
           p: 1.4,
-          borderRadius: (theme) => theme.customRadius.lg,
-          backgroundColor: (theme) => theme.customColors.mutedSurface,
+          borderRadius: (theme) => theme.shape.borderRadius,
+          backgroundColor: (theme) => theme.palette.background.paper,
           border: '1px solid',
-          borderColor: (theme) => theme.customColors.mutedBorder,
+          borderColor: (theme) => theme.palette.divider,
           display: 'flex',
           alignItems: 'center',
           gap: 1.4,
@@ -228,8 +228,8 @@ const SidebarContent = ({
           sx={{
             width: 36,
             height: 36,
-            bgcolor: (theme) => theme.customColors.avatarWarmBg,
-            color: (theme) => theme.customColors.avatarWarmText,
+            bgcolor: (theme) => theme.palette.primary.light,
+            color: (theme) => theme.palette.primary.dark,
           }}
         >
           A
@@ -260,13 +260,13 @@ const SidebarContent = ({
           sx={{
             mt: 1,
             justifyContent: 'flex-start',
-            borderRadius: (theme) => theme.customRadius.md,
+            borderRadius: (theme) => theme.shape.borderRadius,
             border: '1px solid',
-            borderColor: (theme) => theme.customColors.mutedBorder,
-            color: (theme) => theme.customColors.dangerText,
-            backgroundColor: (theme) => theme.customColors.stone50,
+            borderColor: (theme) => theme.palette.divider,
+            color: (theme) => theme.palette.error.main,
+            backgroundColor: (theme) => theme.palette.grey[50],
             '&:hover': {
-              backgroundColor: (theme) => theme.customColors.stone100,
+              backgroundColor: (theme) => theme.palette.grey[100],
             },
           }}
         >

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Grid, MenuItem, TextField } from '@mui/material';
 import AppDialog from '../../components/common/AppDialog';
+import PhoneMaskInput from '../../components/common/PhoneMaskInput';
 
 const TeacherFormDialog = ({
   dialogOpen,
@@ -37,7 +38,14 @@ const TeacherFormDialog = ({
         <TextField label="Email" fullWidth value={form.email} onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))} />
       </Grid>
       <Grid item xs={12} sm={6}>
-        <TextField label="Phone" fullWidth value={form.phone} onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))} />
+        <TextField
+          label="Phone"
+          name="phone"
+          fullWidth
+          value={form.phone}
+          onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
+          InputProps={{ inputComponent: PhoneMaskInput }}
+        />
       </Grid>
       <Grid item xs={12} sm={6}>
         <TextField label="Qualification / Role" fullWidth value={form.qualification} onChange={(e) => setForm((prev) => ({ ...prev, qualification: e.target.value }))} />

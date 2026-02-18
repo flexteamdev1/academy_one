@@ -69,7 +69,7 @@ const LoginPage = () => {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', bgcolor: (theme) => theme.customColors.layoutBg }}>
+    <Box sx={{ minHeight: '100vh', display: 'flex', bgcolor: (theme) => theme.palette.background.default }}>
       <Box
         sx={{
           display: { xs: 'none', lg: 'flex' },
@@ -81,7 +81,7 @@ const LoginPage = () => {
           position: 'relative',
           overflow: 'hidden',
           background: (theme) =>
-            `linear-gradient(135deg, ${theme.customColors.pastelLavender} 0%, ${theme.customColors.pastelBlue} 100%)`,
+            `linear-gradient(135deg, ${theme.palette.secondary.light} 0%, ${theme.palette.info.light} 100%)`,
         }}
       >
         <Box sx={{ position: 'absolute', inset: 0, opacity: 0.3 }}>
@@ -94,7 +94,7 @@ const LoginPage = () => {
               height: 256,
               borderRadius: '50%',
               filter: 'blur(64px)',
-              bgcolor: (theme) => theme.customColors.blurBlobLight,
+              bgcolor: (theme) => theme.palette.action.hover,
             }}
           />
           <Box
@@ -106,7 +106,7 @@ const LoginPage = () => {
               height: 384,
               borderRadius: '50%',
               filter: 'blur(64px)',
-              bgcolor: (theme) => theme.customColors.pastelLavender,
+              bgcolor: (theme) => theme.palette.secondary.light,
             }}
           />
         </Box>
@@ -115,11 +115,11 @@ const LoginPage = () => {
           <Card
             sx={(theme) => ({
               p: 4,
-              borderRadius: theme.customRadius.xl,
+              borderRadius: theme.shape.borderRadius,
               boxShadow: 'none',
               border: '1px solid',
-              borderColor: theme.customColors.overlayWhite50,
-              backgroundColor: theme.customColors.overlayWhite40,
+              borderColor: theme.palette.action.hover,
+              backgroundColor: theme.palette.action.hover,
               backdropFilter: 'blur(8px)',
               textAlign: 'center',
             })}
@@ -128,7 +128,7 @@ const LoginPage = () => {
               sx={{
                 width: 80,
                 height: 80,
-                borderRadius: (theme) => theme.customRadius.lg,
+                borderRadius: (theme) => theme.shape.borderRadius,
                 backgroundColor: 'primary.main',
                 color: 'primary.contrastText',
                 display: 'grid',
@@ -156,12 +156,12 @@ const LoginPage = () => {
               <Box
                 key={item.label}
                 sx={{
-                  borderRadius: (theme) => theme.customRadius.lg,
+                  borderRadius: (theme) => theme.shape.borderRadius,
                   p: 1.5,
                   textAlign: 'center',
                   border: '1px solid',
-                  borderColor: (theme) => theme.customColors.overlayWhite30,
-                  backgroundColor: (theme) => theme.customColors.overlayWhite20,
+                  borderColor: (theme) => theme.palette.action.hover,
+                  backgroundColor: (theme) => theme.palette.action.hover,
                   backdropFilter: 'blur(4px)',
                 }}
               >
@@ -189,7 +189,7 @@ const LoginPage = () => {
                 sx={(theme) => ({
                   width: 38,
                   height: 38,
-                  borderRadius: theme.customRadius.md,
+                  borderRadius: theme.shape.borderRadius,
                   backgroundColor: 'primary.main',
                   color: 'primary.contrastText',
                   display: 'grid',
@@ -212,9 +212,9 @@ const LoginPage = () => {
           <Card
             sx={(theme) => ({
               p: { xs: 3, md: 4 },
-              borderRadius: theme.customRadius.xl,
+              borderRadius: theme.shape.borderRadius,
               border: '1px solid',
-              borderColor: theme.customColors.stone100,
+              borderColor: theme.palette.grey[100],
               boxShadow: '0 20px 46px rgba(31,42,55,0.08)',
             })}
           >
@@ -223,7 +223,7 @@ const LoginPage = () => {
             <form onSubmit={handleSubmit}>
               <Stack spacing={2.6}>
                 <Box>
-                  <Typography sx={{ mb: 1, ml: 0.8, fontSize: '0.67rem', fontWeight: 800, color: (theme) => theme.customColors.stone400, textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+                  <Typography sx={{ mb: 1, ml: 0.8, fontSize: '0.67rem', fontWeight: 800, color: (theme) => theme.palette.grey[500], textTransform: 'uppercase', letterSpacing: '0.12em' }}>
                     User Email
                   </Typography>
                   <TextField
@@ -245,7 +245,7 @@ const LoginPage = () => {
 
                 <Box>
                   <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1, px: 0.8 }}>
-                    <Typography sx={{ fontSize: '0.67rem', fontWeight: 800, color: (theme) => theme.customColors.stone400, textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+                    <Typography sx={{ fontSize: '0.67rem', fontWeight: 800, color: (theme) => theme.palette.grey[500], textTransform: 'uppercase', letterSpacing: '0.12em' }}>
                       Password
                     </Typography>
                     <Link href="#" underline="hover" sx={{ fontSize: '0.67rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'primary.main' }}>
@@ -297,14 +297,14 @@ const LoginPage = () => {
                   endIcon={<ArrowForwardRounded />}
                   sx={(theme) => ({
                     py: 1.6,
-                    borderRadius: theme.customRadius.md,
+                    borderRadius: theme.shape.borderRadius,
                     color: 'primary.contrastText',
                     fontWeight: 800,
                     fontSize: '0.95rem',
                     backgroundColor: 'primary.main',
                     boxShadow: '0 12px 28px rgba(37,99,235,0.22)',
                     '&:hover': {
-                      backgroundColor: theme.customColors.loginSoftIndigo,
+                      backgroundColor: theme.palette.primary.dark,
                     },
                   })}
                 >
@@ -315,7 +315,7 @@ const LoginPage = () => {
           </Card>
 
           <Box sx={{ textAlign: 'center' }}>
-            <Typography sx={{ fontSize: '0.66rem', color: (theme) => theme.customColors.stone400, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+            <Typography sx={{ fontSize: '0.66rem', color: (theme) => theme.palette.grey[500], fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em' }}>
               © 2024 Academy One CRM •{' '}
               <Link href="#" underline="always" sx={{ color: 'inherit' }}>
                 Privacy Policy

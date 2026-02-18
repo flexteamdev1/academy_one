@@ -17,6 +17,7 @@ import { useUIState } from '../../context/UIContext';
 import { FILTER_ALL, STUDENT_GENDER, STUDENT_STATUS, USER_ROLES } from '../../constants/enums';
 import StudentsView from './StudentsView';
 import StudentFormDialog from './StudentCreateDialog';
+import StudentDetailsDialog from './StudentDetailsDialog';
 
 const LIMIT = 10;
 
@@ -76,16 +77,16 @@ const metricSpec = [
 const statusChipSx = (status, theme) => {
   if (status === STUDENT_STATUS.ACTIVE) {
     return {
-      backgroundColor: theme.customColors.pastelMint,
+      backgroundColor: theme.palette.success.light,
       color: theme.palette.success.main,
-      borderColor: theme.customColors.mintDark,
+      borderColor: theme.palette.success.main,
     };
   }
 
   return {
-    backgroundColor: theme.customColors.stone100,
-    color: theme.customColors.stone400,
-    borderColor: theme.customColors.stone200,
+    backgroundColor: theme.palette.grey[100],
+    color: theme.palette.grey[500],
+    borderColor: theme.palette.grey[200],
   };
 };
 
@@ -115,6 +116,8 @@ const Students = () => {
   const [form, setForm] = useState(emptyForm);
   const [photoPreview, setPhotoPreview] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [viewStudent, setViewStudent] = useState(null);
   const [dispatchInfo, setDispatchInfo] = useState(null);
   const [classCatalog, setClassCatalog] = useState([]);
 
@@ -188,6 +191,7 @@ const Students = () => {
   const openEditDialog = (student) => {
     setDialogMode('edit');
     setEditingId(student._id);
+    const parentRecord = student.parentId || {};
     setForm({
       ...emptyForm,
       name: student.name || '',
@@ -198,12 +202,24 @@ const Students = () => {
       grade: student.grade || '',
       sectionName: student.sectionName || '',
       status: student.status || STUDENT_STATUS.ACTIVE,
+      parentFirstName: parentRecord.firstName || '',
+      parentLastName: parentRecord.lastName || '',
+      parentEmail: parentRecord.email || '',
+      parentPhone: parentRecord.phone || '',
+      parentRelation: parentRecord.relation || '',
+      parentOccupation: parentRecord.occupation || '',
+      parentEmergencyContact: parentRecord.emergencyContact || '',
       profilePhoto: null,
       removeProfilePhoto: false,
     });
     if (photoPreview) URL.revokeObjectURL(photoPreview);
     setPhotoPreview(student.profilePhotoUrl || '');
     setDialogOpen(true);
+  };
+
+  const openViewDialog = (student) => {
+    setViewStudent(student);
+    setViewDialogOpen(true);
   };
 
   const handlePhotoChange = (file) => {
@@ -240,15 +256,13 @@ const Students = () => {
         removeProfilePhoto: dialogMode === 'edit' ? form.removeProfilePhoto : undefined,
       };
 
-      if (dialogMode === 'create') {
-        payload.parentFirstName = form.parentFirstName.trim();
-        payload.parentLastName = form.parentLastName.trim();
-        payload.parentEmail = form.parentEmail.trim();
-        payload.parentPhone = form.parentPhone.trim();
-        payload.parentRelation = form.parentRelation.trim();
-        payload.parentOccupation = form.parentOccupation.trim();
-        payload.parentEmergencyContact = form.parentEmergencyContact.trim();
-      }
+      payload.parentFirstName = form.parentFirstName.trim();
+      payload.parentLastName = form.parentLastName.trim();
+      payload.parentEmail = form.parentEmail.trim();
+      payload.parentPhone = form.parentPhone.trim();
+      payload.parentRelation = form.parentRelation.trim();
+      payload.parentOccupation = form.parentOccupation.trim();
+      payload.parentEmergencyContact = form.parentEmergencyContact.trim();
 
       if (dialogMode === 'create') {
         const response = await createStudent(payload);
@@ -334,6 +348,7 @@ const Students = () => {
       <StudentsView
         canManage={canManage}
         openCreateDialog={openCreateDialog}
+        openViewDialog={openViewDialog}
         dispatchInfo={dispatchInfo}
         q={q}
         setQ={setQ}
@@ -394,6 +409,18 @@ const Students = () => {
           />
         </>
       ) : null}
+
+      <StudentDetailsDialog
+        open={viewDialogOpen}
+        onClose={() => setViewDialogOpen(false)}
+        student={viewStudent}
+        canManage={canManage}
+        onEdit={() => {
+          if (!viewStudent) return;
+          setViewDialogOpen(false);
+          openEditDialog(viewStudent);
+        }}
+      />
 
       <Snackbar open={toast.open} autoHideDuration={3500} onClose={() => setToast((prev) => ({ ...prev, open: false }))}>
         <Alert severity={toast.severity} onClose={() => setToast((prev) => ({ ...prev, open: false }))}>

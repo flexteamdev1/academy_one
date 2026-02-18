@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 
 const AdmissionsCard = ({ admissions }) => (
-  <Card sx={(theme) => ({ borderRadius: theme.customRadius.lg, border: `1px solid ${theme.customColors.softBorder}`, boxShadow: 'none' })}>
+  <Card sx={(theme) => ({ borderRadius: theme.shape.borderRadius, border: `1px solid ${theme.palette.divider}`, boxShadow: 'none' })}>
     <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ px: 2.2, py: 2 }}>
         <Typography sx={{ fontSize: '1.35rem', fontWeight: 800, color: 'text.primary' }}>Recent Admissions</Typography>
@@ -34,7 +34,7 @@ const AdmissionsCard = ({ admissions }) => (
                   fontWeight: 800,
                   letterSpacing: '0.08em',
                   textTransform: 'uppercase',
-                  borderBottom: `1px solid ${theme.customColors.stone100}`,
+                  borderBottom: `1px solid ${theme.palette.grey[100]}`,
                   py: 1.4,
                 })}
               >
@@ -48,7 +48,7 @@ const AdmissionsCard = ({ admissions }) => (
             <TableRow
               key={student.name}
               sx={(theme) => ({
-                '& td': { borderBottom: `1px solid ${theme.customColors.stone100}` },
+                '& td': { borderBottom: `1px solid ${theme.palette.grey[100]}` },
               })}
             >
               <TableCell sx={{ py: 1.5 }}>
@@ -58,8 +58,8 @@ const AdmissionsCard = ({ admissions }) => (
                       width: 30,
                       height: 30,
                       fontSize: '0.66rem',
-                      backgroundColor: theme.customColors.pastelBlue,
-                      color: theme.customColors.dashboardAccentOne,
+                      backgroundColor: theme.palette.info.light,
+                      color: theme.palette.primary.main,
                       fontWeight: 700,
                     })}
                   >
@@ -80,11 +80,11 @@ const AdmissionsCard = ({ admissions }) => (
                     fontSize: '0.72rem',
                     fontWeight: 700,
                     backgroundColor: student.status === 'Confirmed'
-                      ? theme.customColors.successSoft
-                      : theme.customColors.warningSoft,
+                      ? theme.palette.success.light
+                      : theme.palette.warning.light,
                     color: student.status === 'Confirmed'
-                      ? theme.customColors.successText
-                      : theme.customColors.warningText,
+                      ? theme.palette.success.dark
+                      : theme.palette.warning.main,
                   })}
                 >
                   {student.status}

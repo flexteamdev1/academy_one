@@ -36,14 +36,14 @@ const DeleteConfirmDialog = ({
               mb: 2.3,
               display: 'grid',
               placeItems: 'center',
-              backgroundColor: (theme) => theme.customColors.pastelRose,
-              color: (theme) => theme.customColors.roseMain,
+              backgroundColor: 'error.light',
+              color: (theme) => theme.palette.error.main,
             }}
           >
             <WarningAmberRounded sx={{ fontSize: 38 }} />
           </Box>
 
-          <Typography sx={{ fontSize: '2rem', fontWeight: 800, color: (theme) => theme.customColors.charcoalText }}>
+          <Typography sx={{ fontSize: '2rem', fontWeight: 800, color: (theme) => theme.palette.text.primary }}>
             {title}
           </Typography>
 
@@ -58,8 +58,8 @@ const DeleteConfirmDialog = ({
           justifyContent="center"
           sx={{
             borderTop: '1px solid',
-            borderColor: (theme) => theme.customColors.stone100,
-            backgroundColor: (theme) => theme.customColors.stone50,
+            borderColor: (theme) => theme.palette.grey[100],
+            backgroundColor: (theme) => theme.palette.grey[50],
             px: 2.5,
             py: 2.1,
           }}
@@ -69,8 +69,8 @@ const DeleteConfirmDialog = ({
             variant="outlined"
             sx={{
               minWidth: 140,
-              borderRadius: (theme) => theme.customRadius.md,
-              borderColor: (theme) => theme.customColors.stone300,
+              borderRadius: (theme) => theme.shape.borderRadius,
+              borderColor: (theme) => theme.palette.grey[300],
               color: 'text.primary',
               fontWeight: 800,
               textTransform: 'none',
@@ -87,7 +87,7 @@ const DeleteConfirmDialog = ({
             color="error"
             sx={{
               minWidth: 120,
-              borderRadius: (theme) => theme.customRadius.md,
+              borderRadius: (theme) => theme.shape.borderRadius,
               fontWeight: 800,
               textTransform: 'none',
               boxShadow: 'none',

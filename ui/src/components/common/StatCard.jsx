@@ -5,10 +5,10 @@ const StatCard = ({ title, value, trend, icon, bgColor, tone }) => (
   <Card
     sx={(theme) => ({
       height: '100%',
-      borderRadius: theme.customRadius.lg,
+      borderRadius: theme.shape.borderRadius,
       overflow: 'hidden',
       backgroundColor: bgColor,
-      border: `1px solid ${theme.customColors.softBorder}`,
+      border: `1px solid ${theme.palette.divider}`,
       boxShadow: '0 10px 24px rgba(15, 23, 42, 0.04)',
     })}
   >
@@ -19,8 +19,8 @@ const StatCard = ({ title, value, trend, icon, bgColor, tone }) => (
             sx={{
               width: 42,
               height: 42,
-              borderRadius: (theme) => theme.customRadius.md,
-              backgroundColor: (theme) => theme.customColors.overlayWhite60,
+              borderRadius: (theme) => theme.shape.borderRadius,
+              backgroundColor: (theme) => theme.palette.action.hover,
               display: 'grid',
               placeItems: 'center',
               color: tone,
@@ -37,7 +37,7 @@ const StatCard = ({ title, value, trend, icon, bgColor, tone }) => (
               fontWeight: 600,
               backgroundColor: theme.palette.background.paper,
               color: tone,
-              border: `1px solid ${theme.customColors.softBorder}`,
+              border: `1px solid ${theme.palette.divider}`,
             })}
           >
             {trend}

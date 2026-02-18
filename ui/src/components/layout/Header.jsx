@@ -120,7 +120,7 @@ const Header = ({ title, breadcrumb = 'Main Dashboard' }) => {
             sx={{ display: { xs: 'none', lg: 'flex' }, minWidth: 0 }}
           >
             <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary' }}>Portal</Typography>
-            <Typography sx={{ fontSize: '0.82rem', color: (theme) => theme.customColors.breadcrumbSlash }}>
+            <Typography sx={{ fontSize: '0.82rem', color: (theme) => theme.palette.text.secondary }}>
               /
             </Typography>
             <Typography sx={{ fontSize: '0.82rem', fontWeight: 500 }} noWrap>
@@ -135,7 +135,7 @@ const Header = ({ title, breadcrumb = 'Main Dashboard' }) => {
             startIcon={
               <CalendarMonthOutlined
                 fontSize="small"
-                sx={{ color: (theme) => theme.customColors.calendarAccent }}
+                sx={{ color: (theme) => theme.palette.primary.main }}
               />
             }
             endIcon={<KeyboardArrowDownRounded />}
@@ -143,7 +143,7 @@ const Header = ({ title, breadcrumb = 'Main Dashboard' }) => {
             sx={{
               display: { xs: 'none', md: 'inline-flex' },
               backgroundColor: 'background.paper',
-              borderColor: (theme) => theme.customColors.subtleBorder,
+              borderColor: (theme) => theme.palette.divider,
               color: 'text.secondary',
               fontWeight: 700,
               fontSize: '0.72rem',
@@ -189,7 +189,7 @@ const Header = ({ title, breadcrumb = 'Main Dashboard' }) => {
               width: 40,
               height: 40,
               backgroundColor: 'background.paper',
-              border: (theme) => `1px solid ${theme.customColors.subtleBorder}`,
+              border: (theme) => `1px solid ${theme.palette.divider}`,
               color: 'text.secondary',
               display: { xs: 'none', sm: 'inline-flex' },
             }}

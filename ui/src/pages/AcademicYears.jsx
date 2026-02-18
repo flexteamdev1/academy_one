@@ -291,12 +291,12 @@ const AcademicYears = () => {
             startIcon={<AddRounded />}
             onClick={openCreateDialog}
             sx={{
-              backgroundColor: (theme) => theme.customColors.pastelBlue,
+              backgroundColor: (theme) => theme.palette.info.light,
               border: '1px solid',
-              borderColor: (theme) => theme.customColors.blueDark,
-              color: (theme) => theme.customColors.infoDeep,
+              borderColor: (theme) => theme.palette.info.main,
+              color: (theme) => theme.palette.info.dark,
               fontWeight: 700,
-              '&:hover': { backgroundColor: (theme) => theme.customColors.blueDark },
+              '&:hover': { backgroundColor: (theme) => theme.palette.info.main },
             }}
           >
             Add Academic Year
@@ -312,14 +312,11 @@ const AcademicYears = () => {
               <PageCard
                 sx={{
                   p: 2,
-                  border: '1px solid',
-                  borderColor: (theme) => theme.customColors[metric.border],
-                  backgroundColor: (theme) => theme.customColors[metric.bg],
                   boxShadow: 'none',
                 }}
               >
                 <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.3 }}>
-                  <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.11em', textTransform: 'uppercase', color: (theme) => theme.customColors.stone400 }}>
+                  <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.11em', textTransform: 'uppercase', color: (theme) => theme.palette.grey[500] }}>
                     {metric.title}
                   </Typography>
                   <Icon sx={{ color: metric.color }} fontSize="small" />
@@ -364,10 +361,10 @@ const AcademicYears = () => {
             <IconButton
               type="submit"
               sx={(theme) => ({
-                borderRadius: theme.customRadius.md,
+                borderRadius: theme.shape.borderRadius,
                 border: '1px solid',
-                borderColor: theme.customColors.stone200,
-                backgroundColor: theme.customColors.stone100,
+                borderColor: theme.palette.grey[200],
+                backgroundColor: theme.palette.grey[100],
               })}
             >
               <FilterListOutlined />
@@ -392,7 +389,7 @@ const AcademicYears = () => {
             />
             <TableBody>
               {items.map((item) => (
-                <TableRow key={item._id} sx={{ '& .MuiTableCell-root': { borderBottomColor: (theme) => theme.customColors.stone100 } }}>
+                <TableRow key={item._id} sx={{ '& .MuiTableCell-root': { borderBottomColor: (theme) => theme.palette.grey[100] } }}>
                   <TableCell>
                     <Typography sx={{ fontSize: '0.9rem', fontWeight: 700 }}>{item.name}</Typography>
                   </TableCell>
@@ -412,14 +409,14 @@ const AcademicYears = () => {
                         textTransform: 'uppercase',
                         letterSpacing: '0.04em',
                         backgroundColor: item.status === ACADEMIC_YEAR_STATUS.ACTIVE
-                          ? (theme) => theme.customColors.pastelMint
-                          : (theme) => theme.customColors.stone100,
+                          ? (theme) => theme.palette.success.light
+                          : (theme) => theme.palette.grey[100],
                         borderColor: item.status === ACADEMIC_YEAR_STATUS.ACTIVE
-                          ? (theme) => theme.customColors.mintDark
-                          : (theme) => theme.customColors.stone200,
+                          ? (theme) => theme.palette.success.main
+                          : (theme) => theme.palette.grey[200],
                         color: item.status === ACADEMIC_YEAR_STATUS.ACTIVE
-                          ? (theme) => theme.customColors.successDeep
-                          : (theme) => theme.customColors.stone400,
+                          ? (theme) => theme.palette.success.dark
+                          : (theme) => theme.palette.grey[500],
                       }}
                     />
                   </TableCell>
@@ -433,9 +430,9 @@ const AcademicYears = () => {
                           borderRadius: '999px',
                           fontWeight: 700,
                           border: '1px solid',
-                          backgroundColor: (theme) => theme.customColors.pastelBlue,
-                          borderColor: (theme) => theme.customColors.blueDark,
-                          color: (theme) => theme.customColors.infoDeep,
+                          backgroundColor: (theme) => theme.palette.info.light,
+                          borderColor: (theme) => theme.palette.info.main,
+                          color: (theme) => theme.palette.info.dark,
                         }}
                       />
                     ) : (
@@ -446,14 +443,14 @@ const AcademicYears = () => {
                   {canManage ? (
                     <TableCell align="right">
                       {!item.isActive ? (
-                        <IconButton size="small" onClick={() => handleActivate(item._id)} sx={{ color: (theme) => theme.customColors.successDeep }}>
+                        <IconButton size="small" onClick={() => handleActivate(item._id)} sx={{ color: (theme) => theme.palette.success.dark }}>
                           <BoltOutlined fontSize="small" />
                         </IconButton>
                       ) : null}
-                      <IconButton size="small" onClick={() => openEditDialog(item)} sx={{ color: (theme) => theme.customColors.infoDeep }}>
+                      <IconButton size="small" onClick={() => openEditDialog(item)} sx={{ color: (theme) => theme.palette.info.dark }}>
                         <EditOutlined fontSize="small" />
                       </IconButton>
-                      <IconButton size="small" onClick={() => setDeleteState({ open: true, id: item._id, name: item.name })} sx={{ color: (theme) => theme.customColors.dangerText }}>
+                      <IconButton size="small" onClick={() => setDeleteState({ open: true, id: item._id, name: item.name })} sx={{ color: (theme) => theme.palette.error.main }}>
                         <DeleteOutlineOutlined fontSize="small" />
                       </IconButton>
                     </TableCell>
@@ -474,19 +471,19 @@ const AcademicYears = () => {
           </Table>
         </TableContainer>
 
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.4} justifyContent="space-between" alignItems={{ sm: 'center' }} sx={{ px: 2, py: 1.5, borderTop: '1px solid', borderColor: (theme) => theme.customColors.stone100, backgroundColor: (theme) => theme.customColors.stone50 }}>
-          <Typography sx={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: (theme) => theme.customColors.stone400 }}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.4} justifyContent="space-between" alignItems={{ sm: 'center' }} sx={{ px: 2, py: 1.5, borderTop: '1px solid', borderColor: (theme) => theme.palette.grey[100], backgroundColor: (theme) => theme.palette.grey[50] }}>
+          <Typography sx={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: (theme) => theme.palette.grey[500] }}>
             Showing {items.length ? (page - 1) * LIMIT + 1 : 0} to {(page - 1) * LIMIT + items.length} of {total} years
           </Typography>
 
           <Stack direction="row" spacing={0.8} alignItems="center">
-            <IconButton size="small" disabled={page <= 1} onClick={() => setPage((prev) => prev - 1)} sx={{ border: '1px solid', borderColor: (theme) => theme.customColors.stone200 }}>
+            <IconButton size="small" disabled={page <= 1} onClick={() => setPage((prev) => prev - 1)} sx={{ border: '1px solid', borderColor: (theme) => theme.palette.grey[200] }}>
               <ChevronLeftRounded fontSize="small" />
             </IconButton>
-            <Button size="small" sx={{ minWidth: 56, px: 1, py: 0.5, border: '1px solid', borderColor: 'primary.main', color: 'primary.main', backgroundColor: (theme) => theme.customColors.pastelLavender, fontWeight: 700 }}>
+            <Button size="small" sx={{ minWidth: 56, px: 1, py: 0.5, border: '1px solid', borderColor: 'primary.main', color: 'primary.main', backgroundColor: (theme) => theme.palette.secondary.light, fontWeight: 700 }}>
               {page}/{totalPages}
             </Button>
-            <IconButton size="small" disabled={page >= totalPages} onClick={() => setPage((prev) => prev + 1)} sx={{ border: '1px solid', borderColor: (theme) => theme.customColors.stone200 }}>
+            <IconButton size="small" disabled={page >= totalPages} onClick={() => setPage((prev) => prev + 1)} sx={{ border: '1px solid', borderColor: (theme) => theme.palette.grey[200] }}>
               <ChevronRightRounded fontSize="small" />
             </IconButton>
           </Stack>

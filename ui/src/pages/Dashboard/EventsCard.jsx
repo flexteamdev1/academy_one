@@ -3,7 +3,7 @@ import { Box, Button, Card, CardContent, Stack, Typography } from '@mui/material
 import CalendarMonthOutlined from '@mui/icons-material/CalendarMonthOutlined';
 
 const EventsCard = ({ events }) => (
-  <Card sx={(theme) => ({ borderRadius: theme.customRadius.lg, border: `1px solid ${theme.customColors.softBorder}`, boxShadow: 'none' })}>
+  <Card sx={(theme) => ({ borderRadius: theme.shape.borderRadius, border: `1px solid ${theme.palette.divider}`, boxShadow: 'none' })}>
     <CardContent sx={{ p: 2.2 }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.7 }}>
         <Typography sx={{ fontSize: '1.35rem', fontWeight: 800, color: 'text.primary' }}>Events</Typography>
@@ -17,9 +17,9 @@ const EventsCard = ({ events }) => (
               sx={(theme) => ({
                 width: 40,
                 height: 40,
-                borderRadius: theme.customRadius.md,
-                backgroundColor: theme.customColors.pastelBlue,
-                border: `1px solid ${theme.customColors.softBorder}`,
+                borderRadius: theme.shape.borderRadius,
+                backgroundColor: theme.palette.info.light,
+                border: `1px solid ${theme.palette.divider}`,
                 display: 'grid',
                 placeItems: 'center',
                 lineHeight: 1,
@@ -41,16 +41,16 @@ const EventsCard = ({ events }) => (
         fullWidth
         sx={(theme) => ({
           mt: 2,
-          borderRadius: theme.customRadius.md,
+          borderRadius: theme.shape.borderRadius,
           borderStyle: 'dashed',
-          borderColor: theme.customColors.stone200,
+          borderColor: theme.palette.grey[200],
           color: 'text.secondary',
           textTransform: 'none',
           fontWeight: 700,
           '&:hover': {
             borderStyle: 'dashed',
-            borderColor: theme.customColors.stone300,
-            backgroundColor: theme.customColors.stone50,
+            borderColor: theme.palette.grey[300],
+            backgroundColor: theme.palette.grey[50],
           },
         })}
       >

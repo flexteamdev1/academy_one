@@ -141,7 +141,7 @@ const ClassFormDialog = ({
                 <IconButton
                   onClick={() => removeSectionRow(index)}
                   disabled={form.sections.length <= 1}
-                  sx={{ color: (theme) => theme.customColors.dangerText }}
+                  sx={{ color: (theme) => theme.palette.error.main }}
                 >
                   <DeleteOutlineOutlined fontSize="small" />
                 </IconButton>

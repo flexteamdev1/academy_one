@@ -103,7 +103,7 @@ const TeachersView = ({
                   width: 40,
                   height: 40,
                   borderRadius: '50%',
-                  backgroundColor: (theme) => theme.customColors[stat.toneBg],
+                  backgroundColor: 'action.hover',
                   color: stat.tone,
                   display: 'grid',
                   placeItems: 'center',
@@ -112,7 +112,7 @@ const TeachersView = ({
                 {stat.icon}
               </Box>
               <Box>
-                <Typography sx={{ fontSize: '0.63rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: (theme) => theme.customColors.stone400 }}>
+                <Typography sx={{ fontSize: '0.63rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: (theme) => theme.palette.grey[500] }}>
                   {stat.label}
                 </Typography>
                 <Typography sx={{ fontSize: '1.2rem', fontWeight: 700 }}>{stat.value}</Typography>
@@ -174,7 +174,7 @@ const TeachersView = ({
                 <PageCard
                   sx={{
                     overflow: 'hidden',
-                    borderRadius: (theme) => theme.customRadius.lg,
+                    borderRadius: (theme) => theme.shape.borderRadius,
                     transition: 'transform 200ms ease, box-shadow 200ms ease',
                     '&:hover': {
                       transform: 'translateY(-4px)',
@@ -184,7 +184,7 @@ const TeachersView = ({
                     animationDelay: `${index * 60}ms`,
                   }}
                 >
-                  <Box sx={{ height: 8, backgroundColor: (theme) => theme.customColors[tone] }} />
+                  <Box sx={{ height: 8, bgcolor: 'divider' }} />
                   <Box sx={{ p: 2.2 }}>
                     <Stack direction="row" justifyContent="space-between" sx={{ mb: 1.8 }}>
                       <Box
@@ -193,8 +193,8 @@ const TeachersView = ({
                           height: 64,
                           borderRadius: '50%',
                           border: '2px solid',
-                          borderColor: (theme) => theme.customColors[tone],
-                          backgroundColor: (theme) => theme.customColors.stone50,
+                          borderColor: 'divider',
+                          backgroundColor: (theme) => theme.palette.grey[50],
                           display: 'grid',
                           placeItems: 'center',
                           fontWeight: 700,
@@ -255,8 +255,8 @@ const TeachersView = ({
                           label={subject}
                           size="small"
                           sx={{
-                            borderRadius: (theme) => theme.customRadius.sm,
-                            backgroundColor: (theme) => theme.customColors[tone],
+                            borderRadius: (theme) => theme.shape.borderRadius,
+                            backgroundColor: 'action.selected',
                             fontSize: '0.64rem',
                             fontWeight: 700,
                             textTransform: 'uppercase',

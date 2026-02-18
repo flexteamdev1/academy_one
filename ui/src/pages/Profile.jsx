@@ -87,7 +87,7 @@ const Profile = () => {
                 key={student._id}
                 sx={(theme) => ({
                   p: 1.2,
-                  borderRadius: theme.customRadius.md,
+                  borderRadius: theme.shape.borderRadius,
                   border: '1px solid',
                   borderColor: 'divider',
                 })}
