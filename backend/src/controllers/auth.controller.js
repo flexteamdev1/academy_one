@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const { ROLES } = require('../constants/roles');
+const { getMailHealth, sendTestEmail } = require('../utils/mailer');
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -27,23 +28,18 @@ const registerUser = async (req, res) => {
     }
 
     const user = await User.create({
+      name,
       email,
+      phone,
       password,
       role,
-
-      profile: {
-        name,
-        phone,
-      },
-
-      createdBy: req.user?._id,
     });
 
     res.status(201).json({
       id: user._id,
       email: user.email,
       role: user.role,
-      name: user.profile.name,
+      name: user.name,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -53,7 +49,7 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select('+password');
 
     if (!user) {
       return res.status(400).json({
@@ -73,8 +69,7 @@ const loginUser = async (req, res) => {
       id: user._id,
       email: user.email,
       role: user.role,
-      name: user.profile.name,
-      mustChangePassword: user.mustChangePassword,
+      name: user.name,
       token: generateToken(user._id),
     });
 
@@ -88,8 +83,62 @@ const getProfile = async (req, res) => {
   res.json(req.user);
 };
 
+const changePassword = async (req, res) => {
+  try {
+    const currentPassword = String(req.body?.currentPassword || '');
+    const newPassword = String(req.body?.newPassword || '');
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'Current password and new password are required' });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ message: 'New password must be at least 8 characters' });
+    }
+
+    const user = await User.findById(req.user._id).select('+password');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const isMatch = await user.matchPassword(currentPassword);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    return res.json({ message: 'Password changed successfully' });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+const testEmailSettings = async (req, res) => {
+  try {
+    const recipient = String(req.body?.to || req.user?.email || '').trim().toLowerCase();
+    const health = await getMailHealth();
+    const sendResult = await sendTestEmail({
+      to: recipient,
+      requestedBy: req.user?.email || req.user?._id,
+    });
+
+    res.status(sendResult.sent ? 200 : 400).json({
+      message: sendResult.sent ? 'Test email sent successfully' : 'Test email failed',
+      recipient,
+      health,
+      sendResult,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   getProfile,
+  changePassword,
+  testEmailSettings,
 };
