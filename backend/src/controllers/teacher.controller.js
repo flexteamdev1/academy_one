@@ -23,6 +23,12 @@ const normalizeSubjects = (subjects) => {
   return [];
 };
 
+const normalizeEmail = (value) => {
+  if (value == null) return undefined;
+  const trimmed = String(value).trim();
+  return trimmed ? trimmed : undefined;
+};
+
 const employeePattern = /^TE-(\d{4})-(\d{4})$/;
 
 const generateEmployeeId = async () => {
@@ -124,34 +130,66 @@ const getTeacherStats = async (req, res) => {
 
 const createTeacher = async (req, res) => {
   try {
-    const employeeId = await generateEmployeeId();
-    const teacherSlug = slugify(employeeId || req.body.firstName) || 'teacher';
+    const normalizedEmail = normalizeEmail(req.body.email);
+    if (normalizedEmail) {
+      const emailExists = await Teacher.exists({ email: normalizedEmail });
+      if (emailExists) {
+        return res.status(400).json({ message: 'Teacher with same email already exists' });
+      }
+    }
+
+    const teacherSlug = slugify(req.body.firstName) || 'teacher';
     const uploadedPhoto = await uploadImageToCloudinary({
       file: req.file,
       folder: getCloudinaryFolder('teacher'),
       publicIdPrefix: teacherSlug,
     });
 
-    const payload = {
-      employeeId,
-      firstName: req.body.firstName,
-      lastName: req.body.lastName,
-      email: req.body.email,
-      phone: req.body.phone,
-      subjects: normalizeSubjects(req.body.subjects),
-      qualification: req.body.qualification,
-      experience: req.body.experience,
-      joinedAt: req.body.joinedAt,
-      profilePhotoUrl: uploadedPhoto?.url || req.body.profilePhotoUrl,
-      profilePhotoPublicId: uploadedPhoto?.publicId,
-      status: req.body.status ? String(req.body.status).toUpperCase() : undefined,
-    };
+    let created = null;
+    let attempts = 0;
+    while (!created && attempts < 3) {
+      const employeeId = await generateEmployeeId();
+      const payload = {
+        employeeId,
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        email: normalizedEmail,
+        phone: req.body.phone,
+        subjects: normalizeSubjects(req.body.subjects),
+        qualification: req.body.qualification,
+        experience: req.body.experience,
+        joinedAt: req.body.joinedAt,
+        profilePhotoUrl: uploadedPhoto?.url || req.body.profilePhotoUrl,
+        profilePhotoPublicId: uploadedPhoto?.publicId,
+        status: req.body.status ? String(req.body.status).toUpperCase() : undefined,
+      };
 
-    const created = await Teacher.create(payload);
+      try {
+        // eslint-disable-next-line no-await-in-loop
+        created = await Teacher.create(payload);
+      } catch (error) {
+        if (error?.code === 11000 && error?.keyPattern?.employeeId) {
+          attempts += 1;
+          continue;
+        }
+        throw error;
+      }
+    }
+
+    if (!created) {
+      return res.status(409).json({ message: 'Unable to generate a unique employee ID. Please retry.' });
+    }
 
     res.status(201).json(created);
   } catch (error) {
+    console.error('Error creating teacher:', error);
     if (error?.code === 11000) {
+      if (error?.keyPattern?.email) {
+        return res.status(400).json({ message: 'Teacher with same email already exists' });
+      }
+      if (error?.keyPattern?.employeeId) {
+        return res.status(400).json({ message: 'Teacher with same employee ID already exists' });
+      }
       return res.status(400).json({ message: 'Teacher with same email or employee ID already exists' });
     }
     res.status(500).json({ message: error.message });
@@ -182,7 +220,7 @@ const updateTeacher = async (req, res) => {
     const updateData = {
       firstName: req.body.firstName,
       lastName: req.body.lastName,
-      email: req.body.email,
+      email: normalizeEmail(req.body.email),
       phone: req.body.phone,
       subjects: req.body.subjects == null ? undefined : normalizeSubjects(req.body.subjects),
       qualification: req.body.qualification,
@@ -213,6 +251,12 @@ const updateTeacher = async (req, res) => {
     res.json(updated);
   } catch (error) {
     if (error?.code === 11000) {
+      if (error?.keyPattern?.email) {
+        return res.status(400).json({ message: 'Teacher with same email already exists' });
+      }
+      if (error?.keyPattern?.employeeId) {
+        return res.status(400).json({ message: 'Teacher with same employee ID already exists' });
+      }
       return res.status(400).json({ message: 'Teacher with same email or employee ID already exists' });
     }
     res.status(500).json({ message: error.message });
