@@ -30,6 +30,7 @@ import ChevronLeftRounded from '@mui/icons-material/ChevronLeftRounded';
 import ChevronRightRounded from '@mui/icons-material/ChevronRightRounded';
 import PageCard from '../../components/common/PageCard';
 import AppTableHead from '../../components/common/AppTableHead';
+import StudentsSkeleton from '../../components/skeletons/StudentsSkeleton';
 
 const StudentsView = ({
   canManage,
@@ -62,6 +63,9 @@ const StudentsView = ({
   stats,
   statusChipSx,
 }) => (
+  loading ? (
+    <StudentsSkeleton />
+  ) : (
   <>
     <Stack
       direction={{ xs: 'column', md: 'row' }}
@@ -363,6 +367,7 @@ const StudentsView = ({
       })}
     </Box>
   </>
+  )
 );
 
 export default React.memo(StudentsView);

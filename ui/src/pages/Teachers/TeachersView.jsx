@@ -4,7 +4,6 @@ import {
   Box,
   Button,
   Chip,
-  CircularProgress,
   Grid,
   IconButton,
   InputAdornment,
@@ -30,6 +29,7 @@ import MenuBookOutlined from '@mui/icons-material/MenuBookOutlined';
 import VerifiedOutlined from '@mui/icons-material/VerifiedOutlined';
 import HistoryOutlined from '@mui/icons-material/HistoryOutlined';
 import PageCard from '../../components/common/PageCard';
+import TeachersSkeleton from '../../components/skeletons/TeachersSkeleton';
 
 const TeachersView = ({
   stats,
@@ -54,6 +54,9 @@ const TeachersView = ({
   FILTER_ALL,
   TEACHER_STATUS,
 }) => (
+  loading ? (
+    <TeachersSkeleton />
+  ) : (
   <>
     <Stack
       direction={{ xs: 'column', md: 'row' }}
@@ -157,12 +160,6 @@ const TeachersView = ({
     </PageCard>
 
     {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
-    {loading ? (
-      <Box sx={{ display: 'grid', placeItems: 'center', py: 10 }}>
-        <CircularProgress />
-      </Box>
-    ) : (
-      <>
         <Grid container spacing={2.2}>
           {teachers.map((teacher, index) => {
             const tone = colorTrack[index % colorTrack.length];
@@ -288,9 +285,8 @@ const TeachersView = ({
             </Stack>
           </Stack>
         </PageCard>
-      </>
-    )}
   </>
+  )
 );
 
 export default React.memo(TeachersView);

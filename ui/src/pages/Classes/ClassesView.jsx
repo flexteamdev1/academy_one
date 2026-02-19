@@ -29,6 +29,7 @@ import ChevronLeftRounded from '@mui/icons-material/ChevronLeftRounded';
 import ChevronRightRounded from '@mui/icons-material/ChevronRightRounded';
 import PageCard from '../../components/common/PageCard';
 import AppTableHead from '../../components/common/AppTableHead';
+import ClassesSkeleton from '../../components/skeletons/ClassesSkeleton';
 
 const ClassesView = ({
   canManage,
@@ -56,6 +57,9 @@ const ClassesView = ({
   LIMIT,
   loading,
 }) => (
+  loading ? (
+    <ClassesSkeleton />
+  ) : (
   <>
     <Stack
       direction={{ xs: 'column', md: 'row' }}
@@ -324,7 +328,7 @@ const ClassesView = ({
               </TableRow>
             ))}
 
-            {!loading && items.length === 0 ? (
+            {items.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={canManage ? 7 : 6}>
                   <Typography sx={{ py: 3, textAlign: 'center', color: 'text.secondary' }}>
@@ -398,6 +402,7 @@ const ClassesView = ({
       </Stack>
     </PageCard>
   </>
+  )
 );
 
 export default React.memo(ClassesView);

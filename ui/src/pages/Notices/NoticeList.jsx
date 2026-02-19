@@ -2,11 +2,11 @@ import React from 'react';
 import {
   Box,
   Chip,
-  CircularProgress,
   Stack,
   Typography,
 } from '@mui/material';
 import PageCard from '../../components/common/PageCard';
+import NoticeListSkeleton from '../../components/skeletons/NoticeListSkeleton';
 
 const NoticeList = ({
   notices,
@@ -19,6 +19,9 @@ const NoticeList = ({
   getStatusColor,
   statusLabel,
 }) => (
+  loading ? (
+    <NoticeListSkeleton />
+  ) : (
   <PageCard sx={{ p: 0, height: { xs: 'auto', lg: '76vh' }, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
     <Stack direction="row" justifyContent="space-between" sx={{ px: 2, py: 1.7, borderBottom: '1px solid', borderColor: 'divider' }}>
       <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'text.secondary' }}>
@@ -30,13 +33,7 @@ const NoticeList = ({
     </Stack>
 
     <Box sx={{ overflowY: 'auto' }}>
-      {loading ? (
-        <Stack alignItems="center" justifyContent="center" sx={{ py: 6 }}>
-          <CircularProgress size={28} />
-        </Stack>
-      ) : null}
-
-      {!loading && notices.length ? (
+      {notices.length ? (
         notices.map((notice) => {
           const active = selectedNoticeId === notice.id;
           return (
@@ -87,7 +84,7 @@ const NoticeList = ({
         })
       ) : null}
 
-      {!loading && !notices.length ? (
+      {!notices.length ? (
         <Box sx={{ px: 2, py: 4 }}>
           <Typography sx={{ fontWeight: 700, mb: 0.5 }}>No notices found</Typography>
           <Typography sx={{ color: 'text.secondary', fontSize: '0.9rem' }}>
@@ -97,6 +94,7 @@ const NoticeList = ({
       ) : null}
     </Box>
   </PageCard>
+  )
 );
 
 export default NoticeList;

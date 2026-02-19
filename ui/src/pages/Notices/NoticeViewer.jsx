@@ -13,6 +13,7 @@ import ContentCopyOutlined from '@mui/icons-material/ContentCopyOutlined';
 import MoreHorizOutlined from '@mui/icons-material/MoreHorizOutlined';
 import AttachFileOutlined from '@mui/icons-material/AttachFileOutlined';
 import PageCard from '../../components/common/PageCard';
+import NoticeViewerSkeleton from '../../components/skeletons/NoticeViewerSkeleton';
 
 const isPdfAttachment = (attachment) => {
   const name = String(attachment?.name || '').toLowerCase();
@@ -24,6 +25,7 @@ const isPdfAttachment = (attachment) => {
 
 const NoticeViewer = ({
   selectedNotice,
+  loading,
   canCreate,
   getStatusColor,
   statusLabel,
@@ -31,6 +33,9 @@ const NoticeViewer = ({
   audienceLabelMap,
   channelLabelMap,
 }) => (
+  loading ? (
+    <NoticeViewerSkeleton />
+  ) : (
   <PageCard sx={{ p: 2.2, minHeight: { xs: 320, lg: '76vh' }, overflowY: 'auto' }}>
     {selectedNotice ? (
       <>
@@ -160,6 +165,7 @@ const NoticeViewer = ({
       </Stack>
     )}
   </PageCard>
+  )
 );
 
 export default NoticeViewer;

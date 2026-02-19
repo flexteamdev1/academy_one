@@ -35,6 +35,7 @@ import PageCard from '../components/common/PageCard';
 import DeleteConfirmDialog from '../components/common/DeleteConfirmDialog';
 import AppDialog from '../components/common/AppDialog';
 import AppTableHead from '../components/common/AppTableHead';
+import AcademicYearsSkeleton from '../components/skeletons/AcademicYearsSkeleton';
 import {
   activateAcademicYear,
   createAcademicYear,
@@ -270,225 +271,231 @@ const AcademicYears = () => {
 
   return (
     <Box>
-      <Stack
-        direction={{ xs: 'column', md: 'row' }}
-        spacing={2}
-        alignItems={{ md: 'flex-end' }}
-        justifyContent="space-between"
-        sx={{ mb: 3 }}
-      >
-        <Box>
-          <Typography variant="h4" sx={{ mb: 0.6 }}>
-            Academic Years
-          </Typography>
-          <Typography variant="subtitle1">
-            Configure school-year windows and select which year is currently active.
-          </Typography>
-        </Box>
-
-        {canManage ? (
-          <Button
-            startIcon={<AddRounded />}
-            onClick={openCreateDialog}
-            sx={{
-              backgroundColor: (theme) => theme.palette.info.light,
-              border: '1px solid',
-              borderColor: (theme) => theme.palette.info.main,
-              color: (theme) => theme.palette.info.dark,
-              fontWeight: 700,
-              '&:hover': { backgroundColor: (theme) => theme.palette.info.main },
-            }}
+      {loading ? (
+        <AcademicYearsSkeleton />
+      ) : (
+        <>
+          <Stack
+            direction={{ xs: 'column', md: 'row' }}
+            spacing={2}
+            alignItems={{ md: 'flex-end' }}
+            justifyContent="space-between"
+            sx={{ mb: 3 }}
           >
-            Add Academic Year
-          </Button>
-        ) : null}
-      </Stack>
+            <Box>
+              <Typography variant="h4" sx={{ mb: 0.6 }}>
+                Academic Years
+              </Typography>
+              <Typography variant="subtitle1">
+                Configure school-year windows and select which year is currently active.
+              </Typography>
+            </Box>
 
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        {metrics.map((metric) => {
-          const Icon = metric.icon;
-          return (
-            <Grid item xs={12} sm={6} lg={3} key={metric.key}>
-              <PageCard
+            {canManage ? (
+              <Button
+                startIcon={<AddRounded />}
+                onClick={openCreateDialog}
                 sx={{
-                  p: 2,
-                  boxShadow: 'none',
+                  backgroundColor: (theme) => theme.palette.info.light,
+                  border: '1px solid',
+                  borderColor: (theme) => theme.palette.info.main,
+                  color: (theme) => theme.palette.info.dark,
+                  fontWeight: 700,
+                  '&:hover': { backgroundColor: (theme) => theme.palette.info.main },
                 }}
               >
-                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.3 }}>
-                  <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.11em', textTransform: 'uppercase', color: (theme) => theme.palette.grey[500] }}>
-                    {metric.title}
-                  </Typography>
-                  <Icon sx={{ color: metric.color }} fontSize="small" />
-                </Stack>
-                <Typography sx={{ fontSize: '1.8rem', fontWeight: 800, color: metric.color }}>
-                  {metric.value}
-                </Typography>
-              </PageCard>
-            </Grid>
-          );
-        })}
-      </Grid>
-
-      <PageCard sx={{ p: 2, mb: 2 }}>
-        <Stack component="form" onSubmit={handleSearchSubmit} direction={{ xs: 'column', lg: 'row' }} spacing={2} alignItems="center">
-          <Box sx={{ flex: 1, width: '100%' }}>
-            <TextField
-              fullWidth
-              size="small"
-              value={q}
-              onChange={(event) => setQ(event.target.value)}
-              placeholder="Search academic year"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchOutlined fontSize="small" sx={{ color: 'text.secondary' }} />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Box>
-
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.2} sx={{ width: { xs: '100%', lg: 'auto' } }}>
-            <FormControl size="small" sx={{ minWidth: 140 }}>
-              <Select value={status} onChange={(event) => { setStatus(event.target.value); setPage(1); }}>
-                <MenuItem value={FILTER_ALL}>All Status</MenuItem>
-                <MenuItem value={ACADEMIC_YEAR_STATUS.ACTIVE}>Active</MenuItem>
-                <MenuItem value={ACADEMIC_YEAR_STATUS.ARCHIVED}>Archived</MenuItem>
-              </Select>
-            </FormControl>
-
-            <IconButton
-              type="submit"
-              sx={(theme) => ({
-                borderRadius: theme.shape.borderRadius,
-                border: '1px solid',
-                borderColor: theme.palette.grey[200],
-                backgroundColor: theme.palette.grey[100],
-              })}
-            >
-              <FilterListOutlined />
-            </IconButton>
+                Add Academic Year
+              </Button>
+            ) : null}
           </Stack>
-        </Stack>
-      </PageCard>
 
-      {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
-
-      <PageCard sx={{ overflow: 'hidden' }}>
-        <TableContainer>
-          <Table>
-            <AppTableHead
-              columns={[
-                { key: 'name', label: 'Name' },
-                { key: 'duration', label: 'Duration' },
-                { key: 'status', label: 'Status' },
-                { key: 'current', label: 'Current' },
-                ...(canManage ? [{ key: 'actions', label: 'Actions', align: 'right' }] : []),
-              ]}
-            />
-            <TableBody>
-              {items.map((item) => (
-                <TableRow key={item._id} sx={{ '& .MuiTableCell-root': { borderBottomColor: (theme) => theme.palette.grey[100] } }}>
-                  <TableCell>
-                    <Typography sx={{ fontSize: '0.9rem', fontWeight: 700 }}>{item.name}</Typography>
-                  </TableCell>
-                  <TableCell sx={{ fontSize: '0.85rem', color: 'text.secondary' }}>
-                    {formatDate(item.startDate)} - {formatDate(item.endDate)}
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={item.status}
-                      size="small"
-                      sx={{
-                        height: 24,
-                        borderRadius: '999px',
-                        fontWeight: 700,
-                        fontSize: '0.63rem',
-                        border: '1px solid',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.04em',
-                        backgroundColor: item.status === ACADEMIC_YEAR_STATUS.ACTIVE
-                          ? (theme) => theme.palette.success.light
-                          : (theme) => theme.palette.grey[100],
-                        borderColor: item.status === ACADEMIC_YEAR_STATUS.ACTIVE
-                          ? (theme) => theme.palette.success.main
-                          : (theme) => theme.palette.grey[200],
-                        color: item.status === ACADEMIC_YEAR_STATUS.ACTIVE
-                          ? (theme) => theme.palette.success.dark
-                          : (theme) => theme.palette.grey[500],
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    {item.isActive ? (
-                      <Chip
-                        label="Current"
-                        size="small"
-                        sx={{
-                          height: 24,
-                          borderRadius: '999px',
-                          fontWeight: 700,
-                          border: '1px solid',
-                          backgroundColor: (theme) => theme.palette.info.light,
-                          borderColor: (theme) => theme.palette.info.main,
-                          color: (theme) => theme.palette.info.dark,
-                        }}
-                      />
-                    ) : (
-                      <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary' }}>No</Typography>
-                    )}
-                  </TableCell>
-
-                  {canManage ? (
-                    <TableCell align="right">
-                      {!item.isActive ? (
-                        <IconButton size="small" onClick={() => handleActivate(item._id)} sx={{ color: (theme) => theme.palette.success.dark }}>
-                          <BoltOutlined fontSize="small" />
-                        </IconButton>
-                      ) : null}
-                      <IconButton size="small" onClick={() => openEditDialog(item)} sx={{ color: (theme) => theme.palette.info.dark }}>
-                        <EditOutlined fontSize="small" />
-                      </IconButton>
-                      <IconButton size="small" onClick={() => setDeleteState({ open: true, id: item._id, name: item.name })} sx={{ color: (theme) => theme.palette.error.main }}>
-                        <DeleteOutlineOutlined fontSize="small" />
-                      </IconButton>
-                    </TableCell>
-                  ) : null}
-                </TableRow>
-              ))}
-
-              {!loading && items.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={canManage ? 5 : 4}>
-                    <Typography sx={{ py: 3, textAlign: 'center', color: 'text.secondary' }}>
-                      No academic years found
+          <Grid container spacing={2} sx={{ mb: 3 }}>
+            {metrics.map((metric) => {
+              const Icon = metric.icon;
+              return (
+                <Grid item xs={12} sm={6} lg={3} key={metric.key}>
+                  <PageCard
+                    sx={{
+                      p: 2,
+                      boxShadow: 'none',
+                    }}
+                  >
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.3 }}>
+                      <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.11em', textTransform: 'uppercase', color: (theme) => theme.palette.grey[500] }}>
+                        {metric.title}
+                      </Typography>
+                      <Icon sx={{ color: metric.color }} fontSize="small" />
+                    </Stack>
+                    <Typography sx={{ fontSize: '1.8rem', fontWeight: 800, color: metric.color }}>
+                      {metric.value}
                     </Typography>
-                  </TableCell>
-                </TableRow>
-              ) : null}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                  </PageCard>
+                </Grid>
+              );
+            })}
+          </Grid>
 
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.4} justifyContent="space-between" alignItems={{ sm: 'center' }} sx={{ px: 2, py: 1.5, borderTop: '1px solid', borderColor: (theme) => theme.palette.grey[100], backgroundColor: (theme) => theme.palette.grey[50] }}>
-          <Typography sx={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: (theme) => theme.palette.grey[500] }}>
-            Showing {items.length ? (page - 1) * LIMIT + 1 : 0} to {(page - 1) * LIMIT + items.length} of {total} years
-          </Typography>
+          <PageCard sx={{ p: 2, mb: 2 }}>
+            <Stack component="form" onSubmit={handleSearchSubmit} direction={{ xs: 'column', lg: 'row' }} spacing={2} alignItems="center">
+              <Box sx={{ flex: 1, width: '100%' }}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  value={q}
+                  onChange={(event) => setQ(event.target.value)}
+                  placeholder="Search academic year"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchOutlined fontSize="small" sx={{ color: 'text.secondary' }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Box>
 
-          <Stack direction="row" spacing={0.8} alignItems="center">
-            <IconButton size="small" disabled={page <= 1} onClick={() => setPage((prev) => prev - 1)} sx={{ border: '1px solid', borderColor: (theme) => theme.palette.grey[200] }}>
-              <ChevronLeftRounded fontSize="small" />
-            </IconButton>
-            <Button size="small" sx={{ minWidth: 56, px: 1, py: 0.5, border: '1px solid', borderColor: 'primary.main', color: 'primary.main', backgroundColor: (theme) => theme.palette.secondary.light, fontWeight: 700 }}>
-              {page}/{totalPages}
-            </Button>
-            <IconButton size="small" disabled={page >= totalPages} onClick={() => setPage((prev) => prev + 1)} sx={{ border: '1px solid', borderColor: (theme) => theme.palette.grey[200] }}>
-              <ChevronRightRounded fontSize="small" />
-            </IconButton>
-          </Stack>
-        </Stack>
-      </PageCard>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.2} sx={{ width: { xs: '100%', lg: 'auto' } }}>
+                <FormControl size="small" sx={{ minWidth: 140 }}>
+                  <Select value={status} onChange={(event) => { setStatus(event.target.value); setPage(1); }}>
+                    <MenuItem value={FILTER_ALL}>All Status</MenuItem>
+                    <MenuItem value={ACADEMIC_YEAR_STATUS.ACTIVE}>Active</MenuItem>
+                    <MenuItem value={ACADEMIC_YEAR_STATUS.ARCHIVED}>Archived</MenuItem>
+                  </Select>
+                </FormControl>
+
+                <IconButton
+                  type="submit"
+                  sx={(theme) => ({
+                    borderRadius: theme.shape.borderRadius,
+                    border: '1px solid',
+                    borderColor: theme.palette.grey[200],
+                    backgroundColor: theme.palette.grey[100],
+                  })}
+                >
+                  <FilterListOutlined />
+                </IconButton>
+              </Stack>
+            </Stack>
+          </PageCard>
+
+          {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
+
+          <PageCard sx={{ overflow: 'hidden' }}>
+            <TableContainer>
+              <Table>
+                <AppTableHead
+                  columns={[
+                    { key: 'name', label: 'Name' },
+                    { key: 'duration', label: 'Duration' },
+                    { key: 'status', label: 'Status' },
+                    { key: 'current', label: 'Current' },
+                    ...(canManage ? [{ key: 'actions', label: 'Actions', align: 'right' }] : []),
+                  ]}
+                />
+                <TableBody>
+                  {items.map((item) => (
+                    <TableRow key={item._id} sx={{ '& .MuiTableCell-root': { borderBottomColor: (theme) => theme.palette.grey[100] } }}>
+                      <TableCell>
+                        <Typography sx={{ fontSize: '0.9rem', fontWeight: 700 }}>{item.name}</Typography>
+                      </TableCell>
+                      <TableCell sx={{ fontSize: '0.85rem', color: 'text.secondary' }}>
+                        {formatDate(item.startDate)} - {formatDate(item.endDate)}
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={item.status}
+                          size="small"
+                          sx={{
+                            height: 24,
+                            borderRadius: '999px',
+                            fontWeight: 700,
+                            fontSize: '0.63rem',
+                            border: '1px solid',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.04em',
+                            backgroundColor: item.status === ACADEMIC_YEAR_STATUS.ACTIVE
+                              ? (theme) => theme.palette.success.light
+                              : (theme) => theme.palette.grey[100],
+                            borderColor: item.status === ACADEMIC_YEAR_STATUS.ACTIVE
+                              ? (theme) => theme.palette.success.main
+                              : (theme) => theme.palette.grey[200],
+                            color: item.status === ACADEMIC_YEAR_STATUS.ACTIVE
+                              ? (theme) => theme.palette.success.dark
+                              : (theme) => theme.palette.grey[500],
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        {item.isActive ? (
+                          <Chip
+                            label="Current"
+                            size="small"
+                            sx={{
+                              height: 24,
+                              borderRadius: '999px',
+                              fontWeight: 700,
+                              border: '1px solid',
+                              backgroundColor: (theme) => theme.palette.info.light,
+                              borderColor: (theme) => theme.palette.info.main,
+                              color: (theme) => theme.palette.info.dark,
+                            }}
+                          />
+                        ) : (
+                          <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary' }}>No</Typography>
+                        )}
+                      </TableCell>
+
+                      {canManage ? (
+                        <TableCell align="right">
+                          {!item.isActive ? (
+                            <IconButton size="small" onClick={() => handleActivate(item._id)} sx={{ color: (theme) => theme.palette.success.dark }}>
+                              <BoltOutlined fontSize="small" />
+                            </IconButton>
+                          ) : null}
+                          <IconButton size="small" onClick={() => openEditDialog(item)} sx={{ color: (theme) => theme.palette.info.dark }}>
+                            <EditOutlined fontSize="small" />
+                          </IconButton>
+                          <IconButton size="small" onClick={() => setDeleteState({ open: true, id: item._id, name: item.name })} sx={{ color: (theme) => theme.palette.error.main }}>
+                            <DeleteOutlineOutlined fontSize="small" />
+                          </IconButton>
+                        </TableCell>
+                      ) : null}
+                    </TableRow>
+                  ))}
+
+                  {items.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={canManage ? 5 : 4}>
+                        <Typography sx={{ py: 3, textAlign: 'center', color: 'text.secondary' }}>
+                          No academic years found
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  ) : null}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.4} justifyContent="space-between" alignItems={{ sm: 'center' }} sx={{ px: 2, py: 1.5, borderTop: '1px solid', borderColor: (theme) => theme.palette.grey[100], backgroundColor: (theme) => theme.palette.grey[50] }}>
+              <Typography sx={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: (theme) => theme.palette.grey[500] }}>
+                Showing {items.length ? (page - 1) * LIMIT + 1 : 0} to {(page - 1) * LIMIT + items.length} of {total} years
+              </Typography>
+
+              <Stack direction="row" spacing={0.8} alignItems="center">
+                <IconButton size="small" disabled={page <= 1} onClick={() => setPage((prev) => prev - 1)} sx={{ border: '1px solid', borderColor: (theme) => theme.palette.grey[200] }}>
+                  <ChevronLeftRounded fontSize="small" />
+                </IconButton>
+                <Button size="small" sx={{ minWidth: 56, px: 1, py: 0.5, border: '1px solid', borderColor: 'primary.main', color: 'primary.main', backgroundColor: (theme) => theme.palette.secondary.light, fontWeight: 700 }}>
+                  {page}/{totalPages}
+                </Button>
+                <IconButton size="small" disabled={page >= totalPages} onClick={() => setPage((prev) => prev + 1)} sx={{ border: '1px solid', borderColor: (theme) => theme.palette.grey[200] }}>
+                  <ChevronRightRounded fontSize="small" />
+                </IconButton>
+              </Stack>
+            </Stack>
+          </PageCard>
+        </>
+      )}
 
       <AppDialog
         open={dialogOpen}

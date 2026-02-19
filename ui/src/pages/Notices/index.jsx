@@ -19,6 +19,8 @@ import NoticeList from './NoticeList';
 import NoticeViewer from './NoticeViewer';
 import NoticeForm from './NoticeForm';
 import PageCard from '../../components/common/PageCard';
+import NoticeListSkeleton from '../../components/skeletons/NoticeListSkeleton';
+import NoticeViewerSkeleton from '../../components/skeletons/NoticeViewerSkeleton';
 
 const audienceOptions = [
   { label: 'Students', value: 'STUDENT' },
@@ -126,15 +128,15 @@ const isPdfAttachment = (attachment) => {
 };
 
 const SimpleNoticeList = ({ notices, loading, error, selectedNoticeId, setSelectedNoticeId, formatDate }) => (
+  loading ? (
+    <NoticeListSkeleton />
+  ) : (
   <PageCard sx={{ p: 1.5 }}>
     <Typography sx={{ fontWeight: 700, mb: 1 }}>Notices</Typography>
     {error ? (
       <Alert severity="error" sx={{ mb: 1 }}>{error}</Alert>
     ) : null}
-    {loading ? (
-      <Typography sx={{ color: 'text.secondary' }}>Loading...</Typography>
-    ) : null}
-    {!loading && !notices.length ? (
+    {!notices.length ? (
       <Typography sx={{ color: 'text.secondary' }}>No notices available.</Typography>
     ) : null}
     <Stack spacing={0.8}>
@@ -169,9 +171,13 @@ const SimpleNoticeList = ({ notices, loading, error, selectedNoticeId, setSelect
       })}
     </Stack>
   </PageCard>
+  )
 );
 
-const SimpleNoticeViewer = ({ selectedNotice, formatDate }) => (
+const SimpleNoticeViewer = ({ selectedNotice, loading, formatDate }) => (
+  loading ? (
+    <NoticeViewerSkeleton />
+  ) : (
   <PageCard sx={{ p: 2 }}>
     {selectedNotice ? (
       <>
@@ -254,6 +260,7 @@ const SimpleNoticeViewer = ({ selectedNotice, formatDate }) => (
       <Typography sx={{ color: 'text.secondary' }}>Select a notice to view details.</Typography>
     )}
   </PageCard>
+  )
 );
 
 const Notices = () => {
@@ -511,6 +518,7 @@ const Notices = () => {
             <Box>
               <NoticeViewer
                 selectedNotice={selectedNotice}
+                loading={loading}
                 canCreate={canCreate}
                 getStatusColor={getStatusColor}
                 statusLabel={statusLabel}
@@ -540,7 +548,7 @@ const Notices = () => {
             setSelectedNoticeId={setSelectedNoticeId}
             formatDate={formatDate}
           />
-          <SimpleNoticeViewer selectedNotice={selectedNotice} formatDate={formatDate} />
+          <SimpleNoticeViewer selectedNotice={selectedNotice} loading={loading} formatDate={formatDate} />
         </Box>
       )}
 
