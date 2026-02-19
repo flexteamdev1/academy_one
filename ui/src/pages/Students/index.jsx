@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Box, Snackbar } from '@mui/material';
 import PersonOutlined from '@mui/icons-material/PersonOutlined';
 import VerifiedUserOutlined from '@mui/icons-material/VerifiedUserOutlined';
@@ -107,6 +107,10 @@ const Students = () => {
   const [grade, setGrade] = useState(FILTER_ALL);
   const [section, setSection] = useState(FILTER_ALL);
   const [status, setStatus] = useState(FILTER_ALL);
+  const [appliedQ, setAppliedQ] = useState('');
+  const [appliedGrade, setAppliedGrade] = useState(FILTER_ALL);
+  const [appliedSection, setAppliedSection] = useState(FILTER_ALL);
+  const [appliedStatus, setAppliedStatus] = useState(FILTER_ALL);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
 
@@ -126,16 +130,16 @@ const Students = () => {
 
   const totalPages = Math.max(1, Math.ceil(total / LIMIT));
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     setError('');
 
     try {
       const params = { page, limit: LIMIT };
-      if (q.trim()) params.q = q.trim();
-      if (grade !== FILTER_ALL) params.grade = grade;
-      if (section !== FILTER_ALL) params.section = section;
-      if (status !== FILTER_ALL) params.status = status;
+      if (appliedQ.trim()) params.q = appliedQ.trim();
+      if (appliedGrade !== FILTER_ALL) params.grade = appliedGrade;
+      if (appliedSection !== FILTER_ALL) params.section = appliedSection;
+      if (appliedStatus !== FILTER_ALL) params.status = appliedStatus;
 
       const [listRes, statsRes] = await Promise.all([
         listStudents(params),
@@ -150,12 +154,11 @@ const Students = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, appliedGrade, appliedSection, appliedStatus, appliedQ, selectedAcademicYearId]);
 
   useEffect(() => {
     loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, grade, section, status, selectedAcademicYearId]);
+  }, [loadData]);
 
   useEffect(() => {
     return () => {
@@ -173,22 +176,25 @@ const Students = () => {
     return Array.from(values).sort();
   }, [students]);
 
-  const handleSearchSubmit = (event) => {
+  const handleSearchSubmit = useCallback((event) => {
     event.preventDefault();
+    setAppliedQ(q);
+    setAppliedGrade(grade);
+    setAppliedSection(section);
+    setAppliedStatus(status);
     setPage(1);
-    loadData();
-  };
+  }, [grade, q, section, status]);
 
-  const openCreateDialog = () => {
+  const openCreateDialog = useCallback(() => {
     setForm(emptyForm);
     if (photoPreview) URL.revokeObjectURL(photoPreview);
     setPhotoPreview('');
     setDialogMode('create');
     setEditingId('');
     setDialogOpen(true);
-  };
+  }, [photoPreview]);
 
-  const openEditDialog = (student) => {
+  const openEditDialog = useCallback((student) => {
     setDialogMode('edit');
     setEditingId(student._id);
     const parentRecord = student.parentId || {};
@@ -215,12 +221,12 @@ const Students = () => {
     if (photoPreview) URL.revokeObjectURL(photoPreview);
     setPhotoPreview(student.profilePhotoUrl || '');
     setDialogOpen(true);
-  };
+  }, [photoPreview]);
 
-  const openViewDialog = (student) => {
+  const openViewDialog = useCallback((student) => {
     setViewStudent(student);
     setViewDialogOpen(true);
-  };
+  }, []);
 
   const handlePhotoChange = (file) => {
     setForm((prev) => ({ ...prev, profilePhoto: file || null, removeProfilePhoto: false }));

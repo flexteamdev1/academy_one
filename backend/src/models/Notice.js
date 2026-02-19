@@ -48,9 +48,35 @@ const noticeSchema = new mongoose.Schema(
           type: String,
           trim: true,
         },
+        url: {
+          type: String,
+          trim: true,
+        },
+        publicId: {
+          type: String,
+          trim: true,
+        },
+        format: {
+          type: String,
+          trim: true,
+        },
+        resourceType: {
+          type: String,
+          trim: true,
+        },
         size: {
           type: String,
           trim: true,
+        },
+        sizeBytes: {
+          type: Number,
+        },
+        mimeType: {
+          type: String,
+          trim: true,
+        },
+        uploadedAt: {
+          type: Date,
         },
       },
     ],

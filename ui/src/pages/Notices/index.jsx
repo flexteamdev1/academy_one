@@ -12,11 +12,13 @@ import {
 } from '@mui/material';
 import AddRounded from '@mui/icons-material/AddRounded';
 import SearchOutlined from '@mui/icons-material/SearchOutlined';
+import AttachFileOutlined from '@mui/icons-material/AttachFileOutlined';
 import { createNotice, listNotices } from '../../services/noticeService';
 import { getUserRole } from '../../utils/auth';
 import NoticeList from './NoticeList';
 import NoticeViewer from './NoticeViewer';
 import NoticeForm from './NoticeForm';
+import PageCard from '../../components/common/PageCard';
 
 const audienceOptions = [
   { label: 'Students', value: 'STUDENT' },
@@ -116,9 +118,148 @@ const normalizeNotice = (notice) => ({
   attachments: Array.isArray(notice?.attachments) ? notice.attachments : [],
 });
 
+const isPdfAttachment = (attachment) => {
+  const name = String(attachment?.name || '').toLowerCase();
+  const url = String(attachment?.url || '').toLowerCase();
+  const format = String(attachment?.format || '').toLowerCase();
+  return name.endsWith('.pdf') || url.includes('.pdf') || format === 'pdf';
+};
+
+const SimpleNoticeList = ({ notices, loading, error, selectedNoticeId, setSelectedNoticeId, formatDate }) => (
+  <PageCard sx={{ p: 1.5 }}>
+    <Typography sx={{ fontWeight: 700, mb: 1 }}>Notices</Typography>
+    {error ? (
+      <Alert severity="error" sx={{ mb: 1 }}>{error}</Alert>
+    ) : null}
+    {loading ? (
+      <Typography sx={{ color: 'text.secondary' }}>Loading...</Typography>
+    ) : null}
+    {!loading && !notices.length ? (
+      <Typography sx={{ color: 'text.secondary' }}>No notices available.</Typography>
+    ) : null}
+    <Stack spacing={0.8}>
+      {notices.map((notice) => {
+        const active = selectedNoticeId === notice.id;
+        return (
+          <Box
+            key={notice.id}
+            role="button"
+            tabIndex={0}
+            onClick={() => setSelectedNoticeId(notice.id)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') setSelectedNoticeId(notice.id);
+            }}
+            sx={{
+              p: 1.2,
+              borderRadius: 1.2,
+              border: '1px solid',
+              borderColor: active ? 'primary.main' : 'divider',
+              bgcolor: active ? 'rgba(37, 99, 235, 0.06)' : 'transparent',
+              cursor: 'pointer',
+            }}
+          >
+            <Typography sx={{ fontWeight: active ? 700 : 600, fontSize: '0.95rem' }} noWrap>
+              {notice.title}
+            </Typography>
+            <Typography sx={{ color: 'text.secondary', fontSize: '0.78rem', mt: 0.4 }}>
+              {formatDate(notice.publishedAt || notice.createdAt, true)}
+            </Typography>
+          </Box>
+        );
+      })}
+    </Stack>
+  </PageCard>
+);
+
+const SimpleNoticeViewer = ({ selectedNotice, formatDate }) => (
+  <PageCard sx={{ p: 2 }}>
+    {selectedNotice ? (
+      <>
+        <Typography sx={{ fontWeight: 700, fontSize: '1.2rem', mb: 0.6 }}>
+          {selectedNotice.title}
+        </Typography>
+        <Typography sx={{ color: 'text.secondary', fontSize: '0.82rem', mb: 1 }}>
+          {formatDate(selectedNotice.publishedAt || selectedNotice.createdAt, true)}
+        </Typography>
+        <Typography sx={{ whiteSpace: 'pre-line', lineHeight: 1.7, mb: 1.6 }}>
+          {selectedNotice.body}
+        </Typography>
+        <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'text.secondary', mb: 0.6 }}>
+          Attachments
+        </Typography>
+        {selectedNotice.attachments.length ? (
+          <Stack spacing={0.8}>
+            {selectedNotice.attachments.map((attachment) => (
+              <Box
+                key={`${attachment.name}-${attachment.size}-${attachment.url}`}
+                sx={{ px: 1, py: 0.8, borderRadius: 1.2, bgcolor: 'action.hover' }}
+              >
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <AttachFileOutlined sx={{ fontSize: 16, color: 'text.secondary' }} />
+                  <Typography sx={{ fontSize: '0.82rem' }}>
+                    {attachment.name} · {attachment.size}
+                  </Typography>
+                  {attachment.url ? (
+                    <>
+                      <Button
+                        size="small"
+                        component="a"
+                        href={attachment.url}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Open
+                      </Button>
+                      <Button
+                        size="small"
+                        component="a"
+                        href={attachment.url}
+                        download
+                      >
+                        Download
+                      </Button>
+                    </>
+                  ) : null}
+                </Stack>
+                {attachment.url && isPdfAttachment(attachment) ? (
+                  <Box
+                    component="object"
+                    data={attachment.url}
+                    type="application/pdf"
+                    sx={{
+                      width: '100%',
+                      height: 480,
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      borderRadius: 1,
+                      mt: 1,
+                      backgroundColor: 'background.paper',
+                    }}
+                  >
+                    <Typography sx={{ color: 'text.secondary', p: 1 }}>
+                      PDF preview not available. Use the Open or Download buttons.
+                    </Typography>
+                  </Box>
+                ) : null}
+              </Box>
+            ))}
+          </Stack>
+        ) : (
+          <Typography sx={{ color: 'text.secondary', fontSize: '0.86rem' }}>
+            No attachments
+          </Typography>
+        )}
+      </>
+    ) : (
+      <Typography sx={{ color: 'text.secondary' }}>Select a notice to view details.</Typography>
+    )}
+  </PageCard>
+);
+
 const Notices = () => {
   const role = getUserRole();
   const canCreate = ['super_admin', 'admin', 'teacher'].includes(role);
+  const isAdmin = ['super_admin', 'admin'].includes(role);
 
   const [notices, setNotices] = useState([]);
   const [total, setTotal] = useState(0);
@@ -253,130 +394,155 @@ const Notices = () => {
         ) : null}
       </Stack>
 
-      <Box
-        sx={{
-          mb: 2,
-          display: 'grid',
-          gap: 1.2,
-          gridTemplateColumns: {
-            xs: '1fr',
-            lg: 'minmax(320px, 1fr) 170px 150px auto',
-          },
-          alignItems: 'center',
-        }}
-      >
-        <TextField
-          placeholder="Search by title, content or created by"
-          value={searchInput}
-          onChange={(event) => setSearchInput(event.target.value)}
-          sx={{ width: '100%' }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchOutlined fontSize="small" />
-              </InputAdornment>
-            ),
-          }}
-        />
+      {isAdmin ? (
+        <>
+          <Box
+            sx={{
+              mb: 2,
+              display: 'grid',
+              gap: 1.2,
+              gridTemplateColumns: {
+                xs: '1fr',
+                lg: 'minmax(320px, 1fr) 170px 150px auto',
+              },
+              alignItems: 'center',
+            }}
+          >
+            <TextField
+              placeholder="Search by title, content or created by"
+              value={searchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
+              sx={{ width: '100%' }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchOutlined fontSize="small" />
+                  </InputAdornment>
+                ),
+              }}
+            />
 
-        <TextField
-          select
-          value={audienceFilter}
-          onChange={(event) => setAudienceFilter(event.target.value)}
-          sx={{ minWidth: { xs: '100%', sm: 170 } }}
-        >
-          <MenuItem value="ALL">All audiences</MenuItem>
-          {audienceOptions.map((item) => (
-            <MenuItem key={item.value} value={item.value}>
-              {item.label}
-            </MenuItem>
-          ))}
-        </TextField>
-
-        <TextField
-          select
-          value={gradeFilter}
-          onChange={(event) => setGradeFilter(event.target.value)}
-          sx={{ minWidth: { xs: '100%', sm: 150 } }}
-        >
-          <MenuItem value="ALL">All grades</MenuItem>
-          {gradeOptions.filter((grade) => grade !== 'All Grades').map((grade) => (
-            <MenuItem key={grade} value={grade}>
-              {grade}
-            </MenuItem>
-          ))}
-        </TextField>
-
-        <Stack
-          direction="row"
-          spacing={0.5}
-          sx={{
-            p: 0.5,
-            borderRadius: 2,
-            border: '1px solid',
-            borderColor: 'divider',
-            flexWrap: 'nowrap',
-            overflowX: 'auto',
-          }}
-        >
-          {statusTabs.map((tab) => (
-            <Button
-              key={tab.value}
-              size="small"
-              variant={statusTab === tab.value ? 'contained' : 'text'}
-              color={statusTab === tab.value ? 'primary' : 'inherit'}
-              onClick={() => setStatusTab(tab.value)}
-              sx={{ minWidth: 0, px: 1.3, flexShrink: 0, color: statusTab === tab.value ? undefined : 'text.secondary' }}
+            <TextField
+              select
+              value={audienceFilter}
+              onChange={(event) => setAudienceFilter(event.target.value)}
+              sx={{ minWidth: { xs: '100%', sm: 170 } }}
             >
-              {tab.label}
-            </Button>
-          ))}
-        </Stack>
-      </Box>
+              <MenuItem value="ALL">All audiences</MenuItem>
+              {audienceOptions.map((item) => (
+                <MenuItem key={item.value} value={item.value}>
+                  {item.label}
+                </MenuItem>
+              ))}
+            </TextField>
 
-      {error ? (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      ) : null}
+            <TextField
+              select
+              value={gradeFilter}
+              onChange={(event) => setGradeFilter(event.target.value)}
+              sx={{ minWidth: { xs: '100%', sm: 150 } }}
+            >
+              <MenuItem value="ALL">All grades</MenuItem>
+              {gradeOptions.filter((grade) => grade !== 'All Grades').map((grade) => (
+                <MenuItem key={grade} value={grade}>
+                  {grade}
+                </MenuItem>
+              ))}
+            </TextField>
 
-      <Box
-        sx={{
-          display: 'grid',
-          gap: 2,
-          gridTemplateColumns: {
-            xs: '1fr',
-            lg: 'minmax(320px, 34%) minmax(0, 1fr)',
-          },
-          alignItems: 'stretch',
-        }}
-      >
-        <Box>
-          <NoticeList
+            <Stack
+              direction="row"
+              spacing={0.5}
+              sx={{
+                p: 0.5,
+                borderRadius: 2,
+                border: '1px solid',
+                borderColor: 'divider',
+                flexWrap: 'nowrap',
+                overflowX: 'auto',
+              }}
+            >
+              {statusTabs.map((tab) => (
+                <Button
+                  key={tab.value}
+                  size="small"
+                  variant={statusTab === tab.value ? 'contained' : 'text'}
+                  color={statusTab === tab.value ? 'primary' : 'inherit'}
+                  onClick={() => setStatusTab(tab.value)}
+                  sx={{ minWidth: 0, px: 1.3, flexShrink: 0, color: statusTab === tab.value ? undefined : 'text.secondary' }}
+                >
+                  {tab.label}
+                </Button>
+              ))}
+            </Stack>
+          </Box>
+
+          {error ? (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          ) : null}
+
+          <Box
+            sx={{
+              display: 'grid',
+              gap: 2,
+              gridTemplateColumns: {
+                xs: '1fr',
+                lg: 'minmax(320px, 34%) minmax(0, 1fr)',
+              },
+              alignItems: 'stretch',
+            }}
+          >
+            <Box>
+              <NoticeList
+                notices={notices}
+                total={total}
+                loading={loading}
+                selectedNoticeId={selectedNoticeId}
+                setSelectedNoticeId={setSelectedNoticeId}
+                audienceLabelMap={audienceLabelMap}
+                formatDate={formatDate}
+                getStatusColor={getStatusColor}
+                statusLabel={statusLabel}
+              />
+            </Box>
+
+            <Box>
+              <NoticeViewer
+                selectedNotice={selectedNotice}
+                canCreate={canCreate}
+                getStatusColor={getStatusColor}
+                statusLabel={statusLabel}
+                formatDate={formatDate}
+                audienceLabelMap={audienceLabelMap}
+                channelLabelMap={channelLabelMap}
+              />
+            </Box>
+          </Box>
+        </>
+      ) : (
+        <Box
+          sx={{
+            display: 'grid',
+            gap: 2,
+            gridTemplateColumns: {
+              xs: '1fr',
+              lg: 'minmax(260px, 32%) minmax(0, 1fr)',
+            },
+          }}
+        >
+          <SimpleNoticeList
             notices={notices}
-            total={total}
             loading={loading}
+            error={error}
             selectedNoticeId={selectedNoticeId}
             setSelectedNoticeId={setSelectedNoticeId}
-            audienceLabelMap={audienceLabelMap}
             formatDate={formatDate}
-            getStatusColor={getStatusColor}
-            statusLabel={statusLabel}
           />
+          <SimpleNoticeViewer selectedNotice={selectedNotice} formatDate={formatDate} />
         </Box>
-
-        <Box>
-          <NoticeViewer
-            selectedNotice={selectedNotice}
-            canCreate={canCreate}
-            getStatusColor={getStatusColor}
-            statusLabel={statusLabel}
-            formatDate={formatDate}
-            audienceLabelMap={audienceLabelMap}
-            channelLabelMap={channelLabelMap}
-          />
-        </Box>
-      </Box>
+      )}
 
       <NoticeForm
         open={createOpen}

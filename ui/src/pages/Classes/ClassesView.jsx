@@ -400,4 +400,4 @@ const ClassesView = ({
   </>
 );
 
-export default ClassesView;
+export default React.memo(ClassesView);

@@ -18,6 +18,26 @@ export const listNotices = async (params = {}) => {
 
 export const createNotice = async (payload) => {
   try {
+    const hasFiles = Array.isArray(payload?.attachments) && payload.attachments.some((item) => item?.file);
+    if (hasFiles) {
+      const formData = new FormData();
+      formData.append('title', payload.title || '');
+      formData.append('content', payload.content || '');
+      formData.append('status', payload.status || 'PUBLISHED');
+      if (payload.scheduledAt) formData.append('scheduledAt', payload.scheduledAt);
+      formData.append('visibleFor', JSON.stringify(payload.visibleFor || []));
+      formData.append('grades', JSON.stringify(payload.grades || []));
+      formData.append('channels', JSON.stringify(payload.channels || []));
+      payload.attachments.forEach((item) => {
+        if (item?.file) formData.append('attachments', item.file);
+      });
+
+      const response = await apiClient.post('/notices', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return response.data;
+    }
+
     const response = await apiClient.post('/notices', payload);
     return response.data;
   } catch (error) {

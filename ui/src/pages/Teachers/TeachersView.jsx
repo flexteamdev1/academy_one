@@ -143,7 +143,6 @@ const TeachersView = ({
           value={status}
           onChange={(e) => {
             setStatus(e.target.value);
-            setPage(1);
           }}
           sx={{ minWidth: 180 }}
         >
@@ -294,4 +293,4 @@ const TeachersView = ({
   </>
 );
 
-export default TeachersView;
+export default React.memo(TeachersView);

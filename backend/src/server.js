@@ -41,6 +41,9 @@ app.use((err, _req, res, next) => {
   if (err.message === 'Only image files are allowed') {
     return res.status(400).json({ message: err.message });
   }
+  if (err.message === 'Unsupported attachment type') {
+    return res.status(400).json({ message: err.message });
+  }
 
   return res.status(500).json({ message: err.message || 'Internal server error' });
 });

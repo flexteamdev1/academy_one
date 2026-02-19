@@ -2,45 +2,63 @@ const mongoose = require('mongoose');
 const { ATTENDANCE_STATUS } = require('../constants/enums');
 
 const attendanceSchema = new mongoose.Schema({
-  studentId: {
+  schoolId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Student",
-    required: true
+    ref: "School",
+    required: true,
+    index: true
   },
 
   classId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Class",
-    required: true
+    required: true,
+    index: true
   },
 
-  sectionName: {
-    type: String,
+  sectionId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Section",
     required: true,
-    uppercase: true
+    index: true
   },
 
   date: {
     type: Date,
-    required: true
+    required: true,
+    index: true
   },
 
-  status: {
-    type: String,
-    enum: Object.values(ATTENDANCE_STATUS),
-    required: true
-  },
+  records: [
+    {
+      studentId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Student",
+        required: true
+      },
+      status: {
+        type: String,
+        enum: Object.values(ATTENDANCE_STATUS),
+        required: true
+      }
+    }
+  ],
 
   markedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true
+  },
+
+  isLocked: {
+    type: Boolean,
+    default: false
   }
 
 }, { timestamps: true });
 
 attendanceSchema.index(
-  { studentId: 1, date: 1 },
+  { classId: 1, sectionId: 1, date: 1 },
   { unique: true }
 );
 

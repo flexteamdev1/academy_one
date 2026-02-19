@@ -11,7 +11,6 @@ import {
   Typography,
 } from '@mui/material';
 import MenuOutlined from '@mui/icons-material/MenuOutlined';
-import NotificationsOutlined from '@mui/icons-material/NotificationsOutlined';
 import CalendarMonthOutlined from '@mui/icons-material/CalendarMonthOutlined';
 import KeyboardArrowDownRounded from '@mui/icons-material/KeyboardArrowDownRounded';
 import { useUIDispatch, useUIState } from '../../context/UIContext';
@@ -54,6 +53,7 @@ const Header = ({ title, breadcrumb = 'Main Dashboard' }) => {
 
     loadYears();
   }, []);
+
 
   const selectedYearLabel = useMemo(() => {
     const selected = years.find((item) => String(item._id) === String(selectedAcademicYearId));
@@ -184,18 +184,6 @@ const Header = ({ title, breadcrumb = 'Main Dashboard' }) => {
             )}
           </Menu>
 
-          <IconButton
-            sx={{
-              width: 40,
-              height: 40,
-              backgroundColor: 'background.paper',
-              border: (theme) => `1px solid ${theme.palette.divider}`,
-              color: 'text.secondary',
-              display: { xs: 'none', sm: 'inline-flex' },
-            }}
-          >
-            <NotificationsOutlined fontSize="small" />
-          </IconButton>
         </Stack>
       </Toolbar>
     </AppBar>

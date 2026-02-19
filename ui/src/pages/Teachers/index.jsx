@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, Box, Snackbar } from '@mui/material';
 import DeleteConfirmDialog from '../../components/common/DeleteConfirmDialog';
 import {
@@ -44,6 +44,8 @@ const Teachers = () => {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [status, setStatus] = useState(FILTER_ALL);
+  const [appliedSearchQuery, setAppliedSearchQuery] = useState('');
+  const [appliedStatus, setAppliedStatus] = useState(FILTER_ALL);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
 
@@ -60,14 +62,14 @@ const Teachers = () => {
 
   const totalPages = Math.max(1, Math.ceil(total / LIMIT));
 
-  const loadTeachers = async () => {
+  const loadTeachers = useCallback(async () => {
     setLoading(true);
     setError('');
 
     try {
       const params = { page, limit: LIMIT };
-      if (searchQuery.trim()) params.q = searchQuery.trim();
-      if (status !== FILTER_ALL) params.status = status;
+      if (appliedSearchQuery.trim()) params.q = appliedSearchQuery.trim();
+      if (appliedStatus !== FILTER_ALL) params.status = appliedStatus;
 
       const [listRes, statsRes] = await Promise.all([listTeachers(params), getTeacherStats()]);
 
@@ -79,27 +81,27 @@ const Teachers = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, appliedStatus, appliedSearchQuery]);
 
   useEffect(() => {
     loadTeachers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, status]);
+  }, [loadTeachers]);
 
-  const handleSearchSubmit = (event) => {
+  const handleSearchSubmit = useCallback((event) => {
     event.preventDefault();
+    setAppliedSearchQuery(searchQuery);
+    setAppliedStatus(status);
     setPage(1);
-    loadTeachers();
-  };
+  }, [searchQuery, status]);
 
-  const openCreateDialog = () => {
+  const openCreateDialog = useCallback(() => {
     setDialogMode('create');
     setEditingId('');
     setForm(emptyForm);
     setDialogOpen(true);
-  };
+  }, []);
 
-  const openEditDialog = (teacher) => {
+  const openEditDialog = useCallback((teacher) => {
     setDialogMode('edit');
     setEditingId(teacher._id);
     setForm({
@@ -114,14 +116,14 @@ const Teachers = () => {
       status: teacher.status || TEACHER_STATUS.ACTIVE,
     });
     setDialogOpen(true);
-  };
+  }, []);
 
-  const openViewDialog = (teacher) => {
+  const openViewDialog = useCallback((teacher) => {
     setViewTeacher(teacher);
     setViewDialogOpen(true);
-  };
+  }, []);
 
-  const handleDialogSubmit = async () => {
+  const handleDialogSubmit = useCallback(async () => {
     setSubmitting(true);
 
     try {
@@ -151,9 +153,9 @@ const Teachers = () => {
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [dialogMode, editingId, form, loadTeachers]);
 
-  const handleDelete = async () => {
+  const handleDelete = useCallback(async () => {
     try {
       await deleteTeacher(confirmDelete.id);
       setToast({ open: true, severity: 'success', message: 'Teacher deleted successfully' });
@@ -166,7 +168,7 @@ const Teachers = () => {
         message: err.message || 'Unable to delete teacher',
       });
     }
-  };
+  }, [confirmDelete.id, loadTeachers]);
 
   return (
     <Box>

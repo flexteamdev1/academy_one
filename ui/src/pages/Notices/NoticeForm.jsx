@@ -66,12 +66,21 @@ const NoticeForm = ({
   const onAttachmentPick = (event) => {
     const files = Array.from(event.target.files || []);
     const next = files.map((file) => ({
+      file,
       name: file.name,
       size: `${Math.max(1, Math.round(file.size / 1024))} KB`,
+      sizeBytes: file.size,
     }));
 
     setForm((prev) => ({ ...prev, attachments: [...prev.attachments, ...next] }));
     event.target.value = '';
+  };
+
+  const removeAttachment = (target) => {
+    setForm((prev) => ({
+      ...prev,
+      attachments: prev.attachments.filter((item) => item !== target),
+    }));
   };
 
   return (
@@ -188,15 +197,30 @@ const NoticeForm = ({
                 </Typography>
                 <Button component="label" size="small" variant="outlined">
                   Choose files
-                  <input type="file" multiple hidden onChange={onAttachmentPick} />
+                  <input
+                    type="file"
+                    multiple
+                    hidden
+                    accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                    onChange={onAttachmentPick}
+                  />
                 </Button>
               </Box>
               {form.attachments.length ? (
                 <Stack spacing={0.6} sx={{ mt: 1 }}>
                   {form.attachments.map((attachment) => (
-                    <Typography key={`${attachment.name}-${attachment.size}`} sx={{ fontSize: '0.82rem', color: 'text.secondary' }}>
-                      {attachment.name} · {attachment.size}
-                    </Typography>
+                    <Stack
+                      key={`${attachment.name}-${attachment.size}-${attachment.sizeBytes}`}
+                      direction="row"
+                      spacing={1}
+                      alignItems="center"
+                      justifyContent="space-between"
+                    >
+                      <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary' }}>
+                        {attachment.name} · {attachment.size}
+                      </Typography>
+                      <Button size="small" onClick={() => removeAttachment(attachment)}>Remove</Button>
+                    </Stack>
                   ))}
                 </Stack>
               ) : null}

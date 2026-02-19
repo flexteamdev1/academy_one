@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Box, Snackbar } from '@mui/material';
 import ClassOutlined from '@mui/icons-material/ClassOutlined';
 import ViewModuleOutlined from '@mui/icons-material/ViewModuleOutlined';
@@ -118,7 +118,7 @@ const Classes = () => {
     [stats]
   );
 
-  const loadMeta = async () => {
+  const loadMeta = useCallback(async () => {
     try {
       const response = await getClassMeta();
       setMeta({
@@ -128,9 +128,9 @@ const Classes = () => {
     } catch (err) {
       setToast({ open: true, severity: 'error', message: err.message || 'Failed to load metadata' });
     }
-  };
+  }, []);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     setError('');
 
@@ -150,24 +150,23 @@ const Classes = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, q, status, academicYearId]);
 
   useEffect(() => {
     loadMeta();
-  }, []);
+  }, [loadMeta]);
 
   useEffect(() => {
     loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, status, academicYearId, selectedAcademicYearId]);
+  }, [loadData, selectedAcademicYearId]);
 
-  const handleSearchSubmit = (event) => {
+  const handleSearchSubmit = useCallback((event) => {
     event.preventDefault();
     setPage(1);
     loadData();
-  };
+  }, [loadData]);
 
-  const openCreateDialog = () => {
+  const openCreateDialog = useCallback(() => {
     setDialogMode('create');
     setEditingId('');
     setForm({
@@ -175,9 +174,9 @@ const Classes = () => {
       academicYearId: meta.academicYears[0]?._id || '',
     });
     setDialogOpen(true);
-  };
+  }, [meta.academicYears]);
 
-  const openEditDialog = (item) => {
+  const openEditDialog = useCallback((item) => {
     setDialogMode('edit');
     setEditingId(item._id);
     setForm({
@@ -192,9 +191,9 @@ const Classes = () => {
       })),
     });
     setDialogOpen(true);
-  };
+  }, []);
 
-  const onChangeSection = (index, key, value) => {
+  const onChangeSection = useCallback((index, key, value) => {
     setForm((prev) => {
       const nextSections = [...prev.sections];
       nextSections[index] = {
@@ -203,16 +202,16 @@ const Classes = () => {
       };
       return { ...prev, sections: nextSections };
     });
-  };
+  }, []);
 
-  const addSectionRow = () => {
+  const addSectionRow = useCallback(() => {
     setForm((prev) => ({
       ...prev,
       sections: [...prev.sections, createEmptySection()],
     }));
-  };
+  }, []);
 
-  const removeSectionRow = (index) => {
+  const removeSectionRow = useCallback((index) => {
     setForm((prev) => {
       if (prev.sections.length <= 1) return prev;
       return {
@@ -220,9 +219,9 @@ const Classes = () => {
         sections: prev.sections.filter((_, idx) => idx !== index),
       };
     });
-  };
+  }, []);
 
-  const handleDialogSubmit = async () => {
+  const handleDialogSubmit = useCallback(async () => {
     const sections = form.sections
       .map((section) => ({
         name: String(section.name || '').trim().toUpperCase(),
@@ -268,9 +267,9 @@ const Classes = () => {
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [dialogMode, editingId, form, loadData]);
 
-  const handleDeleteClass = async () => {
+  const handleDeleteClass = useCallback(async () => {
     setDeleting(true);
 
     try {
@@ -288,7 +287,7 @@ const Classes = () => {
     } finally {
       setDeleting(false);
     }
-  };
+  }, [deleteState.id, items.length, loadData, page]);
 
   return (
     <Box>

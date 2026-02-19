@@ -139,21 +139,21 @@ const StudentsView = ({
 
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.2} sx={{ width: { xs: '100%', lg: 'auto' } }}>
           <FormControl size="small" sx={{ minWidth: 150 }}>
-            <Select value={grade} onChange={(e) => { setGrade(e.target.value); setPage(1); }} sx={{ backgroundColor: (theme) => theme.palette.grey[50] }}>
+            <Select value={grade} onChange={(e) => { setGrade(e.target.value); }} sx={{ backgroundColor: (theme) => theme.palette.grey[50] }}>
               <MenuItem value={FILTER_ALL}>All Grades</MenuItem>
               {gradeOptions.map((item) => <MenuItem key={item} value={item}>{item}</MenuItem>)}
             </Select>
           </FormControl>
 
           <FormControl size="small" sx={{ minWidth: 150 }}>
-            <Select value={section} onChange={(e) => { setSection(e.target.value); setPage(1); }} sx={{ backgroundColor: (theme) => theme.palette.grey[50] }}>
+            <Select value={section} onChange={(e) => { setSection(e.target.value); }} sx={{ backgroundColor: (theme) => theme.palette.grey[50] }}>
               <MenuItem value={FILTER_ALL}>All Sections</MenuItem>
               {sectionOptions.map((item) => <MenuItem key={item} value={item}>{item}</MenuItem>)}
             </Select>
           </FormControl>
 
           <FormControl size="small" sx={{ minWidth: 150 }}>
-            <Select value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }} sx={{ backgroundColor: (theme) => theme.palette.grey[50] }}>
+            <Select value={status} onChange={(e) => { setStatus(e.target.value); }} sx={{ backgroundColor: (theme) => theme.palette.grey[50] }}>
               <MenuItem value={FILTER_ALL}>All Status</MenuItem>
               <MenuItem value={STUDENT_STATUS.ACTIVE}>Active</MenuItem>
               <MenuItem value={STUDENT_STATUS.DROPPED}>Dropped</MenuItem>
@@ -161,17 +161,13 @@ const StudentsView = ({
             </Select>
           </FormControl>
 
-          <IconButton
+          <Button
             type="submit"
-            sx={(theme) => ({
-              borderRadius: theme.shape.borderRadius,
-              border: '1px solid',
-              borderColor: theme.palette.grey[200],
-              backgroundColor: theme.palette.grey[100],
-            })}
+            variant="outlined"
+            startIcon={<FilterListOutlined />}
           >
-            <FilterListOutlined />
-          </IconButton>
+            Apply
+          </Button>
         </Stack>
       </Stack>
     </PageCard>
@@ -369,4 +365,4 @@ const StudentsView = ({
   </>
 );
 
-export default StudentsView;
+export default React.memo(StudentsView);

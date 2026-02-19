@@ -31,6 +31,7 @@ const getCloudinaryFolder = (type) => {
     student: process.env.CLOUDINARY_STUDENT_FOLDER || 'students/profile-photos',
     teacher: process.env.CLOUDINARY_TEACHER_FOLDER || 'teachers/profile-photos',
     school: process.env.CLOUDINARY_SCHOOL_FOLDER || 'schools',
+    notice: process.env.CLOUDINARY_NOTICE_FOLDER || 'notices',
   };
 
   const leaf = typeMap[type] || type;
@@ -58,11 +59,37 @@ const uploadImageToCloudinary = async ({ file, folder, publicIdPrefix }) => {
   };
 };
 
-const deleteCloudinaryAsset = async (publicId) => {
+const uploadFileToCloudinary = async ({ file, folder, publicIdPrefix }) => {
+  if (!file) return null;
+  if (!isCloudinaryConfigured()) {
+    throw new Error('Cloudinary is not configured');
+  }
+
+  const dataUri = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+  const safeName = slugify(file.originalname || 'file');
+  const publicId = `${publicIdPrefix || 'file'}-${Date.now()}-${safeName || 'upload'}`;
+
+  const uploaded = await cloudinary.uploader.upload(dataUri, {
+    folder,
+    public_id: publicId,
+    overwrite: false,
+    resource_type: 'auto',
+  });
+
+  return {
+    url: uploaded.secure_url,
+    publicId: uploaded.public_id,
+    format: uploaded.format,
+    resourceType: uploaded.resource_type,
+    bytes: uploaded.bytes,
+  };
+};
+
+const deleteCloudinaryAsset = async (publicId, resourceType = 'image') => {
   if (!publicId || !isCloudinaryConfigured()) return;
 
   try {
-    await cloudinary.uploader.destroy(publicId, { resource_type: 'image' });
+    await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
   } catch (_error) {
     // Keep DB operations successful even if remote cleanup fails.
   }
@@ -73,5 +100,6 @@ module.exports = {
   parseBoolean,
   getCloudinaryFolder,
   uploadImageToCloudinary,
+  uploadFileToCloudinary,
   deleteCloudinaryAsset,
 };
