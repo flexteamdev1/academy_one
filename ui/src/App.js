@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { GlobalStyles } from '@mui/material';
@@ -13,6 +13,7 @@ import Students from './pages/Students';
 import Teachers from './pages/Teachers';
 import Classes from './pages/Classes';
 import AcademicYears from './pages/AcademicYears';
+import Enrollment from './pages/Enrollment';
 import Profile from './pages/Profile';
 import TeacherAttendance from './pages/TeacherAttendance';
 import AttendanceView from './pages/AttendanceView';
@@ -21,13 +22,19 @@ import Notices from './pages/Notices';
 import NotFound from './pages/NotFound';
 import MainLayout from './components/layout/MainLayout';
 import { UIProvider } from './context/UIContext';
-import { getUserRole } from './utils/auth';
+import { getUserInfo, getUserRole } from './utils/auth';
 
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
+  const location = useLocation();
   const userInfo = localStorage.getItem('userInfo');
   if (!userInfo) {
     return <Navigate to="/login" replace />;
+  }
+
+  const user = getUserInfo();
+  if (user?.mustChangePassword && location.pathname !== '/profile') {
+    return <Navigate to="/profile" replace />;
   }
 
   const role = getUserRole();
@@ -89,6 +96,7 @@ function App() {
               <Route path="teachers" element={<ProtectedRoute allowedRoles={['super_admin', 'admin']}><Teachers /></ProtectedRoute>} />
               <Route path="classes" element={<ProtectedRoute allowedRoles={['super_admin', 'admin']}><Classes /></ProtectedRoute>} />
               <Route path="academic-years" element={<ProtectedRoute allowedRoles={['super_admin', 'admin']}><AcademicYears /></ProtectedRoute>} />
+              <Route path="enrollment" element={<ProtectedRoute allowedRoles={['super_admin', 'admin', 'teacher']}><Enrollment /></ProtectedRoute>} />
               <Route path="attendance" element={<ProtectedRoute allowedRoles={['super_admin', 'admin', 'teacher', 'student', 'parent']}><AttendanceLanding /></ProtectedRoute>} />
               <Route path="fees" element={<ProtectedRoute allowedRoles={['super_admin', 'admin', 'student', 'parent']}><Fees /></ProtectedRoute>} />
               <Route path="notices" element={<ProtectedRoute allowedRoles={['super_admin', 'admin', 'teacher', 'student', 'parent']}><Notices /></ProtectedRoute>} />

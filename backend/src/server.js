@@ -25,6 +25,7 @@ app.use("/api/students", require("./routes/studentRoutes"));
 app.use("/api/classes", require("./routes/classRoutes"));
 app.use("/api/academic-years", require("./routes/academicYearRoutes"));
 app.use("/api/notices", require("./routes/noticeRoutes"));
+app.use("/api/leads", require("./routes/leadRoutes"));
 
 // Home
 app.get("/", (req, res) => {

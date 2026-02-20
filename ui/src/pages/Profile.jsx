@@ -24,6 +24,7 @@ const Profile = () => {
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const isStudentOrParent = role === 'student' || role === 'parent';
+  const mustChangePassword = !!user?.mustChangePassword;
 
   useEffect(() => {
     if (!isStudentOrParent) return;
@@ -49,6 +50,8 @@ const Profile = () => {
       const response = await changePassword(form);
       setSuccess(response.message || 'Password changed');
       setForm({ currentPassword: '', newPassword: '' });
+      const nextUser = { ...user, mustChangePassword: false };
+      localStorage.setItem('userInfo', JSON.stringify(nextUser));
     } catch (err) {
       setError(err.message || 'Failed to change password');
     }
@@ -103,7 +106,12 @@ const Profile = () => {
       ) : null}
 
       <PageCard sx={{ p: 2 }}>
-        <Typography sx={{ fontWeight: 700, mb: 1.2 }}>Change Password</Typography>
+        <Typography sx={{ fontWeight: 700, mb: 0.8 }}>Change Password</Typography>
+        {mustChangePassword ? (
+          <Alert severity="warning" sx={{ mb: 1.2 }}>
+            You must change your password to continue.
+          </Alert>
+        ) : null}
         {success ? <Alert severity="success" sx={{ mb: 1.2 }}>{success}</Alert> : null}
         {error ? <Alert severity="error" sx={{ mb: 1.2 }}>{error}</Alert> : null}
         <Stack component="form" spacing={1.2} onSubmit={submitPasswordChange}>

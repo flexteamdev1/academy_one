@@ -56,7 +56,11 @@ const LoginPage = () => {
       });
 
       localStorage.setItem('userInfo', JSON.stringify({ ...response, remember }));
-      navigate('/');
+      if (response?.mustChangePassword) {
+        navigate('/profile');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       setError(
         err.response && err.response.data && err.response.data.message

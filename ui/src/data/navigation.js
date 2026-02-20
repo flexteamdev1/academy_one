@@ -7,6 +7,7 @@ import FactCheckOutlined from '@mui/icons-material/FactCheckOutlined';
 import CampaignOutlined from '@mui/icons-material/CampaignOutlined';
 import ReceiptLongOutlined from '@mui/icons-material/ReceiptLongOutlined';
 import PersonOutlineOutlined from '@mui/icons-material/PersonOutlineOutlined';
+import HowToRegOutlined from '@mui/icons-material/HowToRegOutlined';
 
 const navigation = [
   {
@@ -56,6 +57,14 @@ const navigation = [
     headerTitle: 'Academic Year Management',
     breadcrumb: 'Academic Calendar Setup',
     roles: ['super_admin', 'admin'],
+  },
+  {
+    label: 'Admissions',
+    path: '/enrollment',
+    icon: HowToRegOutlined,
+    headerTitle: 'Admissions & Enrollment',
+    breadcrumb: 'Lead to Student',
+    roles: ['super_admin', 'admin', 'teacher'],
   },
   {
     label: 'Attendance',

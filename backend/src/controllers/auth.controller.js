@@ -27,12 +27,14 @@ const registerUser = async (req, res) => {
       });
     }
 
+    const mustChangePassword = [ROLES.TEACHER, ROLES.STUDENT, ROLES.PARENT].includes(role);
     const user = await User.create({
       name,
       email,
       phone,
       password,
       role,
+      mustChangePassword,
     });
 
     res.status(201).json({
@@ -70,6 +72,7 @@ const loginUser = async (req, res) => {
       email: user.email,
       role: user.role,
       name: user.name,
+      mustChangePassword: !!user.mustChangePassword,
       token: generateToken(user._id),
     });
 
@@ -107,6 +110,9 @@ const changePassword = async (req, res) => {
     }
 
     user.password = newPassword;
+    if (user.mustChangePassword) {
+      user.mustChangePassword = false;
+    }
     await user.save();
 
     return res.json({ message: 'Password changed successfully' });

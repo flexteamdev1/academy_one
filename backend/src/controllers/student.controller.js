@@ -1,5 +1,6 @@
 const Parent = require('../models/Parent');
 const StudentProfile = require('../models/StudentProfile');
+const Enrollment = require('../models/Enrollment');
 const User = require('../models/User');
 const ClassModel = require('../models/Class');
 const AcademicYear = require('../models/AcademicYear');
@@ -285,6 +286,7 @@ const createStudent = async (req, res) => {
       password: studentPassword,
       role: ROLES.STUDENT,
       status: USER_STATUS.ACTIVE,
+      mustChangePassword: true,
     });
     createdStudentUser = true;
 
@@ -298,6 +300,7 @@ const createStudent = async (req, res) => {
         password: parentPassword,
         role: ROLES.PARENT,
         status: USER_STATUS.ACTIVE,
+        mustChangePassword: true,
       });
       createdParentUser = true;
     }
@@ -366,6 +369,23 @@ const createStudent = async (req, res) => {
     if (!parentProfile.children.some((id) => String(id) === String(studentProfile._id))) {
       parentProfile.children.push(studentProfile._id);
       await parentProfile.save();
+    }
+
+    if (studentProfile.classId && resolvedAcademicYearId) {
+      let academicYearLabel = String(selectedYear?.name || '').trim();
+      if (!academicYearLabel && resolvedAcademicYearId) {
+        const yearRecord = await AcademicYear.findById(resolvedAcademicYearId).select('name');
+        academicYearLabel = String(yearRecord?.name || '').trim();
+      }
+      if (!academicYearLabel) {
+        academicYearLabel = String(new Date().getFullYear());
+      }
+
+      await Enrollment.create({
+        studentId: studentProfile._id,
+        classId: studentProfile.classId,
+        academicYear: academicYearLabel,
+      }).catch(() => {});
     }
 
     const studentRecipient = studentEmailInput || parentEmail;
@@ -541,6 +561,7 @@ const deleteStudent = async (req, res) => {
       { $pull: { children: deleted._id } }
     );
 
+    await Enrollment.deleteMany({ studentId: deleted._id }).catch(() => {});
     await User.findByIdAndDelete(deleted.userId).catch(() => {});
     await deleteCloudinaryAsset(deleted.profilePhotoPublicId);
 

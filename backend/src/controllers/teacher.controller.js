@@ -1,5 +1,7 @@
 const Teacher = require('../models/Teacher');
-const { TEACHER_STATUS } = require('../constants/enums');
+const User = require('../models/User');
+const { TEACHER_STATUS, USER_STATUS } = require('../constants/enums');
+const { ROLES } = require('../constants/roles');
 const {
   deleteCloudinaryAsset,
   getCloudinaryFolder,
@@ -7,6 +9,7 @@ const {
   slugify,
   uploadImageToCloudinary,
 } = require('../utils/media');
+const { sendCredentialsEmail } = require('../utils/mailer');
 
 const normalizeSubjects = (subjects) => {
   if (Array.isArray(subjects)) {
@@ -26,7 +29,16 @@ const normalizeSubjects = (subjects) => {
 const normalizeEmail = (value) => {
   if (value == null) return undefined;
   const trimmed = String(value).trim();
-  return trimmed ? trimmed : undefined;
+  return trimmed ? trimmed.toLowerCase() : undefined;
+};
+
+const randomPassword = (length = 10) => {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
+  let output = '';
+  for (let i = 0; i < length; i += 1) {
+    output += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return output;
 };
 
 const employeePattern = /^TE-(\d{4})-(\d{4})$/;
@@ -129,12 +141,42 @@ const getTeacherStats = async (req, res) => {
 };
 
 const createTeacher = async (req, res) => {
+  let createdTeacherUser = false;
+  let teacherUser = null;
   try {
     const normalizedEmail = normalizeEmail(req.body.email);
     if (normalizedEmail) {
       const emailExists = await Teacher.exists({ email: normalizedEmail });
       if (emailExists) {
         return res.status(400).json({ message: 'Teacher with same email already exists' });
+      }
+    }
+    let generatedPassword = '';
+
+    if (normalizedEmail) {
+      const existingUser = await User.findOne({ email: normalizedEmail });
+      if (existingUser && existingUser.role !== ROLES.TEACHER) {
+        return res.status(400).json({ message: 'Email already exists with a non-teacher user account' });
+      }
+
+      if (existingUser) {
+        const linkedTeacher = await Teacher.findOne({ userId: existingUser._id }).select('_id');
+        if (linkedTeacher) {
+          return res.status(400).json({ message: 'Teacher login already linked to another record' });
+        }
+        teacherUser = existingUser;
+      } else {
+        generatedPassword = randomPassword();
+        teacherUser = await User.create({
+          name: `${req.body.firstName || ''} ${req.body.lastName || ''}`.trim() || 'Teacher',
+          email: normalizedEmail,
+          phone: req.body.phone,
+          password: generatedPassword,
+          role: ROLES.TEACHER,
+          status: USER_STATUS.ACTIVE,
+          mustChangePassword: true,
+        });
+        createdTeacherUser = true;
       }
     }
 
@@ -155,6 +197,7 @@ const createTeacher = async (req, res) => {
         lastName: req.body.lastName,
         email: normalizedEmail,
         phone: req.body.phone,
+        userId: teacherUser?._id,
         subjects: normalizeSubjects(req.body.subjects),
         qualification: req.body.qualification,
         experience: req.body.experience,
@@ -180,13 +223,29 @@ const createTeacher = async (req, res) => {
       return res.status(409).json({ message: 'Unable to generate a unique employee ID. Please retry.' });
     }
 
+    if (createdTeacherUser && normalizedEmail) {
+      const portalUrl = process.env.TEACHER_PORTAL_URL || process.env.FRONTEND_URL || '';
+      await sendCredentialsEmail({
+        to: normalizedEmail,
+        roleLabel: 'Teacher',
+        loginId: normalizedEmail,
+        password: generatedPassword,
+        templateType: 'teacher',
+        recipientName: `${req.body.firstName || ''} ${req.body.lastName || ''}`.trim() || 'Teacher',
+        portalUrl,
+      });
+    }
+
     res.status(201).json(created);
   } catch (error) {
     console.error('Error creating teacher:', error);
+    if (createdTeacherUser && teacherUser?._id) {
+      await User.findByIdAndDelete(teacherUser._id).catch(() => {});
+    }
+    if (error?.code === 11000 && error?.keyPattern?.email) {
+      return res.status(400).json({ message: 'Teacher with same email already exists' });
+    }
     if (error?.code === 11000) {
-      if (error?.keyPattern?.email) {
-        return res.status(400).json({ message: 'Teacher with same email already exists' });
-      }
       if (error?.keyPattern?.employeeId) {
         return res.status(400).json({ message: 'Teacher with same employee ID already exists' });
       }

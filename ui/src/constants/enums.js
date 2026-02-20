@@ -45,3 +45,11 @@ export const FEE_PAYMENT_STATUS = {
   PAID: 'PAID',
   PENDING: 'PENDING',
 };
+
+export const LEAD_STATUS = {
+  NEW: 'NEW',
+  CONTACTED: 'CONTACTED',
+  QUALIFIED: 'QUALIFIED',
+  CONVERTED: 'CONVERTED',
+  LOST: 'LOST',
+};
