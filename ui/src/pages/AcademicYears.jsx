@@ -32,6 +32,7 @@ import EventAvailableOutlined from '@mui/icons-material/EventAvailableOutlined';
 import ChevronLeftRounded from '@mui/icons-material/ChevronLeftRounded';
 import ChevronRightRounded from '@mui/icons-material/ChevronRightRounded';
 import PageCard from '../components/common/PageCard';
+import StatCard from '../components/common/StatCard';
 import DeleteConfirmDialog from '../components/common/DeleteConfirmDialog';
 import AppDialog from '../components/common/AppDialog';
 import AppTableHead from '../components/common/AppTableHead';
@@ -93,6 +94,7 @@ const AcademicYears = () => {
   const [editingId, setEditingId] = useState('');
   const [form, setForm] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
+  const [showErrors, setShowErrors] = useState(false);
 
   const [deleteState, setDeleteState] = useState({ open: false, id: '', name: '' });
   const [deleting, setDeleting] = useState(false);
@@ -108,27 +110,21 @@ const AcademicYears = () => {
         title: 'Total Years',
         value: stats.total || 0,
         icon: CalendarMonthOutlined,
-        color: 'purpleDeep',
-        bg: 'pastelLavender',
-        border: 'lavenderDark',
+        color: 'secondary.main',
       },
       {
         key: 'active',
         title: 'Active',
         value: stats.active || 0,
         icon: EventAvailableOutlined,
-        color: 'successDeep',
-        bg: 'pastelMint',
-        border: 'mintDark',
+        color: 'success.main',
       },
       {
         key: 'archived',
         title: 'Archived',
         value: stats.archived || 0,
         icon: ArchiveOutlined,
-        color: 'infoDeep',
-        bg: 'pastelBlue',
-        border: 'blueDark',
+        color: 'info.main',
       },
       {
         key: 'current',
@@ -136,8 +132,6 @@ const AcademicYears = () => {
         value: stats.current || 0,
         icon: BoltOutlined,
         color: 'warning.main',
-        bg: 'amberSoft',
-        border: 'stone200',
       },
     ],
     [stats]
@@ -178,12 +172,14 @@ const AcademicYears = () => {
     setDialogMode('create');
     setEditingId('');
     setForm(emptyForm);
+    setShowErrors(false);
     setDialogOpen(true);
   };
 
   const openEditDialog = (item) => {
     setDialogMode('edit');
     setEditingId(item._id);
+    setShowErrors(false);
     setForm({
       name: item.name || '',
       startDate: toInputDate(item.startDate),
@@ -196,16 +192,19 @@ const AcademicYears = () => {
 
   const handleDialogSubmit = async () => {
     if (!form.name.trim()) {
+      setShowErrors(true);
       setToast({ open: true, severity: 'error', message: 'Academic year name is required' });
       return;
     }
 
     if (!form.startDate || !form.endDate) {
+      setShowErrors(true);
       setToast({ open: true, severity: 'error', message: 'Start date and end date are required' });
       return;
     }
 
     if (new Date(form.startDate) >= new Date(form.endDate)) {
+      setShowErrors(true);
       setToast({ open: true, severity: 'error', message: 'Start date must be before end date' });
       return;
     }
@@ -231,6 +230,7 @@ const AcademicYears = () => {
       }
 
       setDialogOpen(false);
+      setShowErrors(false);
       await loadData();
     } catch (err) {
       setToast({ open: true, severity: 'error', message: err.message || 'Unable to save academic year' });
@@ -312,23 +312,14 @@ const AcademicYears = () => {
             {metrics.map((metric) => {
               const Icon = metric.icon;
               return (
-                <Grid item xs={12} sm={6} lg={3} key={metric.key}>
-                  <PageCard
-                    sx={{
-                      p: 2,
-                      boxShadow: 'none',
-                    }}
-                  >
-                    <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.3 }}>
-                      <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.11em', textTransform: 'uppercase', color: (theme) => theme.palette.grey[500] }}>
-                        {metric.title}
-                      </Typography>
-                      <Icon sx={{ color: metric.color }} fontSize="small" />
-                    </Stack>
-                    <Typography sx={{ fontSize: '1.8rem', fontWeight: 800, color: metric.color }}>
-                      {metric.value}
-                    </Typography>
-                  </PageCard>
+                <Grid item xs={12} sm={6} lg={3} key={metric.key} sx={{ display: 'flex' }}>
+                  <StatCard
+                    label={metric.title}
+                    value={metric.value}
+                    icon={Icon}
+                    iconColor={metric.color}
+                    sx={{ boxShadow: 'none' }}
+                  />
                 </Grid>
               );
             })}
@@ -509,7 +500,14 @@ const AcademicYears = () => {
         secondaryAction={{ label: 'Cancel', onClick: () => setDialogOpen(false) }}
       >
           <Stack spacing={2} sx={{ mt: 1 }}>
-            <TextField label="Name" value={form.name} onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))} placeholder="2025-26" />
+            <TextField
+              label="Name"
+              value={form.name}
+              onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
+              placeholder="2025-26"
+              error={showErrors && !form.name.trim()}
+              helperText={showErrors && !form.name.trim() ? 'Required' : ' '}
+            />
 
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
               <TextField
@@ -519,6 +517,8 @@ const AcademicYears = () => {
                 onChange={(event) => setForm((prev) => ({ ...prev, startDate: event.target.value }))}
                 InputLabelProps={{ shrink: true }}
                 fullWidth
+                error={showErrors && !form.startDate}
+                helperText={showErrors && !form.startDate ? 'Required' : ' '}
               />
               <TextField
                 label="End Date"
@@ -527,6 +527,8 @@ const AcademicYears = () => {
                 onChange={(event) => setForm((prev) => ({ ...prev, endDate: event.target.value }))}
                 InputLabelProps={{ shrink: true }}
                 fullWidth
+                error={showErrors && !form.endDate}
+                helperText={showErrors && !form.endDate ? 'Required' : ' '}
               />
             </Stack>
 

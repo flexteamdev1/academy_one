@@ -30,6 +30,7 @@ import VerifiedOutlined from '@mui/icons-material/VerifiedOutlined';
 import HistoryOutlined from '@mui/icons-material/HistoryOutlined';
 import PageCard from '../../components/common/PageCard';
 import TeachersSkeleton from '../../components/skeletons/TeachersSkeleton';
+import StatCard from '../../components/common/StatCard';
 
 const TeachersView = ({
   stats,
@@ -86,42 +87,24 @@ const TeachersView = ({
 
     <Grid container spacing={2} sx={{ mb: 3 }}>
       {[
-        { label: 'Active Staff', value: stats.active, icon: <HowToRegOutlined />, toneBg: 'pastelMint', tone: 'success.main' },
-        { label: 'Departments', value: stats.departments, icon: <MenuBookOutlined />, toneBg: 'pastelBlue', tone: 'info.main' },
-        { label: 'Certified', value: `${stats.certified}%`, icon: <VerifiedOutlined />, toneBg: 'pastelLavender', tone: 'secondary.main' },
-        { label: 'On Leave', value: stats.onLeave, icon: <HistoryOutlined />, toneBg: 'pastelRose', tone: 'secondary.main' },
+        { label: 'Active Staff', value: stats.active, icon: HowToRegOutlined, tone: 'success.main' },
+        { label: 'Departments', value: stats.departments, icon: MenuBookOutlined, tone: 'info.main' },
+        { label: 'Certified', value: `${stats.certified}%`, icon: VerifiedOutlined, tone: 'secondary.main' },
+        { label: 'On Leave', value: stats.onLeave, icon: HistoryOutlined, tone: 'warning.main' },
       ].map((stat, index) => (
-        <Grid item xs={12} sm={6} md={3} key={stat.label}>
-          <PageCard
+        <Grid item xs={12} sm={6} md={3} key={stat.label} sx={{ display: 'flex' }}>
+          <StatCard
+            label={stat.label}
+            value={stat.value}
+            icon={stat.icon}
+            iconColor={stat.tone}
             sx={{
-              p: 2,
+              width: '100%',
               boxShadow: '0px 8px 18px rgba(31, 42, 55, 0.06)',
               animation: 'fadeUp 450ms ease both',
               animationDelay: `${index * 70}ms`,
             }}
-          >
-            <Stack direction="row" spacing={1.5} alignItems="center">
-              <Box
-                sx={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: '50%',
-                  backgroundColor: 'action.hover',
-                  color: stat.tone,
-                  display: 'grid',
-                  placeItems: 'center',
-                }}
-              >
-                {stat.icon}
-              </Box>
-              <Box>
-                <Typography sx={{ fontSize: '0.63rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: (theme) => theme.palette.grey[500] }}>
-                  {stat.label}
-                </Typography>
-                <Typography sx={{ fontSize: '1.2rem', fontWeight: 700 }}>{stat.value}</Typography>
-              </Box>
-            </Stack>
-          </PageCard>
+          />
         </Grid>
       ))}
     </Grid>

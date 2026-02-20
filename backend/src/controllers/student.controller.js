@@ -452,6 +452,9 @@ const createStudent = async (req, res) => {
     }
 
     if (error?.code === 11000) {
+      if (error?.keyPattern?.phone) {
+        return res.status(400).json({ message: 'Phone number already exists' });
+      }
       return res.status(400).json({ message: 'Duplicate data found while creating student. Please retry.' });
     }
 
@@ -533,6 +536,9 @@ const updateStudent = async (req, res) => {
     res.json(updated);
   } catch (error) {
     if (error?.code === 11000) {
+      if (error?.keyPattern?.phone) {
+        return res.status(400).json({ message: 'Phone number already exists' });
+      }
       return res.status(400).json({ message: 'Student data conflicts with existing records' });
     }
     res.status(500).json({ message: error.message });

@@ -1,16 +1,17 @@
 import React from 'react';
-import { Box, Button, Card, CardContent, Stack, Typography } from '@mui/material';
+import { Box, Button, CardContent, Stack, Typography } from '@mui/material';
 import CalendarMonthOutlined from '@mui/icons-material/CalendarMonthOutlined';
+import PageCard from '../../components/common/PageCard';
 
 const EventsCard = ({ events }) => (
-  <Card sx={(theme) => ({ borderRadius: theme.shape.borderRadius, border: `1px solid ${theme.palette.divider}`, boxShadow: 'none' })}>
-    <CardContent sx={{ p: 2.2 }}>
+  <PageCard sx={{ height: '100%', width: '100%', boxShadow: 'none' }}>
+    <CardContent sx={{ p: 2.2, height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.7 }}>
         <Typography sx={{ fontSize: '1.35rem', fontWeight: 800, color: 'text.primary' }}>Events</Typography>
         <CalendarMonthOutlined sx={{ color: 'text.secondary' }} />
       </Stack>
 
-      <Stack spacing={1.2}>
+      <Stack spacing={1.2} sx={{ flex: 1 }}>
         {events.map((eventItem) => (
           <Stack key={eventItem.title} direction="row" spacing={1.2} alignItems="center">
             <Box
@@ -57,7 +58,7 @@ const EventsCard = ({ events }) => (
         + Add Reminder
       </Button>
     </CardContent>
-  </Card>
+  </PageCard>
 );
 
 export default EventsCard;

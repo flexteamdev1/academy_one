@@ -44,6 +44,9 @@ const registerUser = async (req, res) => {
       name: user.name,
     });
   } catch (err) {
+    if (err?.code === 11000 && err?.keyPattern?.phone) {
+      return res.status(400).json({ message: 'Phone number already exists' });
+    }
     res.status(500).json({ message: err.message });
   }
 };

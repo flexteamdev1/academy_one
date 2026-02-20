@@ -1,6 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Box, Chip, CircularProgress, Stack, Typography } from '@mui/material';
+import ClassOutlined from '@mui/icons-material/ClassOutlined';
+import GroupWorkOutlined from '@mui/icons-material/GroupWorkOutlined';
 import PageCard from '../components/common/PageCard';
+import StatCard from '../components/common/StatCard';
 import { listClasses } from '../services/classService';
 import { useUIState } from '../context/UIContext';
 import { getUserInfo } from '../utils/auth';
@@ -59,18 +62,20 @@ const TeacherDashboard = () => {
       {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
 
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 2 }}>
-        <PageCard sx={{ p: 2, flex: 1 }}>
-          <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
-            Active Classes
-          </Typography>
-          <Typography sx={{ fontSize: '2rem', fontWeight: 800 }}>{items.length}</Typography>
-        </PageCard>
-        <PageCard sx={{ p: 2, flex: 1 }}>
-          <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
-            Active Sections
-          </Typography>
-          <Typography sx={{ fontSize: '2rem', fontWeight: 800 }}>{sectionCount}</Typography>
-        </PageCard>
+        <StatCard
+          label="Active Classes"
+          value={items.length}
+          icon={ClassOutlined}
+          iconColor="info.main"
+          sx={{ flex: 1 }}
+        />
+        <StatCard
+          label="Active Sections"
+          value={sectionCount}
+          icon={GroupWorkOutlined}
+          iconColor="success.main"
+          sx={{ flex: 1 }}
+        />
       </Stack>
 
       <Stack spacing={1.5}>

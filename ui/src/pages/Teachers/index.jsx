@@ -54,6 +54,7 @@ const Teachers = () => {
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [showErrors, setShowErrors] = useState(false);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [viewTeacher, setViewTeacher] = useState(null);
 
@@ -98,12 +99,14 @@ const Teachers = () => {
     setDialogMode('create');
     setEditingId('');
     setForm(emptyForm);
+    setShowErrors(false);
     setDialogOpen(true);
   }, []);
 
   const openEditDialog = useCallback((teacher) => {
     setDialogMode('edit');
     setEditingId(teacher._id);
+    setShowErrors(false);
     setForm({
       firstName: teacher.firstName || '',
       lastName: teacher.lastName || '',
@@ -124,6 +127,11 @@ const Teachers = () => {
   }, []);
 
   const handleDialogSubmit = useCallback(async () => {
+    if (!form.firstName.trim()) {
+      setShowErrors(true);
+      setToast({ open: true, severity: 'error', message: 'First name is required' });
+      return;
+    }
     setSubmitting(true);
 
     try {
@@ -143,6 +151,7 @@ const Teachers = () => {
       }
 
       setDialogOpen(false);
+      setShowErrors(false);
       await loadTeachers();
     } catch (err) {
       setToast({
@@ -205,6 +214,7 @@ const Teachers = () => {
         form={form}
         setForm={setForm}
         TEACHER_STATUS={TEACHER_STATUS}
+        showErrors={showErrors}
       />
 
       <TeacherDetailsDialog
@@ -233,7 +243,7 @@ const Teachers = () => {
         open={toast.open}
         autoHideDuration={2600}
         onClose={() => setToast((prev) => ({ ...prev, open: false }))}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
         <Alert
           severity={toast.severity}

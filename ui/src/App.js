@@ -33,11 +33,12 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   }
 
   const user = getUserInfo();
-  if (user?.mustChangePassword && location.pathname !== '/profile') {
+  const role = getUserRole();
+  const mustForceChange = ['student', 'parent', 'teacher'].includes(role);
+  if (mustForceChange && user?.mustChangePassword && location.pathname !== '/profile') {
     return <Navigate to="/profile" replace />;
   }
 
-  const role = getUserRole();
   if (allowedRoles.length && !allowedRoles.includes(role)) {
     return <Navigate to="/" replace />;
   }

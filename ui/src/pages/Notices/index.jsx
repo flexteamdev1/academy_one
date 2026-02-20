@@ -281,6 +281,7 @@ const Notices = () => {
   const [selectedNoticeId, setSelectedNoticeId] = useState('');
 
   const [createOpen, setCreateOpen] = useState(false);
+  const [showErrors, setShowErrors] = useState(false);
   const [form, setForm] = useState(makeInitialForm);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
@@ -336,10 +337,16 @@ const Notices = () => {
   const closeCreateModal = () => {
     if (submitting) return;
     setCreateOpen(false);
+    setShowErrors(false);
   };
 
   const submitNotice = async (mode) => {
     if (!canCreate) return;
+    if (!form.title.trim() || !form.body.trim() || !form.audiences.length || !form.channels.length) {
+      setShowErrors(true);
+      setToast({ open: true, severity: 'error', message: 'Please complete all required fields' });
+      return;
+    }
 
     const status = mode === 'draft'
       ? 'DRAFT'
@@ -361,6 +368,7 @@ const Notices = () => {
     try {
       const created = normalizeNotice(await createNotice(payload));
       setCreateOpen(false);
+      setShowErrors(false);
       setStatusTab('ALL');
       setAudienceFilter('ALL');
       setGradeFilter('ALL');
@@ -561,13 +569,14 @@ const Notices = () => {
         deliveryOptions={deliveryOptions}
         submitting={submitting}
         onSubmit={submitNotice}
+        showErrors={showErrors}
       />
 
       <Snackbar
         open={toast.open}
         autoHideDuration={2800}
         onClose={() => setToast((prev) => ({ ...prev, open: false }))}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
         <Alert
           onClose={() => setToast((prev) => ({ ...prev, open: false }))}

@@ -31,6 +31,7 @@ import ChevronRightRounded from '@mui/icons-material/ChevronRightRounded';
 import PageCard from '../../components/common/PageCard';
 import AppTableHead from '../../components/common/AppTableHead';
 import StudentsSkeleton from '../../components/skeletons/StudentsSkeleton';
+import StatCard from '../../components/common/StatCard';
 
 const StudentsView = ({
   canManage,
@@ -333,36 +334,14 @@ const StudentsView = ({
       {metricSpec.map((metric) => {
         const MetricIcon = metric.icon;
         return (
-          <PageCard
+          <StatCard
             key={metric.key}
-            sx={{
-              p: 2.2,
-              boxShadow: 'none',
-            }}
-          >
-            <Stack direction="row" spacing={1.4} alignItems="center">
-              <Box
-                sx={{
-                  p: 1,
-                  borderRadius: 1,
-                  bgcolor: 'background.paper',
-                  color: 'text.secondary',
-                  display: 'grid',
-                  placeItems: 'center',
-                }}
-              >
-                <MetricIcon fontSize="small" />
-              </Box>
-              <Box>
-                <Typography sx={{ fontSize: '0.64rem', fontWeight: 700, letterSpacing: '0.11em', textTransform: 'uppercase', color: 'text.secondary', opacity: 0.85 }}>
-                  {metric.title}
-                </Typography>
-                <Typography sx={{ fontSize: '1.6rem', fontWeight: 700, color: (theme) => theme.palette.text.primary }}>
-                  {metric.formatter(stats[metric.key])}
-                </Typography>
-              </Box>
-            </Stack>
-          </PageCard>
+            label={metric.title}
+            value={metric.formatter(stats[metric.key])}
+            icon={MetricIcon}
+            iconColor="text.secondary"
+            sx={{ boxShadow: 'none' }}
+          />
         );
       })}
     </Box>

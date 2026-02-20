@@ -30,6 +30,7 @@ const NoticeForm = ({
   deliveryOptions,
   submitting,
   onSubmit,
+  showErrors,
 }) => {
   const toggleAudience = (audience) => {
     setForm((prev) => {
@@ -118,6 +119,11 @@ const NoticeForm = ({
                   />
                 ))}
               </Stack>
+              {showErrors && !form.audiences.length ? (
+                <Typography sx={{ mt: 0.6, fontSize: '0.75rem', color: 'error.main' }}>
+                  Select at least one audience.
+                </Typography>
+              ) : null}
             </Grid>
 
             <Grid item xs={12} md={6}>
@@ -158,12 +164,21 @@ const NoticeForm = ({
                 placeholder="e.g. Annual Sports Day Registration"
                 value={form.title}
                 onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
+                error={showErrors && !form.title.trim()}
+                helperText={showErrors && !form.title.trim() ? 'Required' : ' '}
               />
             </Box>
 
             <Box>
               <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary', mb: 0.6 }}>Message Body</Typography>
-              <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5, overflow: 'hidden' }}>
+              <Box
+                sx={{
+                  border: '1px solid',
+                  borderColor: showErrors && !form.body.trim() ? 'error.main' : 'divider',
+                  borderRadius: 1.5,
+                  overflow: 'hidden',
+                }}
+              >
                 <Stack direction="row" spacing={1.2} sx={{ px: 1.2, py: 0.8, bgcolor: 'action.hover', borderBottom: '1px solid', borderColor: 'divider', color: 'text.secondary', fontSize: '0.85rem' }}>
                   <span>B</span>
                   <span>I</span>
@@ -183,6 +198,11 @@ const NoticeForm = ({
                   InputProps={{ disableUnderline: true, sx: { p: 1.2 } }}
                 />
               </Box>
+              {showErrors && !form.body.trim() ? (
+                <Typography sx={{ mt: 0.6, fontSize: '0.75rem', color: 'error.main' }}>
+                  Required
+                </Typography>
+              ) : null}
             </Box>
 
             <Box>
@@ -270,6 +290,11 @@ const NoticeForm = ({
                   />
                 ))}
               </Stack>
+              {showErrors && !form.channels.length ? (
+                <Typography sx={{ mt: 0.6, fontSize: '0.75rem', color: 'error.main' }}>
+                  Select at least one channel.
+                </Typography>
+              ) : null}
             </Grid>
           </Grid>
 
@@ -277,7 +302,13 @@ const NoticeForm = ({
 
           <Stack direction="row" spacing={1} justifyContent="end">
             <Button variant="outlined" onClick={onClose} disabled={submitting}>Cancel</Button>
-            <Button variant="outlined" onClick={() => onSubmit('draft')} disabled={submitting || !form.title.trim() || !form.body.trim() || !form.audiences.length}>Save Draft</Button>
+            <Button
+              variant="outlined"
+              onClick={() => onSubmit('draft')}
+              disabled={submitting || !form.title.trim() || !form.body.trim() || !form.audiences.length || !form.channels.length}
+            >
+              Save Draft
+            </Button>
             <Button
               variant="contained"
               onClick={() => onSubmit('publish')}
@@ -287,6 +318,7 @@ const NoticeForm = ({
                 !form.title.trim() ||
                 !form.body.trim() ||
                 !form.audiences.length ||
+                !form.channels.length ||
                 (form.schedule === 'schedule_later' && !form.scheduledAt)
               }
             >

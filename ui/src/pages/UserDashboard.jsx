@@ -1,6 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Box, Stack, Typography } from '@mui/material';
+import SchoolOutlined from '@mui/icons-material/SchoolOutlined';
+import CheckCircleOutlined from '@mui/icons-material/CheckCircleOutlined';
 import PageCard from '../components/common/PageCard';
+import StatCard from '../components/common/StatCard';
 import { getLinkedStudents } from '../services/userService';
 import { useUIState } from '../context/UIContext';
 import { getUserRole } from '../utils/auth';
@@ -44,18 +47,20 @@ const UserDashboard = () => {
       {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
 
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mb: 2 }}>
-        <PageCard sx={{ p: 2, flex: 1 }}>
-          <Typography sx={{ color: 'text.secondary', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>
-            Students
-          </Typography>
-          <Typography sx={{ fontWeight: 800, fontSize: '2rem' }}>{totalStudents}</Typography>
-        </PageCard>
-        <PageCard sx={{ p: 2, flex: 1 }}>
-          <Typography sx={{ color: 'text.secondary', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>
-            Active
-          </Typography>
-          <Typography sx={{ fontWeight: 800, fontSize: '2rem' }}>{activeStudents}</Typography>
-        </PageCard>
+        <StatCard
+          label="Students"
+          value={totalStudents}
+          icon={SchoolOutlined}
+          iconColor="info.main"
+          sx={{ flex: 1 }}
+        />
+        <StatCard
+          label="Active"
+          value={activeStudents}
+          icon={CheckCircleOutlined}
+          iconColor="success.main"
+          sx={{ flex: 1 }}
+        />
       </Stack>
 
       <Stack spacing={1.2}>

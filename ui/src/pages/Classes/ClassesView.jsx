@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   Alert,
-  Avatar,
   Box,
   Button,
   Chip,
@@ -30,6 +29,7 @@ import ChevronRightRounded from '@mui/icons-material/ChevronRightRounded';
 import PageCard from '../../components/common/PageCard';
 import AppTableHead from '../../components/common/AppTableHead';
 import ClassesSkeleton from '../../components/skeletons/ClassesSkeleton';
+import StatCard from '../../components/common/StatCard';
 
 const ClassesView = ({
   canManage,
@@ -99,32 +99,14 @@ const ClassesView = ({
       {metricCards.map((metric) => {
         const Icon = metric.icon;
         return (
-          <Grid item xs={12} sm={6} lg={3} key={metric.key}>
-            <PageCard
-              sx={{
-                p: 2,
-                boxShadow: 'none',
-              }}
-            >
-              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.3 }}>
-                <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.11em', textTransform: 'uppercase', color: (theme) => theme.palette.grey[500] }}>
-                  {metric.label}
-                </Typography>
-                <Avatar
-                  sx={{
-                    width: 34,
-                    height: 34,
-                    bgcolor: 'rgba(255,255,255,0.75)',
-                    color: metric.color,
-                  }}
-                >
-                  <Icon fontSize="small" />
-                </Avatar>
-              </Stack>
-              <Typography sx={{ fontSize: '1.8rem', fontWeight: 800, color: metric.color }}>
-                {metric.value}
-              </Typography>
-            </PageCard>
+          <Grid item xs={12} sm={6} lg={3} key={metric.key} sx={{ display: 'flex' }}>
+            <StatCard
+              label={metric.label}
+              value={metric.value}
+              icon={Icon}
+              iconColor={metric.color}
+              sx={{ boxShadow: 'none', width: '100%' }}
+            />
           </Grid>
         );
       })}

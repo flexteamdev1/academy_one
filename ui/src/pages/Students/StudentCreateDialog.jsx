@@ -33,6 +33,7 @@ const StudentFormDialog = ({
   handlePhotoChange,
   photoPreview,
   handleRemovePhoto,
+  showErrors,
 }) => (
   <AppDialog
     open={dialogOpen}
@@ -118,7 +119,14 @@ const StudentFormDialog = ({
 
         <Stack spacing={1.6} sx={{ flex: 1 }}>
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
-            <TextField fullWidth label="Student Name" value={form.name} onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))} />
+            <TextField
+              fullWidth
+              label="Student Name"
+              value={form.name}
+              onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+              error={showErrors && !form.name.trim()}
+              helperText={showErrors && !form.name.trim() ? 'Required' : ' '}
+            />
             <TextField fullWidth label="Student Email (Optional)" value={form.email} onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))} />
           </Stack>
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
@@ -127,7 +135,16 @@ const StudentFormDialog = ({
               <MenuItem value={STUDENT_GENDER.FEMALE}>Female</MenuItem>
               <MenuItem value={STUDENT_GENDER.OTHER}>Other</MenuItem>
             </TextField>
-            <TextField fullWidth type="date" label="Date of Birth" InputLabelProps={{ shrink: true }} value={form.dob} onChange={(e) => setForm((prev) => ({ ...prev, dob: e.target.value }))} />
+            <TextField
+              fullWidth
+              type="date"
+              label="Date of Birth"
+              InputLabelProps={{ shrink: true }}
+              value={form.dob}
+              onChange={(e) => setForm((prev) => ({ ...prev, dob: e.target.value }))}
+              error={showErrors && !form.dob}
+              helperText={showErrors && !form.dob ? 'Required' : ' '}
+            />
           </Stack>
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
             <TextField
@@ -144,6 +161,8 @@ const StudentFormDialog = ({
                   classId: '',
                 }));
               }}
+              error={showErrors && !form.grade}
+              helperText={showErrors && !form.grade ? 'Required' : ' '}
             >
               <MenuItem value="">Select Grade</MenuItem>
               {dialogGradeOptions.map((item) => (
@@ -165,6 +184,8 @@ const StudentFormDialog = ({
                   classId: resolveClassId(prev.grade, nextSection),
                 }));
               }}
+              error={showErrors && !form.sectionName}
+              helperText={showErrors && !form.sectionName ? 'Required' : ' '}
             >
               <MenuItem value="">Select Section</MenuItem>
               {dialogSectionOptions.map((item) => (
@@ -196,11 +217,25 @@ const StudentFormDialog = ({
 
       <Stack spacing={1.6}>
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
-          <TextField fullWidth label="Parent First Name" value={form.parentFirstName} onChange={(e) => setForm((prev) => ({ ...prev, parentFirstName: e.target.value }))} />
+          <TextField
+            fullWidth
+            label="Parent First Name"
+            value={form.parentFirstName}
+            onChange={(e) => setForm((prev) => ({ ...prev, parentFirstName: e.target.value }))}
+            error={showErrors && !form.parentFirstName.trim()}
+            helperText={showErrors && !form.parentFirstName.trim() ? 'Required' : ' '}
+          />
           <TextField fullWidth label="Parent Last Name" value={form.parentLastName} onChange={(e) => setForm((prev) => ({ ...prev, parentLastName: e.target.value }))} />
         </Stack>
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
-          <TextField fullWidth label="Parent Email" value={form.parentEmail} onChange={(e) => setForm((prev) => ({ ...prev, parentEmail: e.target.value }))} />
+          <TextField
+            fullWidth
+            label="Parent Email"
+            value={form.parentEmail}
+            onChange={(e) => setForm((prev) => ({ ...prev, parentEmail: e.target.value }))}
+            error={showErrors && !form.parentEmail.trim()}
+            helperText={showErrors && !form.parentEmail.trim() ? 'Required' : ' '}
+          />
           <TextField
             fullWidth
             label="Parent Phone"

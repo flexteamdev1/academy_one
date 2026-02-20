@@ -245,6 +245,9 @@ const createTeacher = async (req, res) => {
     if (error?.code === 11000 && error?.keyPattern?.email) {
       return res.status(400).json({ message: 'Teacher with same email already exists' });
     }
+    if (error?.code === 11000 && error?.keyPattern?.phone) {
+      return res.status(400).json({ message: 'Phone number already exists' });
+    }
     if (error?.code === 11000) {
       if (error?.keyPattern?.employeeId) {
         return res.status(400).json({ message: 'Teacher with same employee ID already exists' });
@@ -312,6 +315,9 @@ const updateTeacher = async (req, res) => {
     if (error?.code === 11000) {
       if (error?.keyPattern?.email) {
         return res.status(400).json({ message: 'Teacher with same email already exists' });
+      }
+      if (error?.keyPattern?.phone) {
+        return res.status(400).json({ message: 'Phone number already exists' });
       }
       if (error?.keyPattern?.employeeId) {
         return res.status(400).json({ message: 'Teacher with same employee ID already exists' });

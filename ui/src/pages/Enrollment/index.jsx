@@ -20,6 +20,10 @@ import {
   Typography,
 } from '@mui/material';
 import PersonAddAlt1Outlined from '@mui/icons-material/PersonAddAlt1Outlined';
+import GroupsOutlined from '@mui/icons-material/GroupsOutlined';
+import FiberNewOutlined from '@mui/icons-material/FiberNewOutlined';
+import CheckCircleOutlined from '@mui/icons-material/CheckCircleOutlined';
+import SchoolOutlined from '@mui/icons-material/SchoolOutlined';
 import SearchOutlined from '@mui/icons-material/SearchOutlined';
 import FilterListOutlined from '@mui/icons-material/FilterListOutlined';
 import ChevronLeftRounded from '@mui/icons-material/ChevronLeftRounded';
@@ -29,9 +33,11 @@ import DeleteOutlineOutlined from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlined from '@mui/icons-material/EditOutlined';
 import AppTableHead from '../../components/common/AppTableHead';
 import PageCard from '../../components/common/PageCard';
+import StatCard from '../../components/common/StatCard';
 import AppDialog from '../../components/common/AppDialog';
 import { listClasses } from '../../services/classService';
 import { createStudent } from '../../services/studentService';
+import StudentFormDialog from '../Students/StudentCreateDialog';
 import { createLead, deleteLead, listLeads, updateLead } from '../../services/leadService';
 import { FILTER_ALL, LEAD_STATUS, STUDENT_GENDER, STUDENT_STATUS, USER_ROLES } from '../../constants/enums';
 import { getUserRole } from '../../utils/auth';
@@ -67,6 +73,8 @@ const emptyEnrollmentForm = {
   parentRelation: '',
   parentOccupation: '',
   parentEmergencyContact: '',
+  profilePhoto: null,
+  removeProfilePhoto: false,
 };
 
 const statusChipSx = (status, theme) => {
@@ -114,9 +122,13 @@ const Enrollment = () => {
   const [leadDialogOpen, setLeadDialogOpen] = useState(false);
   const [leadDialogMode, setLeadDialogMode] = useState('create');
   const [leadForm, setLeadForm] = useState(emptyLeadForm);
+  const [showLeadErrors, setShowLeadErrors] = useState(false);
   const [processing, setProcessing] = useState(false);
 
   const [enrollmentForm, setEnrollmentForm] = useState(emptyEnrollmentForm);
+  const [showEnrollmentErrors, setShowEnrollmentErrors] = useState(false);
+  const [enrollmentDialogOpen, setEnrollmentDialogOpen] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState('');
   const [classCatalog, setClassCatalog] = useState([]);
   const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
 
@@ -195,11 +207,13 @@ const Enrollment = () => {
   const openCreateLead = () => {
     setLeadDialogMode('create');
     setLeadForm(emptyLeadForm);
+    setShowLeadErrors(false);
     setLeadDialogOpen(true);
   };
 
   const openEditLead = (lead) => {
     setLeadDialogMode('edit');
+    setShowLeadErrors(false);
     setLeadForm({
       name: lead.name || '',
       email: lead.email || '',
@@ -219,6 +233,7 @@ const Enrollment = () => {
   const handleSaveLead = async () => {
     if (!canManage) return;
     if (!leadForm.name.trim()) {
+      setShowLeadErrors(true);
       setToast({ open: true, severity: 'error', message: 'Lead name is required' });
       return;
     }
@@ -232,6 +247,7 @@ const Enrollment = () => {
         setToast({ open: true, severity: 'success', message: 'Lead updated successfully' });
       }
       setLeadDialogOpen(false);
+      setShowLeadErrors(false);
       await loadLeads();
     } catch (err) {
       setToast({ open: true, severity: 'error', message: err.message || 'Unable to save lead' });
@@ -261,6 +277,7 @@ const Enrollment = () => {
 
   const handleSelectLead = (lead) => {
     setSelectedLead(lead);
+    setShowEnrollmentErrors(false);
     const guardianSplit = splitGuardianName(lead.guardianName);
     setEnrollmentForm((prev) => ({
       ...prev,
@@ -274,13 +291,50 @@ const Enrollment = () => {
     }));
   };
 
+  useEffect(() => {
+    return () => {
+      if (photoPreview) URL.revokeObjectURL(photoPreview);
+    };
+  }, [photoPreview]);
+
+  useEffect(() => {
+    if (!enrollmentDialogOpen && photoPreview) {
+      URL.revokeObjectURL(photoPreview);
+      setPhotoPreview('');
+      setEnrollmentForm((prev) => ({ ...prev, profilePhoto: null, removeProfilePhoto: false }));
+    }
+  }, [enrollmentDialogOpen, photoPreview]);
+
+  const handlePhotoChange = (file) => {
+    setEnrollmentForm((prev) => ({ ...prev, profilePhoto: file || null, removeProfilePhoto: false }));
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhotoPreview(file ? URL.createObjectURL(file) : '');
+  };
+
+  const handleRemovePhoto = () => {
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhotoPreview('');
+    setEnrollmentForm((prev) => ({ ...prev, profilePhoto: null, removeProfilePhoto: true }));
+  };
+
+  const openEnrollmentDialog = () => {
+    if (!selectedLead) {
+      setToast({ open: true, severity: 'error', message: 'Select a lead first' });
+      return;
+    }
+    setShowEnrollmentErrors(false);
+    setEnrollmentDialogOpen(true);
+  };
+
   const handleConvertToStudent = async () => {
     if (!canManage) return;
     if (!enrollmentForm.grade || !enrollmentForm.sectionName) {
+      setShowEnrollmentErrors(true);
       setToast({ open: true, severity: 'error', message: 'Please select grade and section' });
       return;
     }
     if (!enrollmentForm.name.trim() || !enrollmentForm.dob || !enrollmentForm.parentFirstName.trim() || !enrollmentForm.parentEmail.trim()) {
+      setShowEnrollmentErrors(true);
       setToast({ open: true, severity: 'error', message: 'Student name, DOB, parent first name, and parent email are required' });
       return;
     }
@@ -295,6 +349,7 @@ const Enrollment = () => {
         classId: enrollmentForm.classId || undefined,
         grade: enrollmentForm.grade.trim(),
         sectionName: enrollmentForm.sectionName.trim().toUpperCase(),
+        profilePhoto: enrollmentForm.profilePhoto,
         status: STUDENT_STATUS.ACTIVE,
         parentFirstName: enrollmentForm.parentFirstName.trim(),
         parentLastName: enrollmentForm.parentLastName.trim(),
@@ -307,13 +362,23 @@ const Enrollment = () => {
 
       const response = await createStudent(payload);
       if (selectedLead?._id) {
-        await updateLead(selectedLead._id, {
-          status: LEAD_STATUS.CONVERTED,
-          convertedStudentId: response?.student?._id || undefined,
-        });
+        try {
+          await updateLead(selectedLead._id, {
+            status: LEAD_STATUS.CONVERTED,
+            convertedStudentId: response?.student?._id || undefined,
+          });
+        } catch (leadError) {
+          setToast({
+            open: true,
+            severity: 'warning',
+            message: leadError.message || 'Student created, but lead status update failed',
+          });
+        }
       }
       setToast({ open: true, severity: 'success', message: 'Lead converted to student successfully' });
       setEnrollmentForm(emptyEnrollmentForm);
+      setShowEnrollmentErrors(false);
+      setEnrollmentDialogOpen(false);
       setSelectedLead(null);
       await loadLeads();
     } catch (err) {
@@ -367,7 +432,7 @@ const Enrollment = () => {
           </Button>
           <Button
             startIcon={<HowToRegOutlined />}
-            onClick={handleConvertToStudent}
+            onClick={openEnrollmentDialog}
             disabled={!canManage || !selectedLead || selectedLead?.status === LEAD_STATUS.CONVERTED || processing}
             sx={{
               backgroundColor: (theme) => theme.palette.success.light,
@@ -385,17 +450,19 @@ const Enrollment = () => {
 
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={2.2} sx={{ mb: 3 }}>
         {[
-          { label: 'Visible Leads', value: leadStats.total },
-          { label: 'New Leads', value: leadStats.new },
-          { label: 'Qualified', value: leadStats.qualified },
-          { label: 'Converted', value: leadStats.converted },
+          { label: 'Visible Leads', value: leadStats.total, icon: GroupsOutlined, color: 'info.main' },
+          { label: 'New Leads', value: leadStats.new, icon: FiberNewOutlined, color: 'warning.main' },
+          { label: 'Qualified', value: leadStats.qualified, icon: CheckCircleOutlined, color: 'success.main' },
+          { label: 'Converted', value: leadStats.converted, icon: SchoolOutlined, color: 'secondary.main' },
         ].map((item) => (
-          <PageCard key={item.label} sx={{ flex: 1, p: 2 }}>
-            <Typography sx={{ fontSize: '0.74rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'text.secondary' }}>
-              {item.label}
-            </Typography>
-            <Typography sx={{ fontWeight: 800, fontSize: '1.8rem', mt: 1 }}>{item.value}</Typography>
-          </PageCard>
+          <StatCard
+            key={item.label}
+            label={item.label}
+            value={item.value}
+            icon={item.icon}
+            iconColor={item.color}
+            sx={{ flex: 1 }}
+          />
         ))}
       </Stack>
 
@@ -560,113 +627,46 @@ const Enrollment = () => {
             <Box>
               <Typography variant="h6">Enrollment Form</Typography>
               <Typography sx={{ color: 'text.secondary', fontSize: '0.82rem' }}>
-                Select a lead to pre-fill the enrollment details.
+                Use “Convert Selected” to open the student enrollment form.
               </Typography>
             </Box>
             <Divider />
-
             {selectedLead ? (
               <Alert severity="info">
-                Converting lead: <b>{selectedLead.name}</b> ({selectedLead.status})
+                Selected lead: <b>{selectedLead.name}</b> ({selectedLead.status})
               </Alert>
             ) : (
               <Alert severity="warning">No lead selected. Choose a lead to start enrollment.</Alert>
             )}
-
-            <Stack spacing={1.5}>
-              <TextField fullWidth label="Student Name" value={enrollmentForm.name} onChange={(e) => setEnrollmentForm((prev) => ({ ...prev, name: e.target.value }))} />
-              <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
-                <TextField fullWidth label="Student Email (Optional)" value={enrollmentForm.email} onChange={(e) => setEnrollmentForm((prev) => ({ ...prev, email: e.target.value }))} />
-                <TextField select fullWidth label="Gender" value={enrollmentForm.gender} onChange={(e) => setEnrollmentForm((prev) => ({ ...prev, gender: e.target.value }))}>
-                  <MenuItem value={STUDENT_GENDER.MALE}>Male</MenuItem>
-                  <MenuItem value={STUDENT_GENDER.FEMALE}>Female</MenuItem>
-                  <MenuItem value={STUDENT_GENDER.OTHER}>Other</MenuItem>
-                </TextField>
-              </Stack>
-              <TextField fullWidth type="date" label="Date of Birth" InputLabelProps={{ shrink: true }} value={enrollmentForm.dob} onChange={(e) => setEnrollmentForm((prev) => ({ ...prev, dob: e.target.value }))} />
-              <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
-                <TextField
-                  select
-                  fullWidth
-                  label="Grade"
-                  value={enrollmentForm.grade}
-                  onChange={(e) => {
-                    const nextGrade = e.target.value;
-                    setEnrollmentForm((prev) => ({
-                      ...prev,
-                      grade: nextGrade,
-                      sectionName: '',
-                      classId: '',
-                    }));
-                  }}
-                >
-                  <MenuItem value="">Select Grade</MenuItem>
-                  {dialogGradeOptions.map((item) => (
-                    <MenuItem key={item} value={item}>{item}</MenuItem>
-                  ))}
-                </TextField>
-                <TextField
-                  select
-                  fullWidth
-                  label="Section"
-                  value={enrollmentForm.sectionName}
-                  disabled={!enrollmentForm.grade}
-                  onChange={(e) => {
-                    const nextSection = e.target.value;
-                    setEnrollmentForm((prev) => ({
-                      ...prev,
-                      sectionName: nextSection,
-                      classId: resolveClassId(prev.grade, nextSection),
-                    }));
-                  }}
-                >
-                  <MenuItem value="">Select Section</MenuItem>
-                  {dialogSectionOptions.map((item) => (
-                    <MenuItem key={item} value={item}>{item}</MenuItem>
-                  ))}
-                </TextField>
-              </Stack>
-            </Stack>
-
-            <Divider />
-            <Typography sx={{ fontWeight: 700 }}>Parent Details</Typography>
-            <Stack spacing={1.5}>
-              <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
-                <TextField fullWidth label="Parent First Name" value={enrollmentForm.parentFirstName} onChange={(e) => setEnrollmentForm((prev) => ({ ...prev, parentFirstName: e.target.value }))} />
-                <TextField fullWidth label="Parent Last Name" value={enrollmentForm.parentLastName} onChange={(e) => setEnrollmentForm((prev) => ({ ...prev, parentLastName: e.target.value }))} />
-              </Stack>
-              <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
-                <TextField fullWidth label="Parent Email" value={enrollmentForm.parentEmail} onChange={(e) => setEnrollmentForm((prev) => ({ ...prev, parentEmail: e.target.value }))} />
-                <TextField fullWidth label="Parent Phone" value={enrollmentForm.parentPhone} onChange={(e) => setEnrollmentForm((prev) => ({ ...prev, parentPhone: e.target.value }))} />
-              </Stack>
-              <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
-                <TextField fullWidth label="Relation" value={enrollmentForm.parentRelation} onChange={(e) => setEnrollmentForm((prev) => ({ ...prev, parentRelation: e.target.value }))} />
-                <TextField fullWidth label="Occupation" value={enrollmentForm.parentOccupation} onChange={(e) => setEnrollmentForm((prev) => ({ ...prev, parentOccupation: e.target.value }))} />
-              </Stack>
-              <TextField fullWidth label="Emergency Contact" value={enrollmentForm.parentEmergencyContact} onChange={(e) => setEnrollmentForm((prev) => ({ ...prev, parentEmergencyContact: e.target.value }))} />
-            </Stack>
-
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.2} sx={{ pt: 1 }}>
-              <Button
-                variant="outlined"
-                onClick={() => {
-                  setEnrollmentForm(emptyEnrollmentForm);
-                  setSelectedLead(null);
-                }}
-              >
-                Clear Form
-              </Button>
-              <Button
-                variant="contained"
-                onClick={handleConvertToStudent}
-                disabled={!canManage || !selectedLead || selectedLead?.status === LEAD_STATUS.CONVERTED || processing}
-              >
-                Convert to Student
-              </Button>
-            </Stack>
+            <Button
+              variant="contained"
+              onClick={openEnrollmentDialog}
+              disabled={!canManage || !selectedLead || selectedLead?.status === LEAD_STATUS.CONVERTED || processing}
+            >
+              Open Enrollment Form
+            </Button>
           </Stack>
         </PageCard>
       </Stack>
+
+      <StudentFormDialog
+        dialogOpen={enrollmentDialogOpen}
+        setDialogOpen={setEnrollmentDialogOpen}
+        submitting={processing}
+        handleSubmitStudent={handleConvertToStudent}
+        dialogMode="create"
+        form={enrollmentForm}
+        setForm={setEnrollmentForm}
+        STUDENT_GENDER={STUDENT_GENDER}
+        STUDENT_STATUS={STUDENT_STATUS}
+        dialogGradeOptions={dialogGradeOptions}
+        dialogSectionOptions={dialogSectionOptions}
+        resolveClassId={resolveClassId}
+        handlePhotoChange={handlePhotoChange}
+        photoPreview={photoPreview}
+        handleRemovePhoto={handleRemovePhoto}
+        showErrors={showEnrollmentErrors}
+      />
 
       <AppDialog
         open={leadDialogOpen}
@@ -682,7 +682,14 @@ const Enrollment = () => {
         }}
       >
         <Stack spacing={1.6}>
-          <TextField fullWidth label="Lead Name" value={leadForm.name} onChange={(e) => setLeadForm((prev) => ({ ...prev, name: e.target.value }))} />
+          <TextField
+            fullWidth
+            label="Lead Name"
+            value={leadForm.name}
+            onChange={(e) => setLeadForm((prev) => ({ ...prev, name: e.target.value }))}
+            error={showLeadErrors && !leadForm.name.trim()}
+            helperText={showLeadErrors && !leadForm.name.trim() ? 'Required' : ' '}
+          />
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
             <TextField fullWidth label="Email" value={leadForm.email} onChange={(e) => setLeadForm((prev) => ({ ...prev, email: e.target.value }))} />
             <TextField fullWidth label="Phone" value={leadForm.phone} onChange={(e) => setLeadForm((prev) => ({ ...prev, phone: e.target.value }))} />
@@ -720,7 +727,7 @@ const Enrollment = () => {
         </Stack>
       </AppDialog>
 
-      <Snackbar open={toast.open} autoHideDuration={3500} onClose={() => setToast((prev) => ({ ...prev, open: false }))}>
+      <Snackbar open={toast.open} autoHideDuration={3500} onClose={() => setToast((prev) => ({ ...prev, open: false }))} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
         <Alert severity={toast.severity} onClose={() => setToast((prev) => ({ ...prev, open: false }))}>
           {toast.message}
         </Alert>

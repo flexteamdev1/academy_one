@@ -12,6 +12,7 @@ const TeacherFormDialog = ({
   form,
   setForm,
   TEACHER_STATUS,
+  showErrors,
 }) => (
   <AppDialog
     open={dialogOpen}
@@ -32,7 +33,14 @@ const TeacherFormDialog = ({
 
       <Stack spacing={1.5}>
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
-          <TextField label="First Name" fullWidth value={form.firstName} onChange={(e) => setForm((prev) => ({ ...prev, firstName: e.target.value }))} />
+          <TextField
+            label="First Name"
+            fullWidth
+            value={form.firstName}
+            onChange={(e) => setForm((prev) => ({ ...prev, firstName: e.target.value }))}
+            error={showErrors && !form.firstName.trim()}
+            helperText={showErrors && !form.firstName.trim() ? 'Required' : ' '}
+          />
           <TextField label="Last Name" fullWidth value={form.lastName} onChange={(e) => setForm((prev) => ({ ...prev, lastName: e.target.value }))} />
         </Stack>
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>

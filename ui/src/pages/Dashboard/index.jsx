@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Box, Stack, Typography } from '@mui/material';
 import Groups2Outlined from '@mui/icons-material/Groups2Outlined';
 import BadgeOutlined from '@mui/icons-material/BadgeOutlined';
@@ -7,47 +7,8 @@ import EmojiPeopleOutlined from '@mui/icons-material/EmojiPeopleOutlined';
 import StatsGrid from './StatsGrid';
 import AdmissionsCard from './AdmissionsCard';
 import EventsCard from './EventsCard';
-
-const statCards = [
-  {
-    label: 'Total Students',
-    value: '2,480',
-    trend: '+12%',
-    icon: <Groups2Outlined sx={{ fontSize: 20 }} />,
-    bgKey: 'dashboardCardOne',
-    accentKey: 'dashboardAccentOne',
-  },
-  {
-    label: 'Faculty Staff',
-    value: '142',
-    trend: 'Stable',
-    icon: <BadgeOutlined sx={{ fontSize: 20 }} />,
-    bgKey: 'dashboardCardTwo',
-    accentKey: 'dashboardAccentTwo',
-  },
-  {
-    label: 'Fees Collected',
-    value: '$142.5k',
-    trend: '94%',
-    icon: <AccountBalanceWalletOutlined sx={{ fontSize: 20 }} />,
-    bgKey: 'dashboardCardThree',
-    accentKey: 'dashboardAccentThree',
-  },
-  {
-    label: 'Avg. Attendance',
-    value: '89.2%',
-    trend: '-3%',
-    icon: <EmojiPeopleOutlined sx={{ fontSize: 20 }} />,
-    bgKey: 'dashboardCardFour',
-    accentKey: 'dashboardAccentFour',
-  },
-];
-
-const admissions = [
-  { initials: 'AB', name: 'Alice Bennett', grade: 'Grade 7-A', date: 'Oct 24, 2024', status: 'Confirmed' },
-  { initials: 'DM', name: 'Daniel Miller', grade: 'Grade 9-C', date: 'Oct 23, 2024', status: 'Pending' },
-  { initials: 'KH', name: 'Kevin Hudson', grade: 'Grade 8-B', date: 'Oct 22, 2024', status: 'Confirmed' },
-];
+import { listStudents } from '../../services/studentService';
+import { useUIState } from '../../context/UIContext';
 
 const events = [
   { day: '28', month: 'OCT', title: 'Parent-Teacher Meet', meta: '09:00 AM • Main Hall' },
@@ -56,6 +17,63 @@ const events = [
 ];
 
 const Dashboard = () => {
+  const { selectedAcademicYearId } = useUIState();
+  const [admissions, setAdmissions] = useState([]);
+  const [loadingAdmissions, setLoadingAdmissions] = useState(true);
+  const [admissionsError, setAdmissionsError] = useState('');
+
+  useEffect(() => {
+    const loadAdmissions = async () => {
+      setLoadingAdmissions(true);
+      setAdmissionsError('');
+      try {
+        const response = await listStudents({ page: 1, limit: 5 });
+        const items = response.items || [];
+        setAdmissions(items);
+      } catch (err) {
+        setAdmissionsError(err.message || 'Failed to load admissions');
+      } finally {
+        setLoadingAdmissions(false);
+      }
+    };
+
+    loadAdmissions();
+  }, [selectedAcademicYearId]);
+
+  const statCards = useMemo(
+    () => [
+      {
+        label: 'Total Students',
+        value: '2,480',
+        trend: '+12%',
+        icon: Groups2Outlined,
+        iconColor: 'info.main',
+      },
+      {
+        label: 'Faculty Staff',
+        value: '142',
+        trend: 'Stable',
+        icon: BadgeOutlined,
+        iconColor: 'secondary.main',
+      },
+      {
+        label: 'Fees Collected',
+        value: '$142.5k',
+        trend: '94%',
+        icon: AccountBalanceWalletOutlined,
+        iconColor: 'success.main',
+      },
+      {
+        label: 'Avg. Attendance',
+        value: '89.2%',
+        trend: '-3%',
+        icon: EmojiPeopleOutlined,
+        iconColor: 'warning.main',
+      },
+    ],
+    []
+  );
+
   return (
     <Box sx={{ width: '100%', px: 0, pb: 1 }}>
       <Stack
@@ -83,14 +101,21 @@ const Dashboard = () => {
           display: 'grid',
           gap: 2,
           gridTemplateColumns: { xs: '1fr', lg: '2fr 1fr' },
-          alignItems: 'start',
+          alignItems: 'stretch',
         }}
       >
-        <Box>
-          <AdmissionsCard admissions={admissions} />
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, height: '100%' }}>
+          <Box sx={{ flex: 1, display: 'flex' }}>
+            <AdmissionsCard admissions={admissions} loading={loadingAdmissions} />
+          </Box>
+          {admissionsError ? (
+            <Typography sx={{ mt: 1, color: 'error.main', fontSize: '0.82rem' }}>
+              {admissionsError}
+            </Typography>
+          ) : null}
         </Box>
 
-        <Box>
+        <Box sx={{ display: 'flex' }}>
           <EventsCard events={events} />
         </Box>
       </Box>

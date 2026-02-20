@@ -118,6 +118,7 @@ const Students = () => {
   const [dialogMode, setDialogMode] = useState('create');
   const [editingId, setEditingId] = useState('');
   const [form, setForm] = useState(emptyForm);
+  const [showErrors, setShowErrors] = useState(false);
   const [photoPreview, setPhotoPreview] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
@@ -187,6 +188,7 @@ const Students = () => {
 
   const openCreateDialog = useCallback(() => {
     setForm(emptyForm);
+    setShowErrors(false);
     if (photoPreview) URL.revokeObjectURL(photoPreview);
     setPhotoPreview('');
     setDialogMode('create');
@@ -197,6 +199,7 @@ const Students = () => {
   const openEditDialog = useCallback((student) => {
     setDialogMode('edit');
     setEditingId(student._id);
+    setShowErrors(false);
     const parentRecord = student.parentId || {};
     setForm({
       ...emptyForm,
@@ -241,8 +244,9 @@ const Students = () => {
   };
 
   const handleSubmitStudent = async () => {
-    if (!form.grade || !form.sectionName) {
-      setToast({ open: true, severity: 'error', message: 'Please select grade and section' });
+    if (!form.name.trim() || !form.dob || !form.grade || !form.sectionName || !form.parentFirstName.trim() || !form.parentEmail.trim()) {
+      setShowErrors(true);
+      setToast({ open: true, severity: 'error', message: 'Please complete all required fields' });
       return;
     }
 
@@ -281,6 +285,7 @@ const Students = () => {
       }
 
       setDialogOpen(false);
+      setShowErrors(false);
       await loadData();
     } catch (err) {
       setToast({ open: true, severity: 'error', message: err.message || 'Unable to save student' });
@@ -401,6 +406,7 @@ const Students = () => {
             handlePhotoChange={handlePhotoChange}
             photoPreview={photoPreview}
             handleRemovePhoto={handleRemovePhoto}
+            showErrors={showErrors}
           />
 
           <DeleteConfirmDialog
@@ -428,7 +434,7 @@ const Students = () => {
         }}
       />
 
-      <Snackbar open={toast.open} autoHideDuration={3500} onClose={() => setToast((prev) => ({ ...prev, open: false }))}>
+      <Snackbar open={toast.open} autoHideDuration={3500} onClose={() => setToast((prev) => ({ ...prev, open: false }))} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
         <Alert severity={toast.severity} onClose={() => setToast((prev) => ({ ...prev, open: false }))}>
           {toast.message}
         </Alert>

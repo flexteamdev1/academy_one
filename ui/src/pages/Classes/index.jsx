@@ -69,6 +69,7 @@ const Classes = () => {
   const [editingId, setEditingId] = useState('');
   const [form, setForm] = useState(createEmptyForm());
   const [submitting, setSubmitting] = useState(false);
+  const [showErrors, setShowErrors] = useState(false);
 
   const [deleteState, setDeleteState] = useState({ open: false, id: '', name: '' });
   const [deleting, setDeleting] = useState(false);
@@ -173,12 +174,14 @@ const Classes = () => {
       ...createEmptyForm(),
       academicYearId: meta.academicYears[0]?._id || '',
     });
+    setShowErrors(false);
     setDialogOpen(true);
   }, [meta.academicYears]);
 
   const openEditDialog = useCallback((item) => {
     setDialogMode('edit');
     setEditingId(item._id);
+    setShowErrors(false);
     setForm({
       name: item.name || '',
       academicYearId: item.academicYearId?._id || '',
@@ -232,11 +235,13 @@ const Classes = () => {
       .filter((section) => !!section.name);
 
     if (!form.name.trim()) {
+      setShowErrors(true);
       setToast({ open: true, severity: 'error', message: 'Class name is required' });
       return;
     }
 
     if (!sections.length) {
+      setShowErrors(true);
       setToast({ open: true, severity: 'error', message: 'Add at least one valid section' });
       return;
     }
@@ -261,6 +266,7 @@ const Classes = () => {
       }
 
       setDialogOpen(false);
+      setShowErrors(false);
       await loadData();
     } catch (err) {
       setToast({ open: true, severity: 'error', message: err.message || 'Unable to save class' });
@@ -332,6 +338,7 @@ const Classes = () => {
         onChangeSection={onChangeSection}
         removeSectionRow={removeSectionRow}
         formatTeacherName={formatTeacherName}
+        showErrors={showErrors}
       />
 
       <DeleteConfirmDialog

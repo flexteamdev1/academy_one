@@ -29,6 +29,7 @@ const ClassFormDialog = ({
   onChangeSection,
   removeSectionRow,
   formatTeacherName,
+  showErrors,
 }) => (
   <AppDialog
     open={dialogOpen}
@@ -51,6 +52,8 @@ const ClassFormDialog = ({
             value={form.name}
             onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
             placeholder="Grade 8"
+            error={showErrors && !form.name.trim()}
+            helperText={showErrors && !form.name.trim() ? 'Required' : ' '}
           />
         </Grid>
 
@@ -98,6 +101,8 @@ const ClassFormDialog = ({
                   value={section.name}
                   onChange={(event) => onChangeSection(index, 'name', event.target.value.toUpperCase())}
                   inputProps={{ maxLength: 2 }}
+                  error={showErrors && !section.name.trim()}
+                  helperText={showErrors && !section.name.trim() ? 'Required' : ' '}
                 />
               </Grid>
               <Grid item xs={12} sm={2}>

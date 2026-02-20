@@ -1,5 +1,6 @@
 import React from 'react';
-import { Box, Card, CardContent, Stack, Typography } from '@mui/material';
+import { Box } from '@mui/material';
+import StatCard from '../../components/common/StatCard';
 
 const StatsGrid = ({ statCards }) => (
   <Box
@@ -14,48 +15,15 @@ const StatsGrid = ({ statCards }) => (
     }}
   >
     {statCards.map((item) => (
-      <Box key={item.label}>
-        <Card sx={{ border: 1, borderColor: 'divider', boxShadow: 0 }}>
-          <CardContent sx={{ p: 2.2, '&:last-child': { pb: 2.2 } }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center">
-              <Box
-                sx={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 1,
-                  display: 'grid',
-                  placeItems: 'center',
-                  bgcolor: 'background.paper',
-                  color: 'text.secondary',
-                }}
-              >
-                {item.icon}
-              </Box>
-              <Box
-                sx={{
-                  px: 1,
-                  py: 0.35,
-                  borderRadius: 999,
-                  bgcolor: 'background.paper',
-                  color: 'text.secondary',
-                  fontWeight: 700,
-                  fontSize: '0.72rem',
-                  border: 1,
-                  borderColor: 'divider',
-                }}
-              >
-                {item.trend}
-              </Box>
-            </Stack>
-
-            <Typography sx={{ mt: 2, color: 'text.secondary', fontSize: '0.74rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-              {item.label}
-            </Typography>
-            <Typography sx={{ mt: 0.7, color: 'text.primary', fontSize: '2rem', fontWeight: 800, lineHeight: 1 }}>
-              {item.value}
-            </Typography>
-          </CardContent>
-        </Card>
+      <Box key={item.label} sx={{ display: 'flex' }}>
+        <StatCard
+          label={item.label}
+          value={item.value}
+          icon={item.icon}
+          iconColor={item.iconColor}
+          trend={item.trend}
+          sx={{ boxShadow: 0, border: 1, borderColor: 'divider', width: '100%' }}
+        />
       </Box>
     ))}
   </Box>

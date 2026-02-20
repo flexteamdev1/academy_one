@@ -1,57 +1,74 @@
 import React from 'react';
-import { Card, CardContent, Stack, Typography, Box } from '@mui/material';
+import { Box, Stack, Typography } from '@mui/material';
+import PageCard from './PageCard';
 
-const StatCard = ({ title, value, trend, icon, bgColor, tone }) => (
-  <Card
-    sx={(theme) => ({
-      height: '100%',
-      borderRadius: theme.shape.borderRadius,
-      overflow: 'hidden',
-      backgroundColor: bgColor,
-      border: `1px solid ${theme.palette.divider}`,
-      boxShadow: '0 10px 24px rgba(15, 23, 42, 0.04)',
-    })}
-  >
-    <CardContent sx={{ p: 3 }}>
-      <Stack spacing={2}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Box
-            sx={{
-              width: 42,
-              height: 42,
-              borderRadius: (theme) => theme.shape.borderRadius,
-              backgroundColor: (theme) => theme.palette.action.hover,
-              display: 'grid',
-              placeItems: 'center',
-              color: tone,
-            }}
-          >
-            {icon}
-          </Box>
+const StatCard = ({ label, value, icon: Icon, iconColor, trend, sx }) => (
+  <PageCard sx={{ p: 2, height: '100%', width: '100%', ...sx }}>
+    <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.1 }}>
+      <Typography
+        sx={{
+          fontSize: '0.74rem',
+          textTransform: 'uppercase',
+          letterSpacing: '0.12em',
+          color: 'text.secondary',
+          fontWeight: 700,
+        }}
+      >
+        {label}
+      </Typography>
+      <Stack direction="row" spacing={1} alignItems="center">
+        {trend ? (
           <Box
             sx={(theme) => ({
-              px: 1.4,
-              py: 0.4,
+              px: 1,
+              py: 0.35,
               borderRadius: 999,
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              backgroundColor: theme.palette.background.paper,
-              color: tone,
-              border: `1px solid ${theme.palette.divider}`,
+              bgcolor: theme.palette.grey[50],
+              color: 'text.secondary',
+              fontWeight: 700,
+              fontSize: '0.72rem',
+              border: '1px solid',
+              borderColor: theme.palette.grey[100],
             })}
           >
             {trend}
           </Box>
-        </Stack>
-        <Box>
-          <Typography variant="subtitle2" sx={{ color: tone }}>
-            {title}
-          </Typography>
-          <Typography variant="h4">{value}</Typography>
+        ) : null}
+        {Icon ? (
+        <Box
+          sx={(theme) => {
+            let resolved = theme.palette.text.secondary;
+            if (typeof iconColor === 'function') {
+              resolved = iconColor(theme);
+            } else if (typeof iconColor === 'string') {
+              const [paletteKey, shade] = iconColor.split('.');
+              if (theme.palette[paletteKey]?.[shade]) {
+                resolved = theme.palette[paletteKey][shade];
+              } else {
+                resolved = iconColor;
+              }
+            }
+
+            return {
+              width: 36,
+              height: 36,
+              borderRadius: 1,
+              display: 'grid',
+              placeItems: 'center',
+              backgroundColor: theme.palette.grey[50],
+              color: resolved,
+              border: '1px solid',
+              borderColor: theme.palette.grey[100],
+            };
+          }}
+        >
+          <Icon fontSize="small" />
         </Box>
+        ) : null}
       </Stack>
-    </CardContent>
-  </Card>
+    </Stack>
+    <Typography sx={{ fontWeight: 800, fontSize: '1.8rem' }}>{value}</Typography>
+  </PageCard>
 );
 
 export default StatCard;
