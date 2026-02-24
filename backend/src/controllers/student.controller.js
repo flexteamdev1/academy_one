@@ -348,6 +348,23 @@ const createStudent = async (req, res) => {
       resolvedAcademicYearId = selectedClass.academicYearId;
     }
 
+    const rollScope = {};
+    if (req.body.classId) {
+      rollScope.classId = req.body.classId;
+    } else if (grade && sectionName) {
+      rollScope.grade = grade;
+      rollScope.sectionName = sectionName;
+    }
+    if (resolvedAcademicYearId) {
+      rollScope.academicYearId = resolvedAcademicYearId;
+    }
+
+    const lastRoll = await StudentProfile.findOne(rollScope)
+      .sort({ rollNo: -1 })
+      .select('rollNo')
+      .lean();
+    const nextRollNo = (Number(lastRoll?.rollNo) || 0) + 1;
+
     studentProfile = await StudentProfile.create({
       admissionNo,
       name: studentName,
@@ -363,6 +380,23 @@ const createStudent = async (req, res) => {
       profilePhotoUrl: uploadedPhoto?.url || req.body.profilePhotoUrl,
       profilePhotoPublicId: uploadedPhoto?.publicId,
       status: req.body.status ? String(req.body.status).toUpperCase() : STUDENT_STATUS.ACTIVE,
+      rollNo: nextRollNo,
+      bloodGroup: req.body.bloodGroup,
+      admissionDate: req.body.admissionDate,
+      houseClub: req.body.houseClub,
+      houseClubRole: req.body.houseClubRole,
+      gpaScore: req.body.gpaScore,
+      gpaRank: req.body.gpaRank,
+      classroom: req.body.classroom,
+      classroomWing: req.body.classroomWing,
+      address: req.body.address,
+      fatherName: req.body.fatherName,
+      fatherOccupation: req.body.fatherOccupation,
+      fatherPhone: req.body.fatherPhone,
+      motherName: req.body.motherName,
+      motherOccupation: req.body.motherOccupation,
+      motherPhone: req.body.motherPhone,
+      emergencyPhone: req.body.emergencyPhone,
     });
 
     parentProfile.children = parentProfile.children || [];
@@ -385,7 +419,7 @@ const createStudent = async (req, res) => {
         studentId: studentProfile._id,
         classId: studentProfile.classId,
         academicYear: academicYearLabel,
-      }).catch(() => {});
+      }).catch(() => { });
     }
 
     const studentRecipient = studentEmailInput || parentEmail;
@@ -436,16 +470,16 @@ const createStudent = async (req, res) => {
     });
   } catch (error) {
     if (studentProfile?._id) {
-      await StudentProfile.findByIdAndDelete(studentProfile._id).catch(() => {});
+      await StudentProfile.findByIdAndDelete(studentProfile._id).catch(() => { });
     }
     if (createdParentProfile && parentProfile?._id) {
-      await Parent.findByIdAndDelete(parentProfile._id).catch(() => {});
+      await Parent.findByIdAndDelete(parentProfile._id).catch(() => { });
     }
     if (createdStudentUser && studentUser?._id) {
-      await User.findByIdAndDelete(studentUser._id).catch(() => {});
+      await User.findByIdAndDelete(studentUser._id).catch(() => { });
     }
     if (createdParentUser && parentUser?._id) {
-      await User.findByIdAndDelete(parentUser._id).catch(() => {});
+      await User.findByIdAndDelete(parentUser._id).catch(() => { });
     }
     if (uploadedPhoto?.publicId) {
       await deleteCloudinaryAsset(uploadedPhoto.publicId);
@@ -502,6 +536,22 @@ const updateStudent = async (req, res) => {
       profilePhotoUrl: uploadedPhoto?.url || (removeProfilePhoto ? null : req.body.profilePhotoUrl),
       profilePhotoPublicId: uploadedPhoto?.publicId || (removeProfilePhoto ? null : undefined),
       status: req.body.status ? String(req.body.status).toUpperCase() : undefined,
+      bloodGroup: req.body.bloodGroup,
+      admissionDate: req.body.admissionDate,
+      houseClub: req.body.houseClub,
+      houseClubRole: req.body.houseClubRole,
+      gpaScore: req.body.gpaScore,
+      gpaRank: req.body.gpaRank,
+      classroom: req.body.classroom,
+      classroomWing: req.body.classroomWing,
+      address: req.body.address,
+      fatherName: req.body.fatherName,
+      fatherOccupation: req.body.fatherOccupation,
+      fatherPhone: req.body.fatherPhone,
+      motherName: req.body.motherName,
+      motherOccupation: req.body.motherOccupation,
+      motherPhone: req.body.motherPhone,
+      emergencyPhone: req.body.emergencyPhone,
     };
 
     if (req.body.classId) {
@@ -567,11 +617,23 @@ const deleteStudent = async (req, res) => {
       { $pull: { children: deleted._id } }
     );
 
-    await Enrollment.deleteMany({ studentId: deleted._id }).catch(() => {});
-    await User.findByIdAndDelete(deleted.userId).catch(() => {});
+    await Enrollment.deleteMany({ studentId: deleted._id }).catch(() => { });
+    await User.findByIdAndDelete(deleted.userId).catch(() => { });
     await deleteCloudinaryAsset(deleted.profilePhotoPublicId);
 
     res.json({ message: 'Student deleted' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getStudentById = async (req, res) => {
+  try {
+    const student = await StudentProfile.findById(req.params.id).populate('parentId', 'firstName lastName email phone');
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+    res.json(student);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -581,6 +643,7 @@ module.exports = {
   listStudents,
   getStudentStats,
   getMyStudents,
+  getStudentById,
   createStudent,
   updateStudent,
   deleteStudent,

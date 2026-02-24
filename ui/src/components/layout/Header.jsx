@@ -1,8 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import {
   AppBar,
+  Avatar,
+  Box,
   Button,
-  CircularProgress,
+  Divider,
   IconButton,
   Menu,
   MenuItem,
@@ -11,59 +13,29 @@ import {
   Typography,
 } from '@mui/material';
 import MenuOutlined from '@mui/icons-material/MenuOutlined';
-import CalendarMonthOutlined from '@mui/icons-material/CalendarMonthOutlined';
-import KeyboardArrowDownRounded from '@mui/icons-material/KeyboardArrowDownRounded';
+import LogoutOutlined from '@mui/icons-material/LogoutOutlined';
 import { useUIDispatch, useUIState } from '../../context/UIContext';
-import { listAcademicYears } from '../../services/academicYearService';
+import { getUserInfo, getUserRole } from '../../utils/auth';
+import { useNavigate } from 'react-router-dom';
 
 const Header = ({ title, breadcrumb = 'Main Dashboard' }) => {
   const dispatch = useUIDispatch();
   const { selectedAcademicYearId } = useUIState();
-  const [years, setYears] = useState([]);
-  const [loadingYears, setLoadingYears] = useState(true);
-  const [yearMenuAnchor, setYearMenuAnchor] = useState(null);
+  const [profileAnchor, setProfileAnchor] = useState(null);
+  const navigate = useNavigate();
+  const userInfo = getUserInfo();
+  const userRole = getUserRole();
+  const userName = String(userInfo?.name || userInfo?.user?.name || 'User').trim();
+  const userInitial = String(userName || 'U').charAt(0).toUpperCase();
+  const userRoleLabel = String(userRole || 'user').replace('_', ' ');
 
-  useEffect(() => {
-    const loadYears = async () => {
-      setLoadingYears(true);
-      try {
-        const response = await listAcademicYears({ page: 1, limit: 200 });
-        const items = response.items || [];
-        setYears(items);
-
-        const active =
-          items.find((item) => item.isActive) ||
-          items.find((item) => String(item.status || '').toUpperCase() === 'ACTIVE');
-        const hasSelected = items.some((item) => String(item._id) === String(selectedAcademicYearId));
-        const nextId = hasSelected ? selectedAcademicYearId : (active?._id || '');
-
-        if (nextId && nextId !== selectedAcademicYearId) {
-          localStorage.setItem('selectedAcademicYearId', nextId);
-          dispatch({ type: 'SET_ACADEMIC_YEAR', payload: nextId });
-        } else if (!nextId && selectedAcademicYearId) {
-          localStorage.removeItem('selectedAcademicYearId');
-          dispatch({ type: 'SET_ACADEMIC_YEAR', payload: '' });
-        }
-      } catch (_error) {
-        setYears([]);
-      } finally {
-        setLoadingYears(false);
-      }
-    };
-
-    loadYears();
-  }, []);
-
-
-  const selectedYearLabel = useMemo(() => {
-    const selected = years.find((item) => String(item._id) === String(selectedAcademicYearId));
-    return selected?.name || 'Select Year';
-  }, [years, selectedAcademicYearId]);
-
-  const onAcademicYearChange = (nextId) => {
-    localStorage.setItem('selectedAcademicYearId', nextId);
-    dispatch({ type: 'SET_ACADEMIC_YEAR', payload: nextId });
-    setYearMenuAnchor(null);
+  const handleLogout = () => {
+    localStorage.removeItem('userInfo');
+    navigate('/login', { replace: true });
+  };
+  const handleProfileNavigate = (path) => {
+    setProfileAnchor(null);
+    navigate(path);
   };
 
   return (
@@ -130,60 +102,102 @@ const Header = ({ title, breadcrumb = 'Main Dashboard' }) => {
         </Stack>
 
         <Stack direction="row" spacing={1.2} alignItems="center">
-          <Button
-            variant="outlined"
-            startIcon={
-              <CalendarMonthOutlined
-                fontSize="small"
-                sx={{ color: (theme) => theme.palette.primary.main }}
-              />
-            }
-            endIcon={<KeyboardArrowDownRounded />}
-            onClick={(event) => setYearMenuAnchor(event.currentTarget)}
+          <IconButton
+            onClick={(event) => setProfileAnchor(event.currentTarget)}
             sx={{
-              display: { xs: 'none', md: 'inline-flex' },
-              backgroundColor: 'background.paper',
-              borderColor: (theme) => theme.palette.divider,
-              color: 'text.secondary',
-              fontWeight: 700,
-              fontSize: '0.72rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.06em',
-              px: 1.5,
-              py: 0.85,
-              maxWidth: 230,
+              ml: 0.5,
+              width: 40,
+              height: 40,
+              borderRadius: '12px',
+              border: '1px solid',
+              borderColor: 'divider',
+              bgcolor: 'background.paper',
+              '&:hover': { bgcolor: 'action.hover' },
             }}
           >
-            {loadingYears ? 'Loading...' : selectedYearLabel}
-          </Button>
+            <Avatar
+              sx={{
+                width: 28,
+                height: 28,
+                fontSize: '0.8rem',
+                bgcolor: 'primary.light',
+                color: 'primary.dark',
+              }}
+            >
+              {userInitial}
+            </Avatar>
+          </IconButton>
 
           <Menu
-            anchorEl={yearMenuAnchor}
-            open={Boolean(yearMenuAnchor)}
-            onClose={() => setYearMenuAnchor(null)}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-            transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+            anchorEl={profileAnchor}
+            open={Boolean(profileAnchor)}
+            onClose={() => setProfileAnchor(null)}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+            PaperProps={{
+              sx: {
+                mt: 1,
+                minWidth: 260,
+                borderRadius: '14px',
+                border: '1px solid',
+                borderColor: 'divider',
+                boxShadow: '0 20px 50px rgba(16,24,40,0.12)',
+              },
+            }}
           >
-            {loadingYears ? (
-              <MenuItem disabled>
-                <Stack direction="row" spacing={1} alignItems="center">
-                  <CircularProgress size={14} />
-                  <span>Loading...</span>
-                </Stack>
-              </MenuItem>
-            ) : (
-              years.map((year) => (
-                <MenuItem
-                  key={year._id}
-                  selected={String(year._id) === String(selectedAcademicYearId)}
-                  onClick={() => onAcademicYearChange(String(year._id))}
+            <Box sx={{ px: 2, pt: 2, pb: 1.5 }}>
+              <Stack direction="row" spacing={1.5} alignItems="center">
+                <Avatar
+                  sx={{
+                    width: 40,
+                    height: 40,
+                    bgcolor: 'primary.light',
+                    color: 'primary.dark',
+                    fontWeight: 700,
+                  }}
                 >
-                  {year.name}{year.isActive ? ' (Current)' : ''}
-                </MenuItem>
-              ))
-            )}
+                  {userInitial}
+                </Avatar>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography sx={{ fontWeight: 700, fontSize: '0.9rem' }} noWrap>
+                    {userName || 'User'}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: 'text.secondary',
+                      fontSize: '0.7rem',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.12em',
+                      fontWeight: 600,
+                    }}
+                    noWrap
+                  >
+                    {userRoleLabel}
+                  </Typography>
+                </Box>
+              </Stack>
+            </Box>
+            <Divider />
+            <MenuItem onClick={() => handleProfileNavigate('/change-password')} sx={{ py: 1.2 }}>
+              <Typography sx={{ fontWeight: 600 }}>Change Password</Typography>
+            </MenuItem>
+            <MenuItem onClick={() => handleProfileNavigate('/profile')} sx={{ py: 1.2 }}>
+              <Typography sx={{ fontWeight: 600 }}>Profile</Typography>
+            </MenuItem>
+            <MenuItem onClick={() => handleProfileNavigate('/settings')} sx={{ py: 1.2 }}>
+              <Typography sx={{ fontWeight: 600 }}>Settings</Typography>
+            </MenuItem>
+            <MenuItem onClick={() => handleProfileNavigate('/support')} sx={{ py: 1.2 }}>
+              <Typography sx={{ fontWeight: 600 }}>Support</Typography>
+            </MenuItem>
+            <Divider />
+            <MenuItem onClick={handleLogout} sx={{ py: 1.2 }}>
+              <Stack direction="row" spacing={1.2} alignItems="center">
+                <LogoutOutlined fontSize="small" />
+                <Typography sx={{ fontWeight: 600 }}>Logout</Typography>
+              </Stack>
+            </MenuItem>
           </Menu>
-
         </Stack>
       </Toolbar>
     </AppBar>

@@ -36,11 +36,12 @@ import PageCard from '../../components/common/PageCard';
 import StatCard from '../../components/common/StatCard';
 import AppDialog from '../../components/common/AppDialog';
 import { listClasses } from '../../services/classService';
+import { getUserInfo, getUserRole } from '../../utils/auth';
+import { filterClassesForTeacher, getTeacherId } from '../../utils/teacherAccess';
 import { createStudent } from '../../services/studentService';
 import StudentFormDialog from '../Students/StudentCreateDialog';
 import { createLead, deleteLead, listLeads, updateLead } from '../../services/leadService';
 import { FILTER_ALL, LEAD_STATUS, STUDENT_GENDER, STUDENT_STATUS, USER_ROLES } from '../../constants/enums';
-import { getUserRole } from '../../utils/auth';
 
 const LIMIT = 10;
 
@@ -130,6 +131,8 @@ const Enrollment = () => {
   const [enrollmentDialogOpen, setEnrollmentDialogOpen] = useState(false);
   const [photoPreview, setPhotoPreview] = useState('');
   const [classCatalog, setClassCatalog] = useState([]);
+  const user = getUserInfo();
+  const teacherId = role === 'teacher' ? getTeacherId(user) : '';
   const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
 
   const totalPages = Math.max(1, Math.ceil(total / LIMIT));
@@ -159,13 +162,19 @@ const Enrollment = () => {
     const loadClassCatalog = async () => {
       try {
         const response = await listClasses({ page: 1, limit: 100, status: STUDENT_STATUS.ACTIVE });
-        setClassCatalog(response.items || []);
+        const items = response.items || [];
+        if (teacherId) {
+          const filtered = filterClassesForTeacher(items, teacherId);
+          setClassCatalog(filtered.classes);
+        } else {
+          setClassCatalog(items);
+        }
       } catch (_error) {
         setClassCatalog([]);
       }
     };
     loadClassCatalog();
-  }, []);
+  }, [teacherId]);
 
   const handleSearchSubmit = useCallback((event) => {
     event.preventDefault();
@@ -685,25 +694,68 @@ const Enrollment = () => {
           <TextField
             fullWidth
             label="Lead Name"
+            required
             value={leadForm.name}
             onChange={(e) => setLeadForm((prev) => ({ ...prev, name: e.target.value }))}
             error={showLeadErrors && !leadForm.name.trim()}
             helperText={showLeadErrors && !leadForm.name.trim() ? 'Required' : ' '}
           />
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
-            <TextField fullWidth label="Email" value={leadForm.email} onChange={(e) => setLeadForm((prev) => ({ ...prev, email: e.target.value }))} />
-            <TextField fullWidth label="Phone" value={leadForm.phone} onChange={(e) => setLeadForm((prev) => ({ ...prev, phone: e.target.value }))} />
+            <TextField
+              fullWidth
+              label="Email"
+              placeholder="Optional"
+              value={leadForm.email}
+              onChange={(e) => setLeadForm((prev) => ({ ...prev, email: e.target.value }))}
+            />
+            <TextField
+              fullWidth
+              label="Phone"
+              placeholder="Optional"
+              value={leadForm.phone}
+              onChange={(e) => setLeadForm((prev) => ({ ...prev, phone: e.target.value }))}
+            />
           </Stack>
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
-            <TextField fullWidth label="Guardian Name" value={leadForm.guardianName} onChange={(e) => setLeadForm((prev) => ({ ...prev, guardianName: e.target.value }))} />
-            <TextField fullWidth label="Guardian Email" value={leadForm.guardianEmail} onChange={(e) => setLeadForm((prev) => ({ ...prev, guardianEmail: e.target.value }))} />
+            <TextField
+              fullWidth
+              label="Guardian Name"
+              placeholder="Optional"
+              value={leadForm.guardianName}
+              onChange={(e) => setLeadForm((prev) => ({ ...prev, guardianName: e.target.value }))}
+            />
+            <TextField
+              fullWidth
+              label="Guardian Email"
+              placeholder="Optional"
+              value={leadForm.guardianEmail}
+              onChange={(e) => setLeadForm((prev) => ({ ...prev, guardianEmail: e.target.value }))}
+            />
           </Stack>
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
-            <TextField fullWidth label="Guardian Phone" value={leadForm.guardianPhone} onChange={(e) => setLeadForm((prev) => ({ ...prev, guardianPhone: e.target.value }))} />
-            <TextField fullWidth label="Grade Interested" value={leadForm.gradeInterested} onChange={(e) => setLeadForm((prev) => ({ ...prev, gradeInterested: e.target.value }))} />
+            <TextField
+              fullWidth
+              label="Guardian Phone"
+              placeholder="Optional"
+              value={leadForm.guardianPhone}
+              onChange={(e) => setLeadForm((prev) => ({ ...prev, guardianPhone: e.target.value }))}
+            />
+            <TextField
+              fullWidth
+              label="Grade Interested"
+              placeholder="Optional"
+              value={leadForm.gradeInterested}
+              onChange={(e) => setLeadForm((prev) => ({ ...prev, gradeInterested: e.target.value }))}
+            />
           </Stack>
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
-            <TextField fullWidth label="Source" value={leadForm.source} onChange={(e) => setLeadForm((prev) => ({ ...prev, source: e.target.value }))} />
+            <TextField
+              fullWidth
+              label="Source"
+              placeholder="Optional"
+              value={leadForm.source}
+              onChange={(e) => setLeadForm((prev) => ({ ...prev, source: e.target.value }))}
+            />
             <TextField
               select
               fullWidth
@@ -721,6 +773,7 @@ const Enrollment = () => {
             multiline
             minRows={3}
             label="Notes"
+            placeholder="Optional"
             value={leadForm.notes}
             onChange={(e) => setLeadForm((prev) => ({ ...prev, notes: e.target.value }))}
           />

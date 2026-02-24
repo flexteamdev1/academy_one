@@ -8,6 +8,7 @@ import CampaignOutlined from '@mui/icons-material/CampaignOutlined';
 import ReceiptLongOutlined from '@mui/icons-material/ReceiptLongOutlined';
 import PersonOutlineOutlined from '@mui/icons-material/PersonOutlineOutlined';
 import HowToRegOutlined from '@mui/icons-material/HowToRegOutlined';
+import AdminPanelSettingsOutlined from '@mui/icons-material/AdminPanelSettingsOutlined';
 
 const navigation = [
   {
@@ -32,7 +33,15 @@ const navigation = [
     icon: GroupOutlined,
     headerTitle: 'Student Management',
     breadcrumb: 'Student List',
-    roles: ['super_admin', 'admin', 'teacher'],
+    roles: ['super_admin', 'admin'],
+  },
+  {
+    label: 'Student Management',
+    path: '/teacher/students',
+    icon: GroupOutlined,
+    headerTitle: 'Student Management',
+    breadcrumb: 'Student Directory',
+    roles: ['teacher'],
   },
   {
     label: 'Teachers',
@@ -41,6 +50,14 @@ const navigation = [
     headerTitle: 'Teacher Management',
     breadcrumb: 'Teachers Directory',
     roles: ['super_admin', 'admin'],
+  },
+  {
+    label: 'Admins',
+    path: '/admins',
+    icon: AdminPanelSettingsOutlined,
+    headerTitle: 'Admin Management',
+    breadcrumb: 'System Admins',
+    roles: ['super_admin'],
   },
   {
     label: 'Classes',

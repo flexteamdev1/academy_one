@@ -1,9 +1,6 @@
 import React from 'react';
 import {
-  Avatar,
   Box,
-  Button,
-  Collapse,
   Drawer,
   List,
   ListItemButton,
@@ -15,16 +12,12 @@ import {
 } from '@mui/material';
 import SchoolOutlined from '@mui/icons-material/SchoolOutlined';
 import HowToRegOutlined from '@mui/icons-material/HowToRegOutlined';
-import PaymentsOutlined from '@mui/icons-material/PaymentsOutlined';
-import BarChartOutlined from '@mui/icons-material/BarChartOutlined';
 import SettingsOutlined from '@mui/icons-material/SettingsOutlined';
 import ContactSupportOutlined from '@mui/icons-material/ContactSupportOutlined';
-import LogoutOutlined from '@mui/icons-material/LogoutOutlined';
 import { NavLink } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
 import navigation from '../../data/navigation';
 import { useUIDispatch, useUIState } from '../../context/UIContext';
-import { useNavigate } from 'react-router-dom';
 import { getUserInfo, getUserRole } from '../../utils/auth';
 
 const drawerWidth = 260;
@@ -34,8 +27,6 @@ const ALL_ROLES = ['super_admin', 'admin', 'teacher', 'student', 'parent'];
 const secondaryItems = [
   { label: 'Teachers', icon: SchoolOutlined, roles: ['super_admin', 'admin'] },
   { label: 'Admissions', icon: HowToRegOutlined, roles: ['super_admin', 'admin'] },
-  { label: 'Fees', icon: PaymentsOutlined, roles: ['super_admin', 'admin'] },
-  { label: 'Reports', icon: BarChartOutlined, roles: ['super_admin', 'admin'] },
 ];
 
 const systemItems = [
@@ -51,8 +42,7 @@ const SidebarContent = ({
   visibleNavigation,
   visibleSecondaryItems,
   visibleSystemItems,
-  userName,
-  userRole,
+  portalLabel,
 }) => (
   <Stack sx={{ height: '100%' }}>
     <Box sx={{ px: 3, py: 3 }}>
@@ -95,7 +85,7 @@ const SidebarContent = ({
               mt: 0.4,
             }}
           >
-            Admin Portal
+            {portalLabel}
           </Typography>
         </Box>
       </Stack>
@@ -209,84 +199,24 @@ const SidebarContent = ({
       </Box>
     </List>
 
-    <Box sx={{ px: 2.2, pb: 2.2, mt: 'auto' }}>
-      <Box
-        sx={{
-          p: 1.4,
-          borderRadius: (theme) => theme.shape.borderRadius,
-          backgroundColor: (theme) => theme.palette.background.paper,
-          border: '1px solid',
-          borderColor: (theme) => theme.palette.divider,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1.4,
-          cursor: 'pointer',
-        }}
-        onClick={onToggleProfile}
-      >
-        <Avatar
-          sx={{
-            width: 36,
-            height: 36,
-            bgcolor: (theme) => theme.palette.primary.light,
-            color: (theme) => theme.palette.primary.dark,
-          }}
-        >
-          A
-        </Avatar>
-        <Box sx={{ minWidth: 0 }}>
-          <Typography sx={{ fontSize: '0.76rem', fontWeight: 700 }} noWrap>
-            {userName || 'User'}
-          </Typography>
-          <Typography
-            sx={{
-              color: 'text.secondary',
-              fontSize: '0.62rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em',
-              fontWeight: 600,
-            }}
-            noWrap
-          >
-            {String(userRole || 'user').replace('_', ' ')}
-          </Typography>
-        </Box>
-      </Box>
-      <Collapse in={profileOpen}>
-        <Button
-          fullWidth
-          startIcon={<LogoutOutlined />}
-          onClick={onLogout}
-          sx={{
-            mt: 1,
-            justifyContent: 'flex-start',
-            borderRadius: (theme) => theme.shape.borderRadius,
-            border: '1px solid',
-            borderColor: (theme) => theme.palette.divider,
-            color: (theme) => theme.palette.error.main,
-            backgroundColor: (theme) => theme.palette.grey[50],
-            '&:hover': {
-              backgroundColor: (theme) => theme.palette.grey[100],
-            },
-          }}
-        >
-          Logout
-        </Button>
-      </Collapse>
-    </Box>
   </Stack>
 );
 
 const Sidebar = () => {
-  const [profileOpen, setProfileOpen] = React.useState(false);
   const theme = useTheme();
   const { mobileSidebarOpen } = useUIState();
   const dispatch = useUIDispatch();
-  const navigate = useNavigate();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
   const userInfo = getUserInfo();
   const userRole = getUserRole() || DEFAULT_ROLE;
-  const userName = String(userInfo?.name || userInfo?.user?.name || '').trim();
+  const portalLabelByRole = {
+    super_admin: 'Super Admin Portal',
+    admin: 'Admin Portal',
+    teacher: 'Teacher Portal',
+    student: 'Student Portal',
+    parent: 'Parent Portal',
+  };
+  const portalLabel = portalLabelByRole[userRole] || 'Portal';
   const canAccess = (item) => !item.roles || item.roles.includes(userRole);
   const visibleNavigation = navigation.filter(canAccess);
   const primaryLabels = new Set(
@@ -301,12 +231,6 @@ const Sidebar = () => {
     if (!isDesktop) {
       dispatch({ type: 'CLOSE_MOBILE_SIDEBAR' });
     }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('userInfo');
-    dispatch({ type: 'CLOSE_MOBILE_SIDEBAR' });
-    navigate('/login', { replace: true });
   };
 
   return (
@@ -328,14 +252,10 @@ const Sidebar = () => {
       >
         <SidebarContent
           onNavigate={closeMobileSidebar}
-          onToggleProfile={() => setProfileOpen((prev) => !prev)}
-          profileOpen={profileOpen}
-          onLogout={handleLogout}
           visibleNavigation={visibleNavigation}
           visibleSecondaryItems={visibleSecondaryItems}
           visibleSystemItems={visibleSystemItems}
-          userName={userName}
-          userRole={userRole}
+          portalLabel={portalLabel}
         />
       </Drawer>
     </Box>

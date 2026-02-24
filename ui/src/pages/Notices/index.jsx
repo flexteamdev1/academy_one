@@ -14,13 +14,18 @@ import AddRounded from '@mui/icons-material/AddRounded';
 import SearchOutlined from '@mui/icons-material/SearchOutlined';
 import AttachFileOutlined from '@mui/icons-material/AttachFileOutlined';
 import { createNotice, listNotices } from '../../services/noticeService';
-import { getUserRole } from '../../utils/auth';
+import { listClasses } from '../../services/classService';
+import { getUserInfo, getUserRole } from '../../utils/auth';
+import { useUIState } from '../../context/UIContext';
 import NoticeList from './NoticeList';
 import NoticeViewer from './NoticeViewer';
 import NoticeForm from './NoticeForm';
 import PageCard from '../../components/common/PageCard';
 import NoticeListSkeleton from '../../components/skeletons/NoticeListSkeleton';
 import NoticeViewerSkeleton from '../../components/skeletons/NoticeViewerSkeleton';
+import { decodeHtml, isHtml, sanitizeHtml } from './noticeUtils';
+import { CLASS_STATUS } from '../../constants/enums';
+import { filterClassesForTeacher, getTeacherId } from '../../utils/teacherAccess';
 
 const audienceOptions = [
   { label: 'Students', value: 'STUDENT' },
@@ -33,8 +38,6 @@ const audienceLabelMap = audienceOptions.reduce((acc, item) => {
   acc[item.value] = item.label;
   return acc;
 }, {});
-
-const gradeOptions = ['All Grades', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5'];
 
 const statusTabs = [
   { label: 'All', value: 'ALL' },
@@ -187,74 +190,85 @@ const SimpleNoticeViewer = ({ selectedNotice, loading, formatDate }) => (
         <Typography sx={{ color: 'text.secondary', fontSize: '0.82rem', mb: 1 }}>
           {formatDate(selectedNotice.publishedAt || selectedNotice.createdAt, true)}
         </Typography>
-        <Typography sx={{ whiteSpace: 'pre-line', lineHeight: 1.7, mb: 1.6 }}>
-          {selectedNotice.body}
-        </Typography>
-        <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'text.secondary', mb: 0.6 }}>
-          Attachments
-        </Typography>
-        {selectedNotice.attachments.length ? (
-          <Stack spacing={0.8}>
-            {selectedNotice.attachments.map((attachment) => (
+        {(() => {
+          const decodedBody = decodeHtml(selectedNotice.body || '');
+          if (isHtml(decodedBody)) {
+            return (
               <Box
-                key={`${attachment.name}-${attachment.size}-${attachment.url}`}
-                sx={{ px: 1, py: 0.8, borderRadius: 1.2, bgcolor: 'action.hover' }}
-              >
-                <Stack direction="row" spacing={1} alignItems="center">
-                  <AttachFileOutlined sx={{ fontSize: 16, color: 'text.secondary' }} />
-                  <Typography sx={{ fontSize: '0.82rem' }}>
-                    {attachment.name} · {attachment.size}
-                  </Typography>
-                  {attachment.url ? (
-                    <>
-                      <Button
-                        size="small"
-                        component="a"
-                        href={attachment.url}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Open
-                      </Button>
-                      <Button
-                        size="small"
-                        component="a"
-                        href={attachment.url}
-                        download
-                      >
-                        Download
-                      </Button>
-                    </>
-                  ) : null}
-                </Stack>
-                {attachment.url && isPdfAttachment(attachment) ? (
-                  <Box
-                    component="object"
-                    data={attachment.url}
-                    type="application/pdf"
-                    sx={{
-                      width: '100%',
-                      height: 480,
-                      border: '1px solid',
-                      borderColor: 'divider',
-                      borderRadius: 1,
-                      mt: 1,
-                      backgroundColor: 'background.paper',
-                    }}
-                  >
-                    <Typography sx={{ color: 'text.secondary', p: 1 }}>
-                      PDF preview not available. Use the Open or Download buttons.
+                sx={{ lineHeight: 1.7, mb: 1.6 }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(decodedBody) }}
+              />
+            );
+          }
+          return (
+            <Typography sx={{ whiteSpace: 'pre-line', lineHeight: 1.7, mb: 1.6 }}>
+              {decodedBody}
+            </Typography>
+          );
+        })()}
+        {selectedNotice.attachments.length ? (
+          <>
+            <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'text.secondary', mb: 0.6 }}>
+              Attachments
+            </Typography>
+            <Stack spacing={0.8}>
+              {selectedNotice.attachments.map((attachment) => (
+                <Box
+                  key={`${attachment.name}-${attachment.size}-${attachment.url}`}
+                  sx={{ px: 1, py: 0.8, borderRadius: 1.2, bgcolor: 'action.hover' }}
+                >
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <AttachFileOutlined sx={{ fontSize: 16, color: 'text.secondary' }} />
+                    <Typography sx={{ fontSize: '0.82rem' }}>
+                      {attachment.name} · {attachment.size}
                     </Typography>
-                  </Box>
-                ) : null}
-              </Box>
-            ))}
-          </Stack>
-        ) : (
-          <Typography sx={{ color: 'text.secondary', fontSize: '0.86rem' }}>
-            No attachments
-          </Typography>
-        )}
+                    {attachment.url ? (
+                      <>
+                        <Button
+                          size="small"
+                          component="a"
+                          href={attachment.url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Open
+                        </Button>
+                        <Button
+                          size="small"
+                          component="a"
+                          href={attachment.url}
+                          download
+                        >
+                          Download
+                        </Button>
+                      </>
+                    ) : null}
+                  </Stack>
+                  {attachment.url && isPdfAttachment(attachment) ? (
+                    <Box
+                      component="object"
+                      data={attachment.url}
+                      type="application/pdf"
+                      sx={{
+                        width: '100%',
+                        height: 480,
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        borderRadius: 1,
+                        mt: 1,
+                        backgroundColor: 'background.paper',
+                      }}
+                    >
+                      <Typography sx={{ color: 'text.secondary', p: 1 }}>
+                        PDF preview not available. Use the Open or Download buttons.
+                      </Typography>
+                    </Box>
+                  ) : null}
+                </Box>
+              ))}
+            </Stack>
+          </>
+        ) : null}
       </>
     ) : (
       <Typography sx={{ color: 'text.secondary' }}>Select a notice to view details.</Typography>
@@ -264,7 +278,10 @@ const SimpleNoticeViewer = ({ selectedNotice, loading, formatDate }) => (
 );
 
 const Notices = () => {
+  const { selectedAcademicYearId } = useUIState();
   const role = getUserRole();
+  const user = getUserInfo();
+  const teacherId = role === 'teacher' ? getTeacherId(user) : '';
   const canCreate = ['super_admin', 'admin', 'teacher'].includes(role);
   const isAdmin = ['super_admin', 'admin'].includes(role);
 
@@ -272,6 +289,7 @@ const Notices = () => {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [gradeOptions, setGradeOptions] = useState(['All Grades']);
 
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
@@ -290,6 +308,33 @@ const Notices = () => {
     const timer = window.setTimeout(() => setSearch(searchInput.trim()), 300);
     return () => window.clearTimeout(timer);
   }, [searchInput]);
+
+  useEffect(() => {
+    const loadGrades = async () => {
+      try {
+        const params = {
+          page: 1,
+          limit: 200,
+          status: CLASS_STATUS.ACTIVE,
+        };
+        if (selectedAcademicYearId) {
+          params.academicYearId = selectedAcademicYearId;
+        }
+        const response = await listClasses(params);
+        const items = response.items || [];
+        const classes = teacherId ? filterClassesForTeacher(items, teacherId).classes : items;
+        const values = classes
+          .map((item) => item.name || item.grade || item.className)
+          .filter(Boolean);
+        const unique = Array.from(new Set(values));
+        unique.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+        setGradeOptions(['All Grades', ...unique]);
+      } catch (_err) {
+        setGradeOptions(['All Grades']);
+      }
+    };
+    loadGrades();
+  }, [selectedAcademicYearId, teacherId]);
 
   const loadNotices = async () => {
     setLoading(true);
@@ -396,9 +441,11 @@ const Notices = () => {
           <Typography variant="h4" sx={{ mb: 0.6 }}>
             Notices Board
           </Typography>
-          <Typography variant="subtitle1">
-            Create, schedule and manage school-wide announcements in one place.
-          </Typography>
+          {isAdmin ? (
+            <Typography variant="subtitle1">
+              Create, schedule and manage school-wide announcements in one place.
+            </Typography>
+          ) : null}
         </Box>
 
         {canCreate ? (

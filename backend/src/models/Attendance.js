@@ -2,13 +2,6 @@ const mongoose = require('mongoose');
 const { ATTENDANCE_STATUS } = require('../constants/enums');
 
 const attendanceSchema = new mongoose.Schema({
-  schoolId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "School",
-    required: true,
-    index: true
-  },
-
   classId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Class",
@@ -16,10 +9,11 @@ const attendanceSchema = new mongoose.Schema({
     index: true
   },
 
-  sectionId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Section",
+  sectionName: {
+    type: String,
     required: true,
+    uppercase: true,
+    trim: true,
     index: true
   },
 
@@ -33,7 +27,7 @@ const attendanceSchema = new mongoose.Schema({
     {
       studentId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Student",
+        ref: "StudentProfile",
         required: true
       },
       status: {
@@ -58,7 +52,7 @@ const attendanceSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 attendanceSchema.index(
-  { classId: 1, sectionId: 1, date: 1 },
+  { classId: 1, sectionName: 1, date: 1 },
   { unique: true }
 );
 

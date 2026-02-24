@@ -14,7 +14,7 @@ import MoreHorizOutlined from '@mui/icons-material/MoreHorizOutlined';
 import AttachFileOutlined from '@mui/icons-material/AttachFileOutlined';
 import PageCard from '../../components/common/PageCard';
 import NoticeViewerSkeleton from '../../components/skeletons/NoticeViewerSkeleton';
-import { isHtml, sanitizeHtml } from './noticeUtils';
+import { decodeHtml, isHtml, sanitizeHtml } from './noticeUtils';
 
 const isPdfAttachment = (attachment) => {
   const name = String(attachment?.name || '').toLowerCase();
@@ -88,74 +88,78 @@ const NoticeViewer = ({
         <Typography sx={{ fontSize: '0.74rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'text.secondary', mb: 1 }}>
           Notice Body
         </Typography>
-        {isHtml(selectedNotice.body) ? (
-          <Box
-            sx={{ lineHeight: 1.75, fontSize: '0.95rem', mb: 2 }}
-            dangerouslySetInnerHTML={{ __html: sanitizeHtml(selectedNotice.body) }}
-          />
-        ) : (
-          <Typography sx={{ whiteSpace: 'pre-line', lineHeight: 1.75, fontSize: '0.95rem', mb: 2 }}>
-            {selectedNotice.body}
-          </Typography>
-        )}
-
-        <Typography sx={{ fontSize: '0.74rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'text.secondary', mb: 1 }}>
-          Attachments
-        </Typography>
-        {selectedNotice.attachments.length ? (
-          <Stack spacing={0.7} sx={{ mb: 2 }}>
-            {selectedNotice.attachments.map((attachment) => (
+        {(() => {
+          const decodedBody = decodeHtml(selectedNotice.body || '');
+          if (isHtml(decodedBody)) {
+            return (
               <Box
-                key={`${attachment.name}-${attachment.size}-${attachment.url}`}
-                sx={{ px: 1.1, py: 0.8, borderRadius: 1.5, bgcolor: 'action.hover' }}
-              >
-                <Stack direction="row" spacing={1} alignItems="center">
-                  <AttachFileOutlined sx={{ fontSize: 16, color: 'text.secondary' }} />
-                  <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap' }}>
-                    <Typography sx={{ fontSize: '0.82rem' }}>
-                      {attachment.name} · {attachment.size}
-                    </Typography>
-                    {attachment.url ? (
-                      <Button
-                        size="small"
-                        component="a"
-                        href={attachment.url}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Open
-                      </Button>
-                    ) : null}
+                sx={{ lineHeight: 1.75, fontSize: '0.95rem', mb: 2 }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(decodedBody) }}
+              />
+            );
+          }
+          return (
+            <Typography sx={{ whiteSpace: 'pre-line', lineHeight: 1.75, fontSize: '0.95rem', mb: 2 }}>
+              {decodedBody}
+            </Typography>
+          );
+        })()}
+
+        {selectedNotice.attachments.length ? (
+          <>
+            <Typography sx={{ fontSize: '0.74rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'text.secondary', mb: 1 }}>
+              Attachments
+            </Typography>
+            <Stack spacing={0.7} sx={{ mb: 2 }}>
+              {selectedNotice.attachments.map((attachment) => (
+                <Box
+                  key={`${attachment.name}-${attachment.size}-${attachment.url}`}
+                  sx={{ px: 1.1, py: 0.8, borderRadius: 1.5, bgcolor: 'action.hover' }}
+                >
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <AttachFileOutlined sx={{ fontSize: 16, color: 'text.secondary' }} />
+                    <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap' }}>
+                      <Typography sx={{ fontSize: '0.82rem' }}>
+                        {attachment.name} · {attachment.size}
+                      </Typography>
+                      {attachment.url ? (
+                        <Button
+                          size="small"
+                          component="a"
+                          href={attachment.url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Open
+                        </Button>
+                      ) : null}
+                    </Stack>
                   </Stack>
-                </Stack>
-                {attachment.url && isPdfAttachment(attachment) ? (
-                  <Box
-                    component="object"
-                    data={attachment.url}
-                    type="application/pdf"
-                    sx={{
-                      width: '100%',
-                      height: 480,
-                      border: '1px solid',
-                      borderColor: 'divider',
-                      borderRadius: 1,
-                      mt: 1,
-                      backgroundColor: 'background.paper',
-                    }}
-                  >
-                    <Typography sx={{ color: 'text.secondary', p: 1 }}>
-                      PDF preview not available. Use the Open button.
-                    </Typography>
-                  </Box>
-                ) : null}
-              </Box>
-            ))}
-          </Stack>
-        ) : (
-          <Typography sx={{ color: 'text.secondary', fontSize: '0.86rem', mb: 2 }}>
-            No attachments
-          </Typography>
-        )}
+                  {attachment.url && isPdfAttachment(attachment) ? (
+                    <Box
+                      component="object"
+                      data={attachment.url}
+                      type="application/pdf"
+                      sx={{
+                        width: '100%',
+                        height: 480,
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        borderRadius: 1,
+                        mt: 1,
+                        backgroundColor: 'background.paper',
+                      }}
+                    >
+                      <Typography sx={{ color: 'text.secondary', p: 1 }}>
+                        PDF preview not available. Use the Open button.
+                      </Typography>
+                    </Box>
+                  ) : null}
+                </Box>
+              ))}
+            </Stack>
+          </>
+        ) : null}
 
         <Typography sx={{ fontSize: '0.74rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'text.secondary', mb: 0.7 }}>
           Delivery Channels

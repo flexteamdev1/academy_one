@@ -15,22 +15,26 @@ const parentSchema = new mongoose.Schema(
 
     lastName: {
       type: String,
+      required: true,
       trim: true,
     },
 
     email: {
       type: String,
+      required: true,
       lowercase: true,
       trim: true,
     },
 
     phone: {
       type: String,
+      required: true,
       trim: true,
     },
 
     relation: {
       type: String,
+      required: true,
       trim: true,
     },
 
@@ -43,6 +47,7 @@ const parentSchema = new mongoose.Schema(
 
     occupation: {
       type: String,
+      required: true,
       trim: true,
     },
 

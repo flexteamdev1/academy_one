@@ -3,6 +3,7 @@ const AcademicYear = require('../models/AcademicYear');
 const Teacher = require('../models/Teacher');
 const StudentProfile = require('../models/StudentProfile');
 const { ACADEMIC_YEAR_STATUS, CLASS_STATUS, SECTION_STATUS, TEACHER_STATUS } = require('../constants/enums');
+const { ROLES } = require('../constants/roles');
 const {
   assertAcademicYearWritable,
   isPastAcademicYear,
@@ -105,6 +106,7 @@ const listClasses = async (req, res) => {
     const skip = (page - 1) * limit;
 
     const filter = {};
+    let teacherId = null;
 
     if (req.query.status && req.query.status !== 'ALL') {
       filter.status = String(req.query.status).toUpperCase();
@@ -124,6 +126,24 @@ const listClasses = async (req, res) => {
         { name: { $regex: q, $options: 'i' } },
         { 'sections.name': { $regex: q, $options: 'i' } },
       ];
+    }
+
+    if (req.user?.role === ROLES.TEACHER) {
+      const teacher = await Teacher.findOne({ userId: req.user._id }).select('_id');
+      if (!teacher) {
+        return res.json({
+          items: [],
+          pagination: {
+            page,
+            limit,
+            total: 0,
+            totalPages: 1,
+          },
+        });
+      }
+      teacherId = teacher._id;
+      filter.$and = filter.$and || [];
+      filter.$and.push({ 'sections.classTeacherId': teacherId });
     }
 
     const [items, total] = await Promise.all([
@@ -146,12 +166,20 @@ const listClasses = async (req, res) => {
 
     const studentCountMap = new Map(studentCountsRaw.map((entry) => [String(entry._id), entry.count]));
 
-    const serialized = items.map((item) => ({
-      ...item.toObject(),
-      studentCount: studentCountMap.get(String(item._id)) || 0,
-      sectionCount: item.sections?.length || 0,
-      totalCapacity: (item.sections || []).reduce((sum, section) => sum + (Number(section.capacity) || 0), 0),
-    }));
+    const serialized = items.map((item) => {
+      const raw = item.toObject();
+      const filteredSections = teacherId
+        ? (raw.sections || []).filter((section) => String(section.classTeacherId?._id || section.classTeacherId || '') === String(teacherId))
+        : (raw.sections || []);
+
+      return {
+        ...raw,
+        sections: filteredSections,
+        studentCount: studentCountMap.get(String(item._id)) || 0,
+        sectionCount: filteredSections.length,
+        totalCapacity: filteredSections.reduce((sum, section) => sum + (Number(section.capacity) || 0), 0),
+      };
+    });
 
     res.json({
       items: serialized,

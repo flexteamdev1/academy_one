@@ -502,6 +502,7 @@ const AcademicYears = () => {
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
               label="Name"
+              required
               value={form.name}
               onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
               placeholder="2025-26"
@@ -513,6 +514,7 @@ const AcademicYears = () => {
               <TextField
                 label="Start Date"
                 type="date"
+                required
                 value={form.startDate}
                 onChange={(event) => setForm((prev) => ({ ...prev, startDate: event.target.value }))}
                 InputLabelProps={{ shrink: true }}
@@ -523,6 +525,7 @@ const AcademicYears = () => {
               <TextField
                 label="End Date"
                 type="date"
+                required
                 value={form.endDate}
                 onChange={(event) => setForm((prev) => ({ ...prev, endDate: event.target.value }))}
                 InputLabelProps={{ shrink: true }}

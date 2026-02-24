@@ -145,6 +145,30 @@ const StudentDetailsDialog = ({
               <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary' }}>Gender</Typography>
               <Typography sx={{ fontWeight: 700 }}>{student?.gender || 'N/A'}</Typography>
             </Box>
+            <Box sx={{ mt: 1 }}>
+              <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary' }}>Roll No</Typography>
+              <Typography sx={{ fontWeight: 700 }}>{student?.rollNo || 'N/A'}</Typography>
+            </Box>
+            <Box sx={{ mt: 1 }}>
+              <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary' }}>Blood Group</Typography>
+              <Typography sx={{ fontWeight: 700 }}>{student?.bloodGroup || 'N/A'}</Typography>
+            </Box>
+            <Box sx={{ mt: 1 }}>
+              <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary' }}>Full Address</Typography>
+              <Typography sx={{ fontWeight: 700 }}>
+                {student?.address
+                  ? [
+                      student.address.street,
+                      student.address.city,
+                      student.address.state,
+                      student.address.zip,
+                      student.address.country,
+                    ]
+                      .filter(Boolean)
+                      .join(', ')
+                  : 'N/A'}
+              </Typography>
+            </Box>
           </Box>
 
           <Box
@@ -206,6 +230,30 @@ const StudentDetailsDialog = ({
                 Phone Number
               </Typography>
               <Typography sx={{ fontWeight: 700 }}>{parent.phone || 'N/A'}</Typography>
+            </Box>
+          </Stack>
+        </Box>
+
+        <Box
+          sx={(theme) => ({
+            borderRadius: theme.shape.borderRadius,
+            border: '1px solid',
+            borderColor: theme.palette.grey[200],
+            backgroundColor: theme.palette.grey[50],
+            p: 2,
+          })}
+        >
+          <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.secondary' }}>
+            Family Occupations
+          </Typography>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mt: 1 }}>
+            <Box sx={{ flex: 1 }}>
+              <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary' }}>Father Occupation</Typography>
+              <Typography sx={{ fontWeight: 700 }}>{student?.fatherOccupation || 'N/A'}</Typography>
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary' }}>Mother Occupation</Typography>
+              <Typography sx={{ fontWeight: 700 }}>{student?.motherOccupation || 'N/A'}</Typography>
             </Box>
           </Stack>
         </Box>

@@ -122,15 +122,29 @@ const StudentFormDialog = ({
             <TextField
               fullWidth
               label="Student Name"
+              required
               value={form.name}
               onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
               error={showErrors && !form.name.trim()}
               helperText={showErrors && !form.name.trim() ? 'Required' : ' '}
             />
-            <TextField fullWidth label="Student Email (Optional)" value={form.email} onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))} />
+            <TextField
+              fullWidth
+              label="Student Email"
+              placeholder="Optional"
+              value={form.email}
+              onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
+            />
           </Stack>
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
-            <TextField select fullWidth label="Gender" value={form.gender} onChange={(e) => setForm((prev) => ({ ...prev, gender: e.target.value }))}>
+            <TextField
+              select
+              fullWidth
+              label="Gender"
+              required
+              value={form.gender}
+              onChange={(e) => setForm((prev) => ({ ...prev, gender: e.target.value }))}
+            >
               <MenuItem value={STUDENT_GENDER.MALE}>Male</MenuItem>
               <MenuItem value={STUDENT_GENDER.FEMALE}>Female</MenuItem>
               <MenuItem value={STUDENT_GENDER.OTHER}>Other</MenuItem>
@@ -139,6 +153,7 @@ const StudentFormDialog = ({
               fullWidth
               type="date"
               label="Date of Birth"
+              required
               InputLabelProps={{ shrink: true }}
               value={form.dob}
               onChange={(e) => setForm((prev) => ({ ...prev, dob: e.target.value }))}
@@ -174,6 +189,7 @@ const StudentFormDialog = ({
               select
               fullWidth
               label="Section"
+              required
               value={form.sectionName}
               disabled={!form.grade}
               onChange={(e) => {
@@ -194,6 +210,24 @@ const StudentFormDialog = ({
             </TextField>
           </Stack>
 
+          <TextField
+            select
+            fullWidth
+            label="Blood Group"
+            value={form.bloodGroup}
+            onChange={(e) => setForm((prev) => ({ ...prev, bloodGroup: e.target.value }))}
+          >
+            <MenuItem value="">Select Blood Group</MenuItem>
+            <MenuItem value="A+">A+</MenuItem>
+            <MenuItem value="A-">A-</MenuItem>
+            <MenuItem value="B+">B+</MenuItem>
+            <MenuItem value="B-">B-</MenuItem>
+            <MenuItem value="AB+">AB+</MenuItem>
+            <MenuItem value="AB-">AB-</MenuItem>
+            <MenuItem value="O+">O+</MenuItem>
+            <MenuItem value="O-">O-</MenuItem>
+          </TextField>
+
           {dialogMode === 'edit' ? (
             <TextField
               select
@@ -211,6 +245,21 @@ const StudentFormDialog = ({
       </Stack>
 
       <Stack spacing={0.8}>
+        <Typography sx={{ fontWeight: 700 }}>Address Details</Typography>
+        <Divider />
+      </Stack>
+
+      <TextField
+        fullWidth
+        label="Full Address"
+        placeholder="Street, City, State, Zip, Country"
+        value={form.fullAddress}
+        onChange={(e) => setForm((prev) => ({ ...prev, fullAddress: e.target.value }))}
+        multiline
+        minRows={2}
+      />
+
+      <Stack spacing={0.8}>
         <Typography sx={{ fontWeight: 700 }}>Parent Details</Typography>
         <Divider />
       </Stack>
@@ -220,17 +269,25 @@ const StudentFormDialog = ({
           <TextField
             fullWidth
             label="Parent First Name"
+            required
             value={form.parentFirstName}
             onChange={(e) => setForm((prev) => ({ ...prev, parentFirstName: e.target.value }))}
             error={showErrors && !form.parentFirstName.trim()}
             helperText={showErrors && !form.parentFirstName.trim() ? 'Required' : ' '}
           />
-          <TextField fullWidth label="Parent Last Name" value={form.parentLastName} onChange={(e) => setForm((prev) => ({ ...prev, parentLastName: e.target.value }))} />
+          <TextField
+            fullWidth
+            label="Parent Last Name"
+            required
+            value={form.parentLastName}
+            onChange={(e) => setForm((prev) => ({ ...prev, parentLastName: e.target.value }))}
+          />
         </Stack>
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
           <TextField
             fullWidth
             label="Parent Email"
+            required
             value={form.parentEmail}
             onChange={(e) => setForm((prev) => ({ ...prev, parentEmail: e.target.value }))}
             error={showErrors && !form.parentEmail.trim()}
@@ -240,6 +297,7 @@ const StudentFormDialog = ({
             fullWidth
             label="Parent Phone"
             name="parentPhone"
+            required
             value={form.parentPhone}
             onChange={(e) => setForm((prev) => ({ ...prev, parentPhone: e.target.value }))}
             InputProps={{ inputComponent: PhoneMaskInput }}
@@ -248,7 +306,7 @@ const StudentFormDialog = ({
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} alignItems="flex-start">
           <Stack spacing={0.6} sx={{ width: { xs: '100%', md: '50%' } }}>
             <Typography sx={{ fontWeight: 600, fontSize: '0.85rem', color: 'text.secondary' }}>
-              Relation
+              Relation <Box component="span" sx={{ color: 'error.main' }}>*</Box>
             </Typography>
             <ToggleButtonGroup
               color="primary"
@@ -283,13 +341,31 @@ const StudentFormDialog = ({
           <TextField
             fullWidth
             label="Occupation"
+            required
             value={form.parentOccupation}
             onChange={(e) => setForm((prev) => ({ ...prev, parentOccupation: e.target.value }))}
+          />
+        </Stack>
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
+          <TextField
+            fullWidth
+            label="Father Occupation"
+            placeholder="Optional"
+            value={form.fatherOccupation}
+            onChange={(e) => setForm((prev) => ({ ...prev, fatherOccupation: e.target.value }))}
+          />
+          <TextField
+            fullWidth
+            label="Mother Occupation"
+            placeholder="Optional"
+            value={form.motherOccupation}
+            onChange={(e) => setForm((prev) => ({ ...prev, motherOccupation: e.target.value }))}
           />
         </Stack>
         <TextField
           fullWidth
           label="Emergency Contact"
+          required
           value={form.parentEmergencyContact}
           onChange={(e) => setForm((prev) => ({ ...prev, parentEmergencyContact: e.target.value }))}
           // InputProps={{

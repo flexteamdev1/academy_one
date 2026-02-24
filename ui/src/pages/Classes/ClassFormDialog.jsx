@@ -49,6 +49,7 @@ const ClassFormDialog = ({
           <TextField
             label="Class Name"
             fullWidth
+            required
             value={form.name}
             onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
             placeholder="Grade 8"
@@ -58,18 +59,19 @@ const ClassFormDialog = ({
         </Grid>
 
         <Grid item xs={12} md={4}>
-          <FormControl fullWidth>
-            <Select
-              value={form.academicYearId}
-              onChange={(event) => setForm((prev) => ({ ...prev, academicYearId: event.target.value }))}
-              displayEmpty
-            >
-              <MenuItem value="">Select Academic Year</MenuItem>
-              {meta.academicYears.map((year) => (
-                <MenuItem key={year._id} value={year._id}>{year.name}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <TextField
+            select
+            label="Academic Year"
+            fullWidth
+            required
+            value={form.academicYearId}
+            onChange={(event) => setForm((prev) => ({ ...prev, academicYearId: event.target.value }))}
+          >
+            <MenuItem value="">Select Academic Year</MenuItem>
+            {meta.academicYears.map((year) => (
+              <MenuItem key={year._id} value={year._id}>{year.name}</MenuItem>
+            ))}
+          </TextField>
         </Grid>
 
         <Grid item xs={12} md={3}>
@@ -86,7 +88,9 @@ const ClassFormDialog = ({
       </Grid>
 
       <Stack direction="row" justifyContent="space-between" alignItems="center">
-        <Typography sx={{ fontWeight: 700, fontSize: '0.92rem' }}>Sections</Typography>
+        <Typography sx={{ fontWeight: 700, fontSize: '0.92rem' }}>
+          Sections <Typography component="span" sx={{ color: 'error.main' }}>*</Typography>
+        </Typography>
         <Button size="small" startIcon={<AddRounded />} onClick={addSectionRow}>Add Section</Button>
       </Stack>
 
@@ -98,6 +102,7 @@ const ClassFormDialog = ({
                 <TextField
                   fullWidth
                   label="Section"
+                  required
                   value={section.name}
                   onChange={(event) => onChangeSection(index, 'name', event.target.value.toUpperCase())}
                   inputProps={{ maxLength: 2 }}

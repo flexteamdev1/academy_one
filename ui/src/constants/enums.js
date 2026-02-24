@@ -8,6 +8,12 @@ export const USER_ROLES = {
   PARENT: 'parent',
 };
 
+export const USER_STATUS = {
+  ACTIVE: 'ACTIVE',
+  BLOCKED: 'BLOCKED',
+  SUSPENDED: 'SUSPENDED',
+};
+
 export const STUDENT_STATUS = {
   ACTIVE: 'ACTIVE',
   DROPPED: 'DROPPED',

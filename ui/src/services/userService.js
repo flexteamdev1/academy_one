@@ -15,3 +15,11 @@ export const getLinkedStudents = async () => {
     toServiceError(error, 'Failed to fetch user-linked students');
   }
 };
+export const getStudentById = async (id) => {
+  try {
+    const response = await apiClient.get(`/students/${id}`);
+    return response.data;
+  } catch (error) {
+    toServiceError(error, 'Failed to fetch student details');
+  }
+};

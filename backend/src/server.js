@@ -26,6 +26,8 @@ app.use("/api/classes", require("./routes/classRoutes"));
 app.use("/api/academic-years", require("./routes/academicYearRoutes"));
 app.use("/api/notices", require("./routes/noticeRoutes"));
 app.use("/api/leads", require("./routes/leadRoutes"));
+app.use("/api/admins", require("./routes/adminRoutes"));
+app.use("/api/attendance", require("./routes/attendanceRoutes"));
 
 // Home
 app.get("/", (req, res) => {

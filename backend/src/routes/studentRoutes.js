@@ -5,6 +5,7 @@ const {
   listStudents,
   getStudentStats,
   getMyStudents,
+  getStudentById,
   createStudent,
   updateStudent,
   deleteStudent,
@@ -19,6 +20,7 @@ router.use(protect);
 router.get('/', authorize(ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.TEACHER), listStudents);
 router.get('/stats', authorize(ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.TEACHER), getStudentStats);
 router.get('/me', authorize(ROLES.STUDENT, ROLES.PARENT), getMyStudents);
+router.get('/:id', authorize(ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.TEACHER), getStudentById);
 router.post('/', authorize(ROLES.SUPER_ADMIN, ROLES.ADMIN), uploadProfilePhoto.single('profilePhoto'), createStudent);
 router.put('/:id', authorize(ROLES.SUPER_ADMIN, ROLES.ADMIN), uploadProfilePhoto.single('profilePhoto'), updateStudent);
 router.delete('/:id', authorize(ROLES.SUPER_ADMIN, ROLES.ADMIN), deleteStudent);

@@ -10,6 +10,21 @@ const stripHtml = (value = '') => (
 
 const isHtml = (value = '') => /<\/?[a-z][\s\S]*>/i.test(String(value));
 
+const decodeHtml = (value = '') => {
+  const text = String(value || '');
+  if (typeof window !== 'undefined' && window.document) {
+    const textarea = window.document.createElement('textarea');
+    textarea.innerHTML = text;
+    return textarea.value;
+  }
+  return text
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+};
+
 const sanitizeHtml = (value = '') => {
   let output = String(value);
   output = output.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
@@ -21,4 +36,4 @@ const sanitizeHtml = (value = '') => {
   return output;
 };
 
-export { stripHtml, isHtml, sanitizeHtml };
+export { stripHtml, isHtml, decodeHtml, sanitizeHtml };

@@ -30,6 +30,10 @@ const emptyForm = {
   grade: '',
   sectionName: '',
   status: STUDENT_STATUS.ACTIVE,
+  bloodGroup: '',
+  fullAddress: '',
+  fatherOccupation: '',
+  motherOccupation: '',
   parentFirstName: '',
   parentLastName: '',
   parentEmail: '',
@@ -39,6 +43,18 @@ const emptyForm = {
   parentEmergencyContact: '',
   profilePhoto: null,
   removeProfilePhoto: false,
+};
+
+const formatAddress = (address) => {
+  if (!address) return '';
+  const parts = [
+    address.street,
+    address.city,
+    address.state,
+    address.zip,
+    address.country,
+  ].map((item) => String(item || '').trim()).filter(Boolean);
+  return parts.join(', ');
 };
 
 const metricSpec = [
@@ -211,6 +227,10 @@ const Students = () => {
       grade: student.grade || '',
       sectionName: student.sectionName || '',
       status: student.status || STUDENT_STATUS.ACTIVE,
+      bloodGroup: student.bloodGroup || '',
+      fullAddress: formatAddress(student.address),
+      fatherOccupation: student.fatherOccupation || '',
+      motherOccupation: student.motherOccupation || '',
       parentFirstName: parentRecord.firstName || '',
       parentLastName: parentRecord.lastName || '',
       parentEmail: parentRecord.email || '',
@@ -253,6 +273,8 @@ const Students = () => {
     setSubmitting(true);
 
     try {
+      const trimmedFullAddress = form.fullAddress.trim();
+
       const payload = {
         name: form.name.trim(),
         email: form.email.trim(),
@@ -264,6 +286,10 @@ const Students = () => {
         profilePhoto: form.profilePhoto,
         status: dialogMode === 'edit' ? form.status : undefined,
         removeProfilePhoto: dialogMode === 'edit' ? form.removeProfilePhoto : undefined,
+        bloodGroup: form.bloodGroup.trim() || undefined,
+        address: trimmedFullAddress ? { street: trimmedFullAddress } : undefined,
+        fatherOccupation: form.fatherOccupation.trim() || undefined,
+        motherOccupation: form.motherOccupation.trim() || undefined,
       };
 
       payload.parentFirstName = form.parentFirstName.trim();

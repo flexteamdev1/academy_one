@@ -34,7 +34,7 @@ const studentProfileSchema = new mongoose.Schema({
   classId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Class",
-    required: false,
+    required: true,
     index: true
   },
 
@@ -76,6 +76,94 @@ const studentProfileSchema = new mongoose.Schema({
 
   profilePhotoPublicId: {
     type: String
+  },
+
+  rollNo: {
+    type: Number,
+    index: true
+  },
+
+  bloodGroup: {
+    type: String,
+    trim: true
+  },
+
+  admissionDate: {
+    type: Date
+  },
+
+  houseClub: {
+    type: String,
+    trim: true
+  },
+
+  houseClubRole: {
+    type: String,
+    trim: true
+  },
+
+  gpaScore: {
+    type: Number,
+    min: 0,
+    max: 5.0
+  },
+
+  gpaRank: {
+    type: String,
+    trim: true
+  },
+
+  classroom: {
+    type: String,
+    trim: true
+  },
+
+  classroomWing: {
+    type: String,
+    trim: true
+  },
+
+  address: {
+    street: String,
+    city: String,
+    state: String,
+    zip: String,
+    country: String
+  },
+
+  fatherName: {
+    type: String,
+    trim: true
+  },
+
+  fatherOccupation: {
+    type: String,
+    trim: true
+  },
+
+  fatherPhone: {
+    type: String,
+    trim: true
+  },
+
+  motherName: {
+    type: String,
+    trim: true
+  },
+
+  motherOccupation: {
+    type: String,
+    trim: true
+  },
+
+  motherPhone: {
+    type: String,
+    trim: true
+  },
+
+  emergencyPhone: {
+    type: String,
+    trim: true
   },
 
   status: {
