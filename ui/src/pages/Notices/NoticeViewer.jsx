@@ -14,6 +14,7 @@ import MoreHorizOutlined from '@mui/icons-material/MoreHorizOutlined';
 import AttachFileOutlined from '@mui/icons-material/AttachFileOutlined';
 import PageCard from '../../components/common/PageCard';
 import NoticeViewerSkeleton from '../../components/skeletons/NoticeViewerSkeleton';
+import { isHtml, sanitizeHtml } from './noticeUtils';
 
 const isPdfAttachment = (attachment) => {
   const name = String(attachment?.name || '').toLowerCase();
@@ -87,9 +88,16 @@ const NoticeViewer = ({
         <Typography sx={{ fontSize: '0.74rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'text.secondary', mb: 1 }}>
           Notice Body
         </Typography>
-        <Typography sx={{ whiteSpace: 'pre-line', lineHeight: 1.75, fontSize: '0.95rem', mb: 2 }}>
-          {selectedNotice.body}
-        </Typography>
+        {isHtml(selectedNotice.body) ? (
+          <Box
+            sx={{ lineHeight: 1.75, fontSize: '0.95rem', mb: 2 }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(selectedNotice.body) }}
+          />
+        ) : (
+          <Typography sx={{ whiteSpace: 'pre-line', lineHeight: 1.75, fontSize: '0.95rem', mb: 2 }}>
+            {selectedNotice.body}
+          </Typography>
+        )}
 
         <Typography sx={{ fontSize: '0.74rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'text.secondary', mb: 1 }}>
           Attachments

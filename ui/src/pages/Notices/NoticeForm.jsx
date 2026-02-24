@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { CKEditor } from '@ckeditor/ckeditor5-react';
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import {
   Box,
   Button,
@@ -10,8 +12,6 @@ import {
   FormControlLabel,
   Grid,
   MenuItem,
-  Radio,
-  RadioGroup,
   Stack,
   TextField,
   Typography,
@@ -19,6 +19,7 @@ import {
 import CloudUploadOutlined from '@mui/icons-material/CloudUploadOutlined';
 import SendOutlined from '@mui/icons-material/SendOutlined';
 import PageCard from '../../components/common/PageCard';
+import { sanitizeHtml, stripHtml } from './noticeUtils';
 
 const NoticeForm = ({
   open,
@@ -27,11 +28,12 @@ const NoticeForm = ({
   setForm,
   audienceOptions,
   gradeOptions,
-  deliveryOptions,
   submitting,
   onSubmit,
   showErrors,
 }) => {
+  const hasBodyContent = Boolean(stripHtml(form.body));
+
   const toggleAudience = (audience) => {
     setForm((prev) => {
       const exists = prev.audiences.includes(audience);
@@ -43,7 +45,8 @@ const NoticeForm = ({
   };
 
   const addGradeFromSelect = () => {
-    if (!form.selectedGrade || form.grades.includes(form.selectedGrade)) return;
+    if (!form.selectedGrade || form.selectedGrade === 'All Grades') return;
+    if (form.grades.includes(form.selectedGrade)) return;
     setForm((prev) => ({ ...prev, grades: [...prev.grades, prev.selectedGrade] }));
   };
 
@@ -52,16 +55,6 @@ const NoticeForm = ({
       ...prev,
       grades: prev.grades.filter((item) => item !== grade),
     }));
-  };
-
-  const toggleChannel = (channel) => {
-    setForm((prev) => {
-      const exists = prev.channels.includes(channel);
-      if (exists) {
-        return { ...prev, channels: prev.channels.filter((item) => item !== channel) };
-      }
-      return { ...prev, channels: [...prev.channels, channel] };
-    });
   };
 
   const onAttachmentPick = (event) => {
@@ -83,6 +76,13 @@ const NoticeForm = ({
       attachments: prev.attachments.filter((item) => item !== target),
     }));
   };
+
+  useEffect(() => {
+    if (!open) return;
+    if (form.body == null) {
+      setForm((prev) => ({ ...prev, body: '' }));
+    }
+  }, [open, form.body, setForm]);
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
@@ -158,7 +158,9 @@ const NoticeForm = ({
 
           <Stack spacing={1.5} sx={{ mb: 2.3 }}>
             <Box>
-              <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary', mb: 0.6 }}>Subject / Title</Typography>
+              <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary', mb: 0.6 }}>
+                Subject / Title <Box component="span" sx={{ color: 'error.main' }}>*</Box>
+              </Typography>
               <TextField
                 fullWidth
                 placeholder="e.g. Annual Sports Day Registration"
@@ -170,35 +172,54 @@ const NoticeForm = ({
             </Box>
 
             <Box>
-              <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary', mb: 0.6 }}>Message Body</Typography>
+              <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary', mb: 0.6 }}>
+                Message Body <Box component="span" sx={{ color: 'error.main' }}>*</Box>
+              </Typography>
               <Box
                 sx={{
                   border: '1px solid',
-                  borderColor: showErrors && !form.body.trim() ? 'error.main' : 'divider',
+                  borderColor: showErrors && !hasBodyContent ? 'error.main' : 'divider',
                   borderRadius: 1.5,
                   overflow: 'hidden',
+                  '& .ck.ck-editor__main > .ck-editor__editable': {
+                    minHeight: 160,
+                    fontSize: '0.95rem',
+                    lineHeight: 1.6,
+                    borderColor: 'divider',
+                  },
+                  '& .ck.ck-toolbar': {
+                    borderColor: 'divider',
+                    backgroundColor: 'action.hover',
+                  },
                 }}
               >
-                <Stack direction="row" spacing={1.2} sx={{ px: 1.2, py: 0.8, bgcolor: 'action.hover', borderBottom: '1px solid', borderColor: 'divider', color: 'text.secondary', fontSize: '0.85rem' }}>
-                  <span>B</span>
-                  <span>I</span>
-                  <span>U</span>
-                  <span>•</span>
-                  <span>1.</span>
-                  <span>Link</span>
-                </Stack>
-                <TextField
-                  fullWidth
-                  multiline
-                  minRows={6}
-                  placeholder="Type your announcement details here..."
-                  value={form.body}
-                  onChange={(event) => setForm((prev) => ({ ...prev, body: event.target.value }))}
-                  variant="standard"
-                  InputProps={{ disableUnderline: true, sx: { p: 1.2 } }}
+                <CKEditor
+                  editor={ClassicEditor}
+                  data={form.body || ''}
+                  onReady={(editor) => {
+                    editor.editing.view.change((writer) => {
+                      writer.setStyle(
+                          'min-height',
+                          '350px',
+                          editor.editing.view.document.getRoot()
+                      )
+                      writer.setStyle(
+                          'max-height',
+                          '350px',
+                          editor.editing.view.document.getRoot()
+                      )
+                    })
+                  }}
+                  onChange={(_event, editor) => {
+                    const html = sanitizeHtml(editor.getData());
+                    setForm((prev) => ({ ...prev, body: html }));
+                  }}
+                  config={{
+                    toolbar: ['bold', 'italic', 'underline', '|', 'numberedList', 'bulletedList', '|', 'link', '|', 'undo', 'redo'],
+                  }}
                 />
               </Box>
-              {showErrors && !form.body.trim() ? (
+              {showErrors && !hasBodyContent ? (
                 <Typography sx={{ mt: 0.6, fontSize: '0.75rem', color: 'error.main' }}>
                   Required
                 </Typography>
@@ -250,53 +271,9 @@ const NoticeForm = ({
           <Typography sx={{ fontWeight: 700, mb: 1.3 }}>Publishing Options</Typography>
           <Divider sx={{ mb: 2 }} />
 
-          <Grid container spacing={2.5}>
-            <Grid item xs={12} md={6}>
-              <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary', mb: 0.6 }}>Schedule</Typography>
-              <RadioGroup
-                value={form.schedule}
-                onChange={(event) => setForm((prev) => ({ ...prev, schedule: event.target.value }))}
-              >
-                <FormControlLabel value="publish_now" control={<Radio size="small" />} label="Publish immediately" />
-                <FormControlLabel value="schedule_later" control={<Radio size="small" />} label="Schedule for later" />
-              </RadioGroup>
-
-              {form.schedule === 'schedule_later' ? (
-                <TextField
-                  type="datetime-local"
-                  fullWidth
-                  value={form.scheduledAt}
-                  onChange={(event) => setForm((prev) => ({ ...prev, scheduledAt: event.target.value }))}
-                  sx={{ mt: 1 }}
-                  InputLabelProps={{ shrink: true }}
-                />
-              ) : null}
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary', mb: 0.6 }}>Delivery Channels</Typography>
-              <Stack>
-                {deliveryOptions.map((channel) => (
-                  <FormControlLabel
-                    key={channel.value}
-                    control={(
-                      <Checkbox
-                        checked={form.channels.includes(channel.value)}
-                        onChange={() => toggleChannel(channel.value)}
-                        size="small"
-                      />
-                    )}
-                    label={channel.label}
-                  />
-                ))}
-              </Stack>
-              {showErrors && !form.channels.length ? (
-                <Typography sx={{ mt: 0.6, fontSize: '0.75rem', color: 'error.main' }}>
-                  Select at least one channel.
-                </Typography>
-              ) : null}
-            </Grid>
-          </Grid>
+          <Typography sx={{ color: 'text.secondary', fontSize: '0.9rem' }}>
+            Notices are published immediately after submission.
+          </Typography>
 
           <Divider sx={{ mt: 2.2, mb: 1.8 }} />
 
@@ -305,7 +282,7 @@ const NoticeForm = ({
             <Button
               variant="outlined"
               onClick={() => onSubmit('draft')}
-              disabled={submitting || !form.title.trim() || !form.body.trim() || !form.audiences.length || !form.channels.length}
+              disabled={submitting || !form.title.trim() || !hasBodyContent || !form.audiences.length}
             >
               Save Draft
             </Button>
@@ -316,10 +293,8 @@ const NoticeForm = ({
               disabled={
                 submitting ||
                 !form.title.trim() ||
-                !form.body.trim() ||
-                !form.audiences.length ||
-                !form.channels.length ||
-                (form.schedule === 'schedule_later' && !form.scheduledAt)
+                !hasBodyContent ||
+                !form.audiences.length
               }
             >
               {submitting ? 'Submitting...' : 'Publish Notice'}
