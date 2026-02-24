@@ -8,11 +8,13 @@ import { listClasses } from '../services/classService';
 import { useUIState } from '../context/UIContext';
 import { getUserInfo } from '../utils/auth';
 import { CLASS_STATUS } from '../constants/enums';
+import { filterClassesForTeacher, getTeacherId } from '../utils/teacherAccess';
 
 const TeacherDashboard = () => {
   const { selectedAcademicYearId } = useUIState();
   const user = getUserInfo();
   const teacherName = user?.name || 'Teacher';
+  const teacherId = getTeacherId(user);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [items, setItems] = useState([]);
@@ -24,7 +26,8 @@ const TeacherDashboard = () => {
       try {
         const response = await listClasses({ page: 1, limit: 100, status: CLASS_STATUS.ACTIVE });
         const classes = response.items || [];
-        setItems(classes);
+        const filtered = filterClassesForTeacher(classes, teacherId);
+        setItems(filtered.classes);
       } catch (err) {
         setError(err.message || 'Failed to load assigned classes');
       } finally {
@@ -33,7 +36,7 @@ const TeacherDashboard = () => {
     };
 
     load();
-  }, [selectedAcademicYearId]);
+  }, [selectedAcademicYearId, teacherId]);
 
   const sectionCount = useMemo(
     () => items.reduce((sum, item) => sum + (item.sections?.length || 0), 0),

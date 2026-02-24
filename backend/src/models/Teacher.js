@@ -14,15 +14,18 @@ const teacherSchema = new mongoose.Schema({
   },
 
   lastName: {
-    type: String
+    type: String,
+    required: true,
   },
 
   phone: {
     type: String,
+    required: true,
   },
 
   email: {
     type: String,
+    required: true,
     match: /^\S+@\S+\.\S+$/
   },
 
@@ -37,16 +40,19 @@ const teacherSchema = new mongoose.Schema({
   },
 
   qualification: {
-    type: String
+    type: String,
+    required: true,
   },
 
   experience: {
     type: Number,
+    required: true,
     min: 0
   },
 
   joinedAt: {
-    type: Date
+    type: Date,
+    required: true,
   },
 
   profilePhotoUrl: {
