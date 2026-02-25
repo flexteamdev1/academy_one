@@ -34,7 +34,6 @@ const parentSchema = new mongoose.Schema(
 
     relation: {
       type: String,
-      required: true,
       trim: true,
     },
 
@@ -47,7 +46,6 @@ const parentSchema = new mongoose.Schema(
 
     occupation: {
       type: String,
-      required: true,
       trim: true,
     },
 

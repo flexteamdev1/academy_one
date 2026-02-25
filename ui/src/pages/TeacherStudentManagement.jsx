@@ -44,7 +44,7 @@ const getAttendanceRate = (student) => (
 );
 
 const formatRoll = (student, index) => {
-  const roll = student.rollNo || student.admissionNo || index + 1;
+  const roll = student.rollNo || index + 1;
   if (!roll) return '—';
   return String(roll).startsWith('#') ? roll : `#${roll}`;
 };

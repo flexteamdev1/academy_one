@@ -7,13 +7,10 @@ import {
   MenuItem,
   Stack,
   TextField,
-  ToggleButton,
-  ToggleButtonGroup,
   Typography,
 } from '@mui/material';
 import CloudUploadOutlined from '@mui/icons-material/CloudUploadOutlined';
 import PhotoCameraOutlined from '@mui/icons-material/PhotoCameraOutlined';
-import WarningAmberOutlined from '@mui/icons-material/WarningAmberOutlined';
 import AppDialog from '../../components/common/AppDialog';
 import PhoneMaskInput from '../../components/common/PhoneMaskInput';
 
@@ -34,6 +31,7 @@ const StudentFormDialog = ({
   photoPreview,
   handleRemovePhoto,
   showErrors,
+  showStatus = true,
 }) => (
   <AppDialog
     open={dialogOpen}
@@ -228,7 +226,7 @@ const StudentFormDialog = ({
             <MenuItem value="O-">O-</MenuItem>
           </TextField>
 
-          {dialogMode === 'edit' ? (
+          {dialogMode === 'edit' && showStatus ? (
             <TextField
               select
               fullWidth
@@ -260,7 +258,7 @@ const StudentFormDialog = ({
       />
 
       <Stack spacing={0.8}>
-        <Typography sx={{ fontWeight: 700 }}>Parent Details</Typography>
+        <Typography sx={{ fontWeight: 700 }}>Father Details</Typography>
         <Divider />
       </Stack>
 
@@ -268,91 +266,71 @@ const StudentFormDialog = ({
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
           <TextField
             fullWidth
-            label="Parent First Name"
+            label="Father Full Name"
             required
-            value={form.parentFirstName}
-            onChange={(e) => setForm((prev) => ({ ...prev, parentFirstName: e.target.value }))}
-            error={showErrors && !form.parentFirstName.trim()}
-            helperText={showErrors && !form.parentFirstName.trim() ? 'Required' : ' '}
+            value={form.fatherName}
+            onChange={(e) => setForm((prev) => ({ ...prev, fatherName: e.target.value }))}
+            error={showErrors && !form.fatherName.trim()}
+            helperText={showErrors && !form.fatherName.trim() ? 'Required' : ' '}
           />
           <TextField
             fullWidth
-            label="Parent Last Name"
+            label="Father Email"
             required
-            value={form.parentLastName}
-            onChange={(e) => setForm((prev) => ({ ...prev, parentLastName: e.target.value }))}
+            value={form.fatherEmail}
+            onChange={(e) => setForm((prev) => ({ ...prev, fatherEmail: e.target.value }))}
+            error={showErrors && !form.fatherEmail.trim()}
+            helperText={showErrors && !form.fatherEmail.trim() ? 'Required' : ' '}
           />
         </Stack>
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
           <TextField
             fullWidth
-            label="Parent Email"
+            label="Father Phone"
             required
-            value={form.parentEmail}
-            onChange={(e) => setForm((prev) => ({ ...prev, parentEmail: e.target.value }))}
-            error={showErrors && !form.parentEmail.trim()}
-            helperText={showErrors && !form.parentEmail.trim() ? 'Required' : ' '}
-          />
-          <TextField
-            fullWidth
-            label="Parent Phone"
-            name="parentPhone"
-            required
-            value={form.parentPhone}
-            onChange={(e) => setForm((prev) => ({ ...prev, parentPhone: e.target.value }))}
+            value={form.fatherPhone}
+            onChange={(e) => setForm((prev) => ({ ...prev, fatherPhone: e.target.value }))}
             InputProps={{ inputComponent: PhoneMaskInput }}
+            error={showErrors && !form.fatherPhone.trim()}
+            helperText={showErrors && !form.fatherPhone.trim() ? 'Required' : ' '}
           />
-        </Stack>
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} alignItems="flex-start">
-          <Stack spacing={0.6} sx={{ width: { xs: '100%', md: '50%' } }}>
-            <Typography sx={{ fontWeight: 600, fontSize: '0.85rem', color: 'text.secondary' }}>
-              Relation <Box component="span" sx={{ color: 'error.main' }}>*</Box>
-            </Typography>
-            <ToggleButtonGroup
-              color="primary"
-              exclusive
-              fullWidth
-              value={form.parentRelation}
-              onChange={(_event, value) => setForm((prev) => ({ ...prev, parentRelation: value || '' }))}
-              sx={(theme) => ({
-                width: '100%',
-                backgroundColor: theme.palette.grey[50],
-                borderRadius: theme.shape.borderRadius,
-                border: '1px solid',
-                borderColor: theme.palette.grey[200],
-                p: 0.4,
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-                gap: 0.5,
-                '& .MuiToggleButton-root': {
-                  border: '1px solid transparent',
-                  borderRadius: theme.shape.borderRadius,
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  height: 40,
-                },
-              })}
-            >
-              <ToggleButton value="Mother">Mother</ToggleButton>
-              <ToggleButton value="Father">Father</ToggleButton>
-              <ToggleButton value="Guardian">Guardian</ToggleButton>
-            </ToggleButtonGroup>
-          </Stack>
-          <TextField
-            fullWidth
-            label="Occupation"
-            required
-            value={form.parentOccupation}
-            onChange={(e) => setForm((prev) => ({ ...prev, parentOccupation: e.target.value }))}
-          />
-        </Stack>
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
           <TextField
             fullWidth
             label="Father Occupation"
             placeholder="Optional"
             value={form.fatherOccupation}
             onChange={(e) => setForm((prev) => ({ ...prev, fatherOccupation: e.target.value }))}
+          />
+        </Stack>
+      </Stack>
+
+      <Stack spacing={0.8}>
+        <Typography sx={{ fontWeight: 700 }}>Mother Details</Typography>
+        <Divider />
+      </Stack>
+
+      <Stack spacing={1.6}>
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
+          <TextField
+            fullWidth
+            label="Mother Full Name"
+            value={form.motherName}
+            onChange={(e) => setForm((prev) => ({ ...prev, motherName: e.target.value }))}
+          />
+          <TextField
+            fullWidth
+            label="Mother Email"
+            value={form.motherEmail}
+            onChange={(e) => setForm((prev) => ({ ...prev, motherEmail: e.target.value }))}
+          />
+        </Stack>
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
+          <TextField
+            fullWidth
+            label="Mother Phone"
+            value={form.motherPhone}
+            onChange={(e) => setForm((prev) => ({ ...prev, motherPhone: e.target.value }))}
+            InputProps={{ inputComponent: PhoneMaskInput }}
           />
           <TextField
             fullWidth
@@ -362,24 +340,29 @@ const StudentFormDialog = ({
             onChange={(e) => setForm((prev) => ({ ...prev, motherOccupation: e.target.value }))}
           />
         </Stack>
-        <TextField
-          fullWidth
-          label="Emergency Contact"
-          required
-          value={form.parentEmergencyContact}
-          onChange={(e) => setForm((prev) => ({ ...prev, parentEmergencyContact: e.target.value }))}
-          // InputProps={{
-          //   endAdornment: <WarningAmberOutlined sx={{ color: (theme) => theme.palette.warning.main }} />,
-          // }}
-          InputProps={{ inputComponent: PhoneMaskInput }}
-          sx={(theme) => ({
-            '& .MuiOutlinedInput-root': {
-              backgroundColor: theme.palette.warning.light,
-              borderRadius: theme.shape.borderRadius,
-            },
-          })}
-        />
       </Stack>
+
+      <Stack spacing={0.8}>
+        <Typography sx={{ fontWeight: 700 }}>Emergency Contact</Typography>
+        <Divider />
+      </Stack>
+
+      <TextField
+        fullWidth
+        label="Emergency Contact"
+        required
+        value={form.emergencyPhone}
+        onChange={(e) => setForm((prev) => ({ ...prev, emergencyPhone: e.target.value }))}
+        InputProps={{ inputComponent: PhoneMaskInput }}
+        error={showErrors && !form.emergencyPhone.trim()}
+        helperText={showErrors && !form.emergencyPhone.trim() ? 'Required' : ' '}
+        sx={(theme) => ({
+          '& .MuiOutlinedInput-root': {
+            backgroundColor: theme.palette.warning.light,
+            borderRadius: theme.shape.borderRadius,
+          },
+        })}
+      />
     </Stack>
   </AppDialog>
 );

@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -19,25 +19,56 @@ import {
   Male as MaleIcon,
   Female as FemaleIcon,
   LocationOnOutlined as AddressIcon,
-  CalendarMonthOutlined as AdmissionIcon,
-  MeetingRoomOutlined as ClassroomIcon,
   AccountTreeOutlined as HouseIcon,
   MilitaryTechOutlined as GpaIcon,
   BadgeOutlined as ParentIcon,
   LocalPhoneOutlined as PhoneIcon,
   EmailOutlined as EmailIcon,
   NotificationImportantOutlined as EmergencyIcon,
+  ArrowBackOutlined as BackIcon,
+  SchoolOutlined,
 } from '@mui/icons-material';
 import { getLinkedStudents, getStudentById } from '../services/userService';
 import { getMyAttendance } from '../services/attendanceService';
 import { useUIState } from '../context/UIContext';
+import StudentFormDialog from './Students/StudentCreateDialog';
+import { STUDENT_GENDER, STUDENT_STATUS } from '../constants/enums';
+import { updateMyStudent } from '../services/userService';
 
 const ModernStudentProfile = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { selectedAcademicYearId } = useUIState();
   const [loading, setLoading] = useState(true);
   const [student, setStudent] = useState(null);
   const [attendanceStats, setAttendanceStats] = useState({ presentPercentage: 0 });
+  const [editOpen, setEditOpen] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    email: '',
+    gender: STUDENT_GENDER.MALE,
+    dob: '',
+    grade: '',
+    sectionName: '',
+    classId: '',
+    status: STUDENT_STATUS.ACTIVE,
+    bloodGroup: '',
+    fullAddress: '',
+    fatherName: '',
+    fatherEmail: '',
+    fatherPhone: '',
+    fatherOccupation: '',
+    motherName: '',
+    motherEmail: '',
+    motherPhone: '',
+    motherOccupation: '',
+    emergencyPhone: '',
+    profilePhoto: null,
+    removeProfilePhoto: false,
+  });
+  const [editSubmitting, setEditSubmitting] = useState(false);
+  const [editErrors, setEditErrors] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -74,6 +105,118 @@ const ModernStudentProfile = () => {
     fetchData();
   }, [id, selectedAcademicYearId]);
 
+  useEffect(() => {
+    return () => {
+      if (photoPreview) URL.revokeObjectURL(photoPreview);
+    };
+  }, [photoPreview]);
+
+  const dialogGradeOptions = useMemo(() => (
+    student?.grade ? [student.grade] : []
+  ), [student]);
+
+  const dialogSectionOptions = useMemo(() => (
+    student?.sectionName ? [student.sectionName] : []
+  ), [student]);
+
+  const resolveClassId = () => (student?.classId || '');
+
+  const formatAddress = (address) => {
+    if (!address) return '';
+    const parts = [
+      address.street,
+      address.city,
+      address.state,
+      address.zip,
+      address.country,
+    ].map((item) => String(item || '').trim()).filter(Boolean);
+    return parts.join(', ');
+  };
+
+  const openEdit = () => {
+    if (!student) return;
+    setEditErrors(false);
+    setEditForm({
+      name: student.name || '',
+      email: student.email || '',
+      gender: student.gender || STUDENT_GENDER.MALE,
+      dob: student.dob ? String(student.dob).slice(0, 10) : '',
+      grade: student.grade || '',
+      sectionName: student.sectionName || '',
+      classId: student.classId || '',
+      status: student.status || STUDENT_STATUS.ACTIVE,
+      bloodGroup: student.bloodGroup || '',
+      fullAddress: formatAddress(student.address),
+      fatherName: student.fatherName || '',
+      fatherEmail: student.fatherEmail || '',
+      fatherPhone: student.fatherPhone || '',
+      fatherOccupation: student.fatherOccupation || '',
+      motherName: student.motherName || '',
+      motherEmail: student.motherEmail || '',
+      motherPhone: student.motherPhone || '',
+      motherOccupation: student.motherOccupation || '',
+      emergencyPhone: student.emergencyPhone || '',
+      profilePhoto: null,
+      removeProfilePhoto: false,
+    });
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhotoPreview(student.profilePhotoUrl || '');
+    setEditOpen(true);
+  };
+
+  const handlePhotoChange = (file) => {
+    setEditForm((prev) => ({ ...prev, profilePhoto: file || null, removeProfilePhoto: false }));
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhotoPreview(file ? URL.createObjectURL(file) : '');
+  };
+
+  const handleRemovePhoto = () => {
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhotoPreview('');
+    setEditForm((prev) => ({ ...prev, profilePhoto: null, removeProfilePhoto: true }));
+  };
+
+  const handleSubmitEdit = async () => {
+    if (!student) return;
+    if (!editForm.name.trim() || !editForm.dob || !editForm.fatherName.trim() || !editForm.fatherEmail.trim() || !editForm.fatherPhone.trim() || !editForm.emergencyPhone.trim()) {
+      setEditErrors(true);
+      return;
+    }
+
+    setEditSubmitting(true);
+    try {
+      const trimmedFullAddress = editForm.fullAddress.trim();
+      const payload = {
+        name: editForm.name.trim(),
+        email: editForm.email.trim(),
+        gender: editForm.gender,
+        dob: editForm.dob,
+        bloodGroup: editForm.bloodGroup.trim() || undefined,
+        address: trimmedFullAddress ? { street: trimmedFullAddress } : undefined,
+        fatherName: editForm.fatherName.trim(),
+        fatherEmail: editForm.fatherEmail.trim(),
+        fatherPhone: editForm.fatherPhone.trim(),
+        fatherOccupation: editForm.fatherOccupation.trim() || undefined,
+        motherName: editForm.motherName.trim() || undefined,
+        motherEmail: editForm.motherEmail.trim() || undefined,
+        motherPhone: editForm.motherPhone.trim() || undefined,
+        motherOccupation: editForm.motherOccupation.trim() || undefined,
+        emergencyPhone: editForm.emergencyPhone.trim(),
+        profilePhoto: editForm.profilePhoto,
+        removeProfilePhoto: editForm.removeProfilePhoto,
+      };
+
+      const updated = await updateMyStudent(student._id, payload);
+      setStudent(updated);
+      setEditOpen(false);
+      setEditErrors(false);
+    } catch (err) {
+      console.error('Failed to update profile:', err);
+    } finally {
+      setEditSubmitting(false);
+    }
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh', bgcolor: '#f8fafd' }}>
@@ -90,38 +233,31 @@ const ModernStudentProfile = () => {
     );
   }
 
-  const DetailItem = ({ icon: Icon, label, value, subValue }) => (
-    <Stack direction="row" spacing={2} sx={{ mb: 2.5 }}>
-      <Box sx={{
-        width: 40,
-        height: 40,
-        borderRadius: '12px',
-        bgcolor: '#f1f5f9',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexShrink: 0
-      }}>
-        <Icon sx={{ color: '#5346e0', fontSize: 20 }} />
-      </Box>
-      <Box>
-        <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-          {label}
-        </Typography>
-        <Typography sx={{ fontWeight: 800, color: '#1a1d23', fontSize: '15px' }}>
-          {value || 'N/A'}
-        </Typography>
-        {subValue && (
-          <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, display: 'block' }}>
-            {subValue}
-          </Typography>
-        )}
-      </Box>
-    </Stack>
-  );
+  const addressText = (() => {
+    if (!student?.address) return '';
+    if (typeof student.address === 'string') return student.address;
+    const parts = [
+      student.address.street,
+      student.address.city,
+      student.address.state,
+      student.address.zip,
+      student.address.country,
+    ].map((item) => String(item || '').trim()).filter(Boolean);
+    return parts.join(', ');
+  })();
 
   return (
     <Box sx={{ p: 4, bgcolor: '#f8fafd', minHeight: '100vh' }}>
+      <Box sx={{ mb: 2 }}>
+        <Button
+          variant="text"
+          startIcon={<BackIcon />}
+          onClick={() => navigate(-1)}
+          sx={{ textTransform: 'none', fontWeight: 700 }}
+        >
+          Back
+        </Button>
+      </Box>
       {/* Top Profile Header */}
       <Paper elevation={0} sx={{ p: 4, borderRadius: '40px', border: '1px solid #eef2f6', mb: 4 }}>
         <Grid container spacing={4} alignItems="center">
@@ -151,7 +287,7 @@ const ModernStudentProfile = () => {
             </Stack>
             <Stack direction="row" spacing={3}>
               <Stack direction="row" spacing={1} alignItems="center">
-                <AdmissionIcon sx={{ color: '#5346e0', fontSize: 18 }} />
+                <SchoolOutlined sx={{ color: '#5346e0', fontSize: 18 }} />
                 <Typography sx={{ color: '#64748b', fontWeight: 600, fontSize: '14px' }}>Grade {student.grade}-{student.sectionName}</Typography>
               </Stack>
               <Stack direction="row" spacing={1} alignItems="center">
@@ -170,6 +306,7 @@ const ModernStudentProfile = () => {
                 variant="outlined"
                 startIcon={<EditIcon />}
                 sx={{ borderRadius: '14px', textTransform: 'none', fontWeight: 800, px: 3, border: '1px solid #e2e8f0', color: '#64748b' }}
+                onClick={openEdit}
               >
                 Edit Profile
               </Button>
@@ -223,17 +360,7 @@ const ModernStudentProfile = () => {
                   <Typography variant="overline" sx={{ color: '#94a3b8', fontWeight: 800 }}>FULL ADDRESS</Typography>
                 </Stack>
                 <Typography sx={{ fontWeight: 800, color: '#1a1d23', maxWidth: '250px' }}>
-                  {student.address
-                    ? [
-                        student.address.street,
-                        student.address.city,
-                        student.address.state,
-                        student.address.zip,
-                        student.address.country,
-                      ]
-                        .filter(Boolean)
-                        .join(', ')
-                    : 'N/A'}
+                  {addressText || 'N/A'}
                 </Typography>
               </Box>
             </Paper>
@@ -273,32 +400,6 @@ const ModernStudentProfile = () => {
         {/* Right Column */}
         <Grid item xs={12} md={8}>
           <Stack spacing={4}>
-            {/* Academic Information Card */}
-            <Paper elevation={0} sx={{ p: 4, borderRadius: '32px', border: '1px solid #eef2f6' }}>
-              <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 4 }}>
-                <AdmissionIcon sx={{ color: '#5346e0' }} />
-                <Typography variant="h6" sx={{ fontWeight: 900 }}>Academic Information</Typography>
-              </Stack>
-              <Grid container spacing={3}>
-                <Grid item xs={12} sm={6}>
-                  <DetailItem
-                    icon={AdmissionIcon}
-                    label="ADMISSION DATE"
-                    value={student.admissionDate ? new Date(student.admissionDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A'}
-                    subValue={`Student since Grade ${Math.max(1, parseInt(student.grade) - 2)}`}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <DetailItem
-                    icon={ClassroomIcon}
-                    label="CLASSROOM"
-                    value={student.classroom || 'Block B - Room 402'}
-                    subValue={student.classroomWing || 'Science Wing'}
-                  />
-                </Grid>
-              </Grid>
-            </Paper>
-
             {/* Parent Details Card */}
             <Paper elevation={0} sx={{ p: 0, borderRadius: '32px', border: '1px solid #eef2f6', overflow: 'hidden' }}>
               <Box sx={{ p: 4, pb: 2, bgcolor: '#fcfcfd', borderBottom: '1px solid #eef2f6' }}>
@@ -316,6 +417,10 @@ const ModernStudentProfile = () => {
                     </Stack>
                     <Box sx={{ pl: 4.5 }}>
                       <Typography sx={{ fontWeight: 800, color: '#1a1d23' }}>{student.fatherName || 'N/A'}</Typography>
+                      <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.6 }}>
+                        <EmailIcon sx={{ fontSize: 16, color: '#64748b' }} />
+                        <Typography sx={{ color: '#64748b', fontWeight: 600, fontSize: '14px' }}>{student.fatherEmail || 'N/A'}</Typography>
+                      </Stack>
                       <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, display: 'block', mb: 1.5 }}>
                         {student.fatherOccupation || 'N/A'}
                       </Typography>
@@ -333,6 +438,10 @@ const ModernStudentProfile = () => {
                     </Stack>
                     <Box sx={{ pl: 4.5 }}>
                       <Typography sx={{ fontWeight: 800, color: '#1a1d23' }}>{student.motherName || 'N/A'}</Typography>
+                      <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.6 }}>
+                        <EmailIcon sx={{ fontSize: 16, color: '#64748b' }} />
+                        <Typography sx={{ color: '#64748b', fontWeight: 600, fontSize: '14px' }}>{student.motherEmail || 'N/A'}</Typography>
+                      </Stack>
                       <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, display: 'block', mb: 1.5 }}>
                         {student.motherOccupation || 'N/A'}
                       </Typography>
@@ -392,6 +501,26 @@ const ModernStudentProfile = () => {
           </Stack>
         </Grid>
       </Grid>
+
+      <StudentFormDialog
+        dialogOpen={editOpen}
+        setDialogOpen={setEditOpen}
+        submitting={editSubmitting}
+        handleSubmitStudent={handleSubmitEdit}
+        dialogMode="edit"
+        form={editForm}
+        setForm={setEditForm}
+        STUDENT_GENDER={STUDENT_GENDER}
+        STUDENT_STATUS={STUDENT_STATUS}
+        dialogGradeOptions={dialogGradeOptions}
+        dialogSectionOptions={dialogSectionOptions}
+        resolveClassId={resolveClassId}
+        handlePhotoChange={handlePhotoChange}
+        photoPreview={photoPreview}
+        handleRemovePhoto={handleRemovePhoto}
+        showErrors={editErrors}
+        showStatus={false}
+      />
     </Box>
   );
 };

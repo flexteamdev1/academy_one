@@ -136,6 +136,12 @@ const studentProfileSchema = new mongoose.Schema({
     trim: true
   },
 
+  fatherEmail: {
+    type: String,
+    trim: true,
+    lowercase: true,
+  },
+
   fatherOccupation: {
     type: String,
     trim: true
@@ -149,6 +155,12 @@ const studentProfileSchema = new mongoose.Schema({
   motherName: {
     type: String,
     trim: true
+  },
+
+  motherEmail: {
+    type: String,
+    trim: true,
+    lowercase: true,
   },
 
   motherOccupation: {

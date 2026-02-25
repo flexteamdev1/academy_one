@@ -8,6 +8,7 @@ const {
   getStudentById,
   createStudent,
   updateStudent,
+  updateMyStudent,
   deleteStudent,
 } = require('../controllers/student.controller');
 
@@ -20,6 +21,7 @@ router.use(protect);
 router.get('/', authorize(ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.TEACHER), listStudents);
 router.get('/stats', authorize(ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.TEACHER), getStudentStats);
 router.get('/me', authorize(ROLES.STUDENT, ROLES.PARENT), getMyStudents);
+router.put('/me/:id', authorize(ROLES.STUDENT, ROLES.PARENT), uploadProfilePhoto.single('profilePhoto'), updateMyStudent);
 router.get('/:id', authorize(ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.TEACHER), getStudentById);
 router.post('/', authorize(ROLES.SUPER_ADMIN, ROLES.ADMIN), uploadProfilePhoto.single('profilePhoto'), createStudent);
 router.put('/:id', authorize(ROLES.SUPER_ADMIN, ROLES.ADMIN), uploadProfilePhoto.single('profilePhoto'), updateStudent);

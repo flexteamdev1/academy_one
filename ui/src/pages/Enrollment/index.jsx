@@ -67,13 +67,15 @@ const emptyEnrollmentForm = {
   sectionName: '',
   classId: '',
   status: STUDENT_STATUS.ACTIVE,
-  parentFirstName: '',
-  parentLastName: '',
-  parentEmail: '',
-  parentPhone: '',
-  parentRelation: '',
-  parentOccupation: '',
-  parentEmergencyContact: '',
+  fatherName: '',
+  fatherEmail: '',
+  fatherPhone: '',
+  fatherOccupation: '',
+  motherName: '',
+  motherEmail: '',
+  motherPhone: '',
+  motherOccupation: '',
+  emergencyPhone: '',
   profilePhoto: null,
   removeProfilePhoto: false,
 };
@@ -93,16 +95,6 @@ const statusChipSx = (status, theme) => {
     default:
       return {};
   }
-};
-
-const splitGuardianName = (name) => {
-  const clean = String(name || '').trim();
-  if (!clean) return { first: '', last: '' };
-  const parts = clean.split(' ');
-  return {
-    first: parts[0] || '',
-    last: parts.slice(1).join(' ').trim(),
-  };
 };
 
 const Enrollment = () => {
@@ -287,15 +279,13 @@ const Enrollment = () => {
   const handleSelectLead = (lead) => {
     setSelectedLead(lead);
     setShowEnrollmentErrors(false);
-    const guardianSplit = splitGuardianName(lead.guardianName);
     setEnrollmentForm((prev) => ({
       ...prev,
       name: lead.name || '',
       email: lead.email || '',
-      parentFirstName: guardianSplit.first,
-      parentLastName: guardianSplit.last,
-      parentEmail: lead.guardianEmail || lead.email || '',
-      parentPhone: lead.guardianPhone || lead.phone || '',
+      fatherName: lead.guardianName || '',
+      fatherEmail: lead.guardianEmail || lead.email || '',
+      fatherPhone: lead.guardianPhone || lead.phone || '',
       grade: lead.gradeInterested || prev.grade,
     }));
   };
@@ -342,9 +332,9 @@ const Enrollment = () => {
       setToast({ open: true, severity: 'error', message: 'Please select grade and section' });
       return;
     }
-    if (!enrollmentForm.name.trim() || !enrollmentForm.dob || !enrollmentForm.parentFirstName.trim() || !enrollmentForm.parentEmail.trim()) {
+    if (!enrollmentForm.name.trim() || !enrollmentForm.dob || !enrollmentForm.fatherName.trim() || !enrollmentForm.fatherEmail.trim() || !enrollmentForm.fatherPhone.trim() || !enrollmentForm.emergencyPhone.trim()) {
       setShowEnrollmentErrors(true);
-      setToast({ open: true, severity: 'error', message: 'Student name, DOB, parent first name, and parent email are required' });
+      setToast({ open: true, severity: 'error', message: 'Student name, DOB, father details, and emergency contact are required' });
       return;
     }
 
@@ -360,13 +350,15 @@ const Enrollment = () => {
         sectionName: enrollmentForm.sectionName.trim().toUpperCase(),
         profilePhoto: enrollmentForm.profilePhoto,
         status: STUDENT_STATUS.ACTIVE,
-        parentFirstName: enrollmentForm.parentFirstName.trim(),
-        parentLastName: enrollmentForm.parentLastName.trim(),
-        parentEmail: enrollmentForm.parentEmail.trim(),
-        parentPhone: enrollmentForm.parentPhone.trim(),
-        parentRelation: enrollmentForm.parentRelation.trim(),
-        parentOccupation: enrollmentForm.parentOccupation.trim(),
-        parentEmergencyContact: enrollmentForm.parentEmergencyContact.trim(),
+        fatherName: enrollmentForm.fatherName.trim(),
+        fatherEmail: enrollmentForm.fatherEmail.trim(),
+        fatherPhone: enrollmentForm.fatherPhone.trim(),
+        fatherOccupation: enrollmentForm.fatherOccupation.trim() || undefined,
+        motherName: enrollmentForm.motherName.trim() || undefined,
+        motherEmail: enrollmentForm.motherEmail.trim() || undefined,
+        motherPhone: enrollmentForm.motherPhone.trim() || undefined,
+        motherOccupation: enrollmentForm.motherOccupation.trim() || undefined,
+        emergencyPhone: enrollmentForm.emergencyPhone.trim(),
       };
 
       const response = await createStudent(payload);

@@ -45,7 +45,6 @@ const StudentDetailsDialog = ({
   canManage,
   onEdit,
 }) => {
-  const parent = student?.parentId || {};
 
   return (
     <AppDialog open={open} onClose={onClose} maxWidth="sm">
@@ -208,30 +207,32 @@ const StudentDetailsDialog = ({
           })}
         >
           <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: (theme) => theme.palette.warning.main }}>
-            Primary Contact (Guardian)
+            Father Details
           </Typography>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mt: 1 }}>
             <Box sx={{ flex: 1 }}>
-              <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary' }}>Parent Name</Typography>
-              <Typography sx={{ fontWeight: 700 }}>
-                {[parent.firstName, parent.lastName].filter(Boolean).join(' ') || 'N/A'}
-              </Typography>
+              <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary' }}>Full Name</Typography>
+              <Typography sx={{ fontWeight: 700 }}>{student?.fatherName || 'N/A'}</Typography>
             </Box>
             <Box sx={{ flex: 1 }}>
               <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary' }}>
                 <EmailOutlined sx={{ fontSize: 14, mr: 0.5 }} />
                 Email Address
               </Typography>
-              <Typography sx={{ fontWeight: 700 }}>{parent.email || 'N/A'}</Typography>
+              <Typography sx={{ fontWeight: 700 }}>{student?.fatherEmail || 'N/A'}</Typography>
             </Box>
             <Box sx={{ flex: 1 }}>
               <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary' }}>
                 <PhoneOutlined sx={{ fontSize: 14, mr: 0.5 }} />
                 Phone Number
               </Typography>
-              <Typography sx={{ fontWeight: 700 }}>{parent.phone || 'N/A'}</Typography>
+              <Typography sx={{ fontWeight: 700 }}>{student?.fatherPhone || 'N/A'}</Typography>
             </Box>
           </Stack>
+          <Box sx={{ mt: 1 }}>
+            <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary' }}>Occupation</Typography>
+            <Typography sx={{ fontWeight: 700 }}>{student?.fatherOccupation || 'N/A'}</Typography>
+          </Box>
         </Box>
 
         <Box
@@ -244,18 +245,47 @@ const StudentDetailsDialog = ({
           })}
         >
           <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.secondary' }}>
-            Family Occupations
+            Mother Details
           </Typography>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mt: 1 }}>
             <Box sx={{ flex: 1 }}>
-              <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary' }}>Father Occupation</Typography>
-              <Typography sx={{ fontWeight: 700 }}>{student?.fatherOccupation || 'N/A'}</Typography>
+              <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary' }}>Full Name</Typography>
+              <Typography sx={{ fontWeight: 700 }}>{student?.motherName || 'N/A'}</Typography>
             </Box>
             <Box sx={{ flex: 1 }}>
-              <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary' }}>Mother Occupation</Typography>
-              <Typography sx={{ fontWeight: 700 }}>{student?.motherOccupation || 'N/A'}</Typography>
+              <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary' }}>
+                <EmailOutlined sx={{ fontSize: 14, mr: 0.5 }} />
+                Email Address
+              </Typography>
+              <Typography sx={{ fontWeight: 700 }}>{student?.motherEmail || 'N/A'}</Typography>
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary' }}>
+                <PhoneOutlined sx={{ fontSize: 14, mr: 0.5 }} />
+                Phone Number
+              </Typography>
+              <Typography sx={{ fontWeight: 700 }}>{student?.motherPhone || 'N/A'}</Typography>
             </Box>
           </Stack>
+          <Box sx={{ mt: 1 }}>
+            <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary' }}>Occupation</Typography>
+            <Typography sx={{ fontWeight: 700 }}>{student?.motherOccupation || 'N/A'}</Typography>
+          </Box>
+        </Box>
+
+        <Box
+          sx={(theme) => ({
+            borderRadius: theme.shape.borderRadius,
+            border: '1px solid',
+            borderColor: theme.palette.warning.light,
+            backgroundColor: theme.palette.warning.light,
+            p: 2,
+          })}
+        >
+          <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: (theme) => theme.palette.warning.main }}>
+            Emergency Contact
+          </Typography>
+          <Typography sx={{ fontWeight: 700, mt: 0.6 }}>{student?.emergencyPhone || 'N/A'}</Typography>
         </Box>
       </Stack>
 

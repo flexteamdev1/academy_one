@@ -30,6 +30,14 @@ const buildStudentFormData = (payload) => {
 
   Object.entries(payload || {}).forEach(([key, value]) => {
     if (value === undefined || value === null || value === '') return;
+    if (value instanceof File) {
+      formData.append(key, value);
+      return;
+    }
+    if (typeof value === 'object') {
+      formData.append(key, JSON.stringify(value));
+      return;
+    }
     formData.append(key, value);
   });
 

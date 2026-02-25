@@ -32,15 +32,15 @@ const emptyForm = {
   status: STUDENT_STATUS.ACTIVE,
   bloodGroup: '',
   fullAddress: '',
+  fatherName: '',
+  fatherEmail: '',
+  fatherPhone: '',
   fatherOccupation: '',
+  motherName: '',
+  motherEmail: '',
+  motherPhone: '',
   motherOccupation: '',
-  parentFirstName: '',
-  parentLastName: '',
-  parentEmail: '',
-  parentPhone: '',
-  parentRelation: '',
-  parentOccupation: '',
-  parentEmergencyContact: '',
+  emergencyPhone: '',
   profilePhoto: null,
   removeProfilePhoto: false,
 };
@@ -217,6 +217,7 @@ const Students = () => {
     setEditingId(student._id);
     setShowErrors(false);
     const parentRecord = student.parentId || {};
+    const parentFullName = [parentRecord.firstName, parentRecord.lastName].filter(Boolean).join(' ');
     setForm({
       ...emptyForm,
       name: student.name || '',
@@ -229,15 +230,15 @@ const Students = () => {
       status: student.status || STUDENT_STATUS.ACTIVE,
       bloodGroup: student.bloodGroup || '',
       fullAddress: formatAddress(student.address),
+      fatherName: student.fatherName || parentFullName || '',
+      fatherEmail: student.fatherEmail || parentRecord.email || '',
+      fatherPhone: student.fatherPhone || parentRecord.phone || '',
       fatherOccupation: student.fatherOccupation || '',
+      motherName: student.motherName || '',
+      motherEmail: student.motherEmail || '',
+      motherPhone: student.motherPhone || '',
       motherOccupation: student.motherOccupation || '',
-      parentFirstName: parentRecord.firstName || '',
-      parentLastName: parentRecord.lastName || '',
-      parentEmail: parentRecord.email || '',
-      parentPhone: parentRecord.phone || '',
-      parentRelation: parentRecord.relation || '',
-      parentOccupation: parentRecord.occupation || '',
-      parentEmergencyContact: parentRecord.emergencyContact || '',
+      emergencyPhone: student.emergencyPhone || parentRecord.emergencyContact || '',
       profilePhoto: null,
       removeProfilePhoto: false,
     });
@@ -264,7 +265,7 @@ const Students = () => {
   };
 
   const handleSubmitStudent = async () => {
-    if (!form.name.trim() || !form.dob || !form.grade || !form.sectionName || !form.parentFirstName.trim() || !form.parentEmail.trim()) {
+    if (!form.name.trim() || !form.dob || !form.grade || !form.sectionName || !form.fatherName.trim() || !form.fatherEmail.trim() || !form.fatherPhone.trim() || !form.emergencyPhone.trim()) {
       setShowErrors(true);
       setToast({ open: true, severity: 'error', message: 'Please complete all required fields' });
       return;
@@ -288,17 +289,16 @@ const Students = () => {
         removeProfilePhoto: dialogMode === 'edit' ? form.removeProfilePhoto : undefined,
         bloodGroup: form.bloodGroup.trim() || undefined,
         address: trimmedFullAddress ? { street: trimmedFullAddress } : undefined,
+        fatherName: form.fatherName.trim(),
+        fatherEmail: form.fatherEmail.trim(),
+        fatherPhone: form.fatherPhone.trim(),
         fatherOccupation: form.fatherOccupation.trim() || undefined,
+        motherName: form.motherName.trim() || undefined,
+        motherEmail: form.motherEmail.trim() || undefined,
+        motherPhone: form.motherPhone.trim() || undefined,
         motherOccupation: form.motherOccupation.trim() || undefined,
+        emergencyPhone: form.emergencyPhone.trim(),
       };
-
-      payload.parentFirstName = form.parentFirstName.trim();
-      payload.parentLastName = form.parentLastName.trim();
-      payload.parentEmail = form.parentEmail.trim();
-      payload.parentPhone = form.parentPhone.trim();
-      payload.parentRelation = form.parentRelation.trim();
-      payload.parentOccupation = form.parentOccupation.trim();
-      payload.parentEmergencyContact = form.parentEmergencyContact.trim();
 
       if (dialogMode === 'create') {
         const response = await createStudent(payload);

@@ -305,7 +305,7 @@ const MarkStudentAttendance = () => {
               {students.map((student, idx) => {
                 const isExcused = student.name.includes('(Medical Leave)');
                 const currentStatus = statusById[student._id] || ATTENDANCE_STATUS.PRESENT;
-                const rollValue = student.rollNo || student.admissionNo || idx + 1;
+                const rollValue = student.rollNo || idx + 1;
 
                 return (
                   <Box key={student._id} sx={{ transition: 'all 0.2s', borderBottom: '1px solid #f3f4f6', '&:hover': { bgcolor: '#fcfcfd' } }}>

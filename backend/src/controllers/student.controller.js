@@ -24,6 +24,25 @@ const normalizeEmail = (value) => {
   return String(value || '').trim().toLowerCase();
 };
 
+const normalizeAddress = (value) => {
+  if (!value) return undefined;
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return undefined;
+    if (trimmed.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        return parsed && typeof parsed === 'object' ? parsed : undefined;
+      } catch (_error) {
+        return { street: trimmed };
+      }
+    }
+    return { street: trimmed };
+  }
+  if (typeof value === 'object') return value;
+  return undefined;
+};
+
 const randomPassword = (length = 10) => {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
   let output = '';
@@ -235,13 +254,17 @@ const createStudent = async (req, res) => {
     const grade = String(req.body.grade || '').trim();
     const sectionName = String(req.body.sectionName || '').toUpperCase().trim();
 
-    const parentFirstName = String(req.body.parentFirstName || '').trim();
-    const parentLastName = String(req.body.parentLastName || '').trim();
-    const parentEmail = normalizeEmail(req.body.parentEmail);
-    const parentPhone = String(req.body.parentPhone || '').trim();
-    const parentRelation = String(req.body.parentRelation || '').trim();
-    const parentOccupation = String(req.body.parentOccupation || '').trim();
-    const parentEmergencyContact = String(req.body.parentEmergencyContact || '').trim();
+    const fatherName = String(req.body.fatherName || '').trim();
+    const fatherEmail = normalizeEmail(req.body.fatherEmail);
+    const fatherPhone = String(req.body.fatherPhone || '').trim();
+    const fatherOccupation = String(req.body.fatherOccupation || '').trim();
+
+    const motherName = String(req.body.motherName || '').trim();
+    const motherEmail = normalizeEmail(req.body.motherEmail);
+    const motherPhone = String(req.body.motherPhone || '').trim();
+    const motherOccupation = String(req.body.motherOccupation || '').trim();
+
+    const emergencyPhone = String(req.body.emergencyPhone || req.body.parentEmergencyContact || '').trim();
 
     const studentEmailInput = normalizeEmail(req.body.email);
 
@@ -249,8 +272,20 @@ const createStudent = async (req, res) => {
       return res.status(400).json({ message: 'Student name, gender, dob, grade, and section are required' });
     }
 
-    if (!parentFirstName || !parentEmail) {
-      return res.status(400).json({ message: 'Parent first name and parent email are required' });
+    const primaryParentName = fatherName || motherName;
+    const primaryParentEmail = fatherEmail || motherEmail;
+    const primaryParentPhone = fatherPhone || motherPhone;
+
+    if (!primaryParentName || !primaryParentEmail) {
+      return res.status(400).json({ message: 'Father or mother full name and email are required' });
+    }
+
+    if (!primaryParentPhone) {
+      return res.status(400).json({ message: 'Father or mother phone number is required' });
+    }
+
+    if (!emergencyPhone) {
+      return res.status(400).json({ message: 'Emergency contact is required' });
     }
 
     const admissionNo = await generateAdmissionNo();
@@ -262,13 +297,13 @@ const createStudent = async (req, res) => {
       publicIdPrefix: studentSlug,
     });
 
-    const parentExistingUser = await User.findOne({ email: parentEmail });
+    const parentExistingUser = await User.findOne({ email: primaryParentEmail });
     if (parentExistingUser && parentExistingUser.role !== ROLES.PARENT) {
       return res.status(400).json({ message: 'Parent email already exists with a non-parent user account' });
     }
 
     const studentLoginId =
-      studentEmailInput && studentEmailInput !== parentEmail
+      studentEmailInput && studentEmailInput !== primaryParentEmail
         ? studentEmailInput
         : `${admissionNo.toLowerCase()}@student.local`;
 
@@ -290,13 +325,21 @@ const createStudent = async (req, res) => {
     });
     createdStudentUser = true;
 
+    const splitName = (fullName) => {
+      const clean = String(fullName || '').trim();
+      if (!clean) return { firstName: '', lastName: '' };
+      const parts = clean.split(' ');
+      return { firstName: parts[0] || '', lastName: parts.slice(1).join(' ').trim() };
+    };
+    const primaryNameParts = splitName(primaryParentName);
+
     if (parentExistingUser) {
       parentUser = parentExistingUser;
     } else {
       parentUser = await User.create({
-        name: `${parentFirstName} ${parentLastName}`.trim(),
-        email: parentEmail,
-        phone: parentPhone || undefined,
+        name: primaryParentName,
+        email: primaryParentEmail,
+        phone: primaryParentPhone || undefined,
         password: parentPassword,
         role: ROLES.PARENT,
         status: USER_STATUS.ACTIVE,
@@ -307,28 +350,24 @@ const createStudent = async (req, res) => {
 
     parentProfile =
       (await Parent.findOne({ userId: parentUser._id })) ||
-      (await Parent.findOne({ email: parentEmail }));
+      (await Parent.findOne({ email: primaryParentEmail }));
 
     if (!parentProfile) {
       parentProfile = await Parent.create({
         userId: parentUser._id,
-        firstName: parentFirstName,
-        lastName: parentLastName,
-        email: parentEmail,
-        phone: parentPhone,
-        relation: parentRelation,
-        occupation: parentOccupation,
-        emergencyContact: parentEmergencyContact,
+        firstName: primaryNameParts.firstName,
+        lastName: primaryNameParts.lastName,
+        email: primaryParentEmail,
+        phone: primaryParentPhone,
+        emergencyContact: emergencyPhone,
         children: [],
       });
       createdParentProfile = true;
     } else {
-      parentProfile.firstName = parentFirstName || parentProfile.firstName;
-      parentProfile.lastName = parentLastName || parentProfile.lastName;
-      parentProfile.phone = parentPhone || parentProfile.phone;
-      parentProfile.relation = parentRelation || parentProfile.relation;
-      parentProfile.occupation = parentOccupation || parentProfile.occupation;
-      parentProfile.emergencyContact = parentEmergencyContact || parentProfile.emergencyContact;
+      parentProfile.firstName = primaryNameParts.firstName || parentProfile.firstName;
+      parentProfile.lastName = primaryNameParts.lastName || parentProfile.lastName;
+      parentProfile.phone = primaryParentPhone || parentProfile.phone;
+      parentProfile.emergencyContact = emergencyPhone || parentProfile.emergencyContact;
       if (!parentProfile.userId) parentProfile.userId = parentUser._id;
       await parentProfile.save();
     }
@@ -389,14 +428,16 @@ const createStudent = async (req, res) => {
       gpaRank: req.body.gpaRank,
       classroom: req.body.classroom,
       classroomWing: req.body.classroomWing,
-      address: req.body.address,
-      fatherName: req.body.fatherName,
-      fatherOccupation: req.body.fatherOccupation,
-      fatherPhone: req.body.fatherPhone,
-      motherName: req.body.motherName,
-      motherOccupation: req.body.motherOccupation,
-      motherPhone: req.body.motherPhone,
-      emergencyPhone: req.body.emergencyPhone,
+      address: normalizeAddress(req.body.address),
+      fatherName,
+      fatherEmail,
+      fatherOccupation,
+      fatherPhone,
+      motherName,
+      motherEmail,
+      motherOccupation,
+      motherPhone,
+      emergencyPhone,
     });
 
     parentProfile.children = parentProfile.children || [];
@@ -422,7 +463,7 @@ const createStudent = async (req, res) => {
       }).catch(() => { });
     }
 
-    const studentRecipient = studentEmailInput || parentEmail;
+    const studentRecipient = studentEmailInput || primaryParentEmail;
     const studentPortalUrl = process.env.STUDENT_PORTAL_URL || process.env.FRONTEND_URL || '';
     const studentMail = await sendCredentialsEmail({
       to: studentRecipient,
@@ -438,17 +479,17 @@ const createStudent = async (req, res) => {
 
     let parentMail = { sent: false, reason: 'existing_parent_user' };
     if (!parentExistingUser) {
-      const parentName = `${parentFirstName} ${parentLastName}`.trim();
+      const parentName = primaryParentName;
       const parentPortalUrl = process.env.PARENT_PORTAL_URL || process.env.FRONTEND_URL || '';
       parentMail = await sendCredentialsEmail({
-        to: parentEmail,
+        to: primaryParentEmail,
         roleLabel: 'Parent',
-        loginId: parentEmail,
+        loginId: primaryParentEmail,
         password: parentPassword,
         studentName,
         templateType: 'parent',
-        recipientName: parentName || parentFirstName,
-        systemId: parentEmail,
+        recipientName: parentName || primaryNameParts.firstName,
+        systemId: primaryParentEmail,
         portalUrl: parentPortalUrl,
       });
     }
@@ -460,8 +501,8 @@ const createStudent = async (req, res) => {
         admissionNo,
         studentLoginId,
         studentCredentialEmailTo: studentRecipient,
-        parentLoginId: parentEmail,
-        parentCredentialEmailTo: parentEmail,
+        parentLoginId: primaryParentEmail,
+        parentCredentialEmailTo: primaryParentEmail,
         studentMail,
         parentMail,
         studentPassword,
@@ -544,11 +585,13 @@ const updateStudent = async (req, res) => {
       gpaRank: req.body.gpaRank,
       classroom: req.body.classroom,
       classroomWing: req.body.classroomWing,
-      address: req.body.address,
+      address: normalizeAddress(req.body.address),
       fatherName: req.body.fatherName,
+      fatherEmail: normalizeEmail(req.body.fatherEmail) || undefined,
       fatherOccupation: req.body.fatherOccupation,
       fatherPhone: req.body.fatherPhone,
       motherName: req.body.motherName,
+      motherEmail: normalizeEmail(req.body.motherEmail) || undefined,
       motherOccupation: req.body.motherOccupation,
       motherPhone: req.body.motherPhone,
       emergencyPhone: req.body.emergencyPhone,
@@ -565,6 +608,96 @@ const updateStudent = async (req, res) => {
       }
       updateData.academicYearId = selectedClass.academicYearId;
     }
+
+    if (!uploadedPhoto && !removeProfilePhoto) {
+      delete updateData.profilePhotoUrl;
+      delete updateData.profilePhotoPublicId;
+    }
+
+    if (removeProfilePhoto && existing.profilePhotoPublicId) {
+      await deleteCloudinaryAsset(existing.profilePhotoPublicId);
+    }
+
+    Object.keys(updateData).forEach((key) => {
+      if (updateData[key] === undefined) {
+        delete updateData[key];
+      }
+    });
+
+    const updated = await StudentProfile.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true });
+
+    res.json(updated);
+  } catch (error) {
+    if (error?.code === 11000) {
+      if (error?.keyPattern?.phone) {
+        return res.status(400).json({ message: 'Phone number already exists' });
+      }
+      return res.status(400).json({ message: 'Student data conflicts with existing records' });
+    }
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const updateMyStudent = async (req, res) => {
+  try {
+    const existing = await StudentProfile.findById(req.params.id);
+
+    if (!existing) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    if (existing.academicYearId) {
+      const year = await AcademicYear.findById(existing.academicYearId);
+      if (year && isPastAcademicYear(year)) {
+        return res.status(400).json({ message: 'Past academic year data is locked' });
+      }
+    }
+
+    if (req.user.role === ROLES.STUDENT) {
+      if (String(existing.userId || '') !== String(req.user._id || '')) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+    } else if (req.user.role === ROLES.PARENT) {
+      const parent = await Parent.findOne({ userId: req.user._id }).select('_id');
+      if (!parent || String(existing.parentId || '') !== String(parent._id)) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+    } else {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    const studentSlug = slugify(req.body.admissionNo || existing.admissionNo || req.body.name || existing.name) || 'student';
+    const uploadedPhoto = await uploadImageToCloudinary({
+      file: req.file,
+      folder: getCloudinaryFolder('student'),
+      publicIdPrefix: studentSlug,
+    });
+
+    if (uploadedPhoto && existing.profilePhotoPublicId && existing.profilePhotoPublicId !== uploadedPhoto.publicId) {
+      await deleteCloudinaryAsset(existing.profilePhotoPublicId);
+    }
+
+    const removeProfilePhoto = parseBoolean(req.body.removeProfilePhoto);
+
+    const updateData = {
+      name: req.body.name,
+      email: normalizeEmail(req.body.email) || undefined,
+      gender: req.body.gender ? String(req.body.gender).toUpperCase() : undefined,
+      dob: req.body.dob,
+      profilePhotoUrl: uploadedPhoto?.url || (removeProfilePhoto ? null : req.body.profilePhotoUrl),
+      profilePhotoPublicId: uploadedPhoto?.publicId || (removeProfilePhoto ? null : undefined),
+      bloodGroup: req.body.bloodGroup,
+      address: normalizeAddress(req.body.address),
+      fatherName: req.body.fatherName,
+      fatherEmail: normalizeEmail(req.body.fatherEmail) || undefined,
+      fatherOccupation: req.body.fatherOccupation,
+      fatherPhone: req.body.fatherPhone,
+      motherName: req.body.motherName,
+      motherEmail: normalizeEmail(req.body.motherEmail) || undefined,
+      motherOccupation: req.body.motherOccupation,
+      motherPhone: req.body.motherPhone,
+      emergencyPhone: req.body.emergencyPhone,
+    };
 
     if (!uploadedPhoto && !removeProfilePhoto) {
       delete updateData.profilePhotoUrl;
@@ -646,5 +779,6 @@ module.exports = {
   getStudentById,
   createStudent,
   updateStudent,
+  updateMyStudent,
   deleteStudent,
 };
