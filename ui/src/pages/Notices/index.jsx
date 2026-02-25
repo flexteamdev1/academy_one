@@ -13,7 +13,7 @@ import {
 import AddRounded from '@mui/icons-material/AddRounded';
 import SearchOutlined from '@mui/icons-material/SearchOutlined';
 import AttachFileOutlined from '@mui/icons-material/AttachFileOutlined';
-import { createNotice, listNotices } from '../../services/noticeService';
+import { createNotice, listNotices, updateNotice } from '../../services/noticeService';
 import { listClasses } from '../../services/classService';
 import { getUserInfo, getUserRole } from '../../utils/auth';
 import { useUIState } from '../../context/UIContext';
@@ -107,6 +107,21 @@ const makeInitialForm = () => ({
   scheduledAt: '',
   channels: ['IN_APP', 'EMAIL'],
 });
+
+const buildFormFromNotice = (notice) => {
+  const grades = Array.isArray(notice?.grades) && notice.grades.length ? notice.grades : ['All Grades'];
+  return {
+    title: notice?.title || '',
+    body: notice?.body || '',
+    audiences: Array.isArray(notice?.audiences) ? notice.audiences : [],
+    selectedGrade: 'All Grades',
+    grades,
+    attachments: Array.isArray(notice?.attachments) ? notice.attachments : [],
+    schedule: 'publish_now',
+    scheduledAt: '',
+    channels: Array.isArray(notice?.channels) && notice.channels.length ? notice.channels : ['IN_APP'],
+  };
+};
 
 const normalizeNotice = (notice) => ({
   id: String(notice?._id || ''),
@@ -299,6 +314,8 @@ const Notices = () => {
   const [selectedNoticeId, setSelectedNoticeId] = useState('');
 
   const [createOpen, setCreateOpen] = useState(false);
+  const [formMode, setFormMode] = useState('create');
+  const [editingNoticeId, setEditingNoticeId] = useState('');
   const [showErrors, setShowErrors] = useState(false);
   const [form, setForm] = useState(makeInitialForm);
   const [submitting, setSubmitting] = useState(false);
@@ -383,6 +400,8 @@ const Notices = () => {
     if (submitting) return;
     setCreateOpen(false);
     setShowErrors(false);
+    setFormMode('create');
+    setEditingNoticeId('');
   };
 
   const submitNotice = async (mode) => {
@@ -411,17 +430,24 @@ const Notices = () => {
     setSubmitting(true);
 
     try {
-      const created = normalizeNotice(await createNotice(payload));
+      if (formMode === 'edit' && editingNoticeId) {
+        const updated = normalizeNotice(await updateNotice(editingNoticeId, payload));
+        setNotices((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
+        setSelectedNoticeId(updated.id);
+        setToast({ open: true, severity: 'success', message: 'Notice updated successfully' });
+      } else {
+        const created = normalizeNotice(await createNotice(payload));
+        setStatusTab('ALL');
+        setAudienceFilter('ALL');
+        setGradeFilter('ALL');
+        setSearchInput('');
+        setNotices((prev) => [created, ...prev]);
+        setTotal((prev) => prev + 1);
+        setSelectedNoticeId(created.id);
+        setToast({ open: true, severity: 'success', message: 'Notice created successfully' });
+      }
       setCreateOpen(false);
       setShowErrors(false);
-      setStatusTab('ALL');
-      setAudienceFilter('ALL');
-      setGradeFilter('ALL');
-      setSearchInput('');
-      setNotices((prev) => [created, ...prev]);
-      setTotal((prev) => prev + 1);
-      setSelectedNoticeId(created.id);
-      setToast({ open: true, severity: 'success', message: 'Notice created successfully' });
       await loadNotices();
     } catch (err) {
       setToast({
@@ -433,6 +459,17 @@ const Notices = () => {
       setSubmitting(false);
     }
   };
+
+  const openEditNotice = () => {
+    if (!selectedNotice || selectedNotice.status !== 'DRAFT') return;
+    setFormMode('edit');
+    setEditingNoticeId(selectedNotice.id);
+    setForm(buildFormFromNotice(selectedNotice));
+    setShowErrors(false);
+    setCreateOpen(true);
+  };
+
+  const canEditNotice = canCreate && selectedNotice?.status === 'DRAFT';
 
   return (
     <Box>
@@ -449,7 +486,16 @@ const Notices = () => {
         </Box>
 
         {canCreate ? (
-          <Button variant="contained" startIcon={<AddRounded />} onClick={() => { setForm(makeInitialForm()); setCreateOpen(true); }}>
+          <Button
+            variant="contained"
+            startIcon={<AddRounded />}
+            onClick={() => {
+              setForm(makeInitialForm());
+              setFormMode('create');
+              setEditingNoticeId('');
+              setCreateOpen(true);
+            }}
+          >
             Create notice
           </Button>
         ) : null}
@@ -573,7 +619,8 @@ const Notices = () => {
               <NoticeViewer
                 selectedNotice={selectedNotice}
                 loading={loading}
-                canCreate={canCreate}
+                canEdit={canEditNotice}
+                onEdit={openEditNotice}
                 getStatusColor={getStatusColor}
                 statusLabel={statusLabel}
                 formatDate={formatDate}
@@ -617,6 +664,7 @@ const Notices = () => {
         submitting={submitting}
         onSubmit={submitNotice}
         showErrors={showErrors}
+        mode={formMode}
       />
 
       <Snackbar

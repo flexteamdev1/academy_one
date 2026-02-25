@@ -6,7 +6,6 @@ import CalendarMonthOutlined from '@mui/icons-material/CalendarMonthOutlined';
 import FactCheckOutlined from '@mui/icons-material/FactCheckOutlined';
 import CampaignOutlined from '@mui/icons-material/CampaignOutlined';
 import ReceiptLongOutlined from '@mui/icons-material/ReceiptLongOutlined';
-import PersonOutlineOutlined from '@mui/icons-material/PersonOutlineOutlined';
 import HowToRegOutlined from '@mui/icons-material/HowToRegOutlined';
 import AdminPanelSettingsOutlined from '@mui/icons-material/AdminPanelSettingsOutlined';
 
@@ -105,14 +104,6 @@ const navigation = [
     icon: CampaignOutlined,
     headerTitle: 'Notices',
     breadcrumb: 'Notice Board',
-    roles: ['super_admin', 'admin', 'teacher', 'student', 'parent'],
-  },
-  {
-    label: 'Profile',
-    path: '/profile',
-    icon: PersonOutlineOutlined,
-    headerTitle: 'Profile',
-    breadcrumb: 'Profile & Security',
     roles: ['super_admin', 'admin', 'teacher', 'student', 'parent'],
   },
 ];

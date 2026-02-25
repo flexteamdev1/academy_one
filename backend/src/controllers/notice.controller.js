@@ -370,7 +370,126 @@ const createNotice = async (req, res) => {
   }
 };
 
+const updateNotice = async (req, res) => {
+  let uploadedAttachments = [];
+  try {
+    if (!ALLOWED_CREATE_ROLES.includes(req.user.role)) {
+      return res.status(403).json({ message: 'Forbidden: insufficient role' });
+    }
+
+    const notice = await Notice.findById(req.params.id);
+    if (!notice) {
+      return res.status(404).json({ message: 'Notice not found' });
+    }
+
+    if (notice.status !== 'DRAFT') {
+      return res.status(400).json({ message: 'Only draft notices can be edited' });
+    }
+
+    const title = String(req.body.title || '').trim();
+    const content = String(req.body.content || '').trim();
+    if (!title || !content) {
+      return res.status(400).json({ message: 'Title and content are required' });
+    }
+
+    const status = normalizeStatus(req.body.status);
+    const scheduledAt = req.body.scheduledAt ? new Date(req.body.scheduledAt) : null;
+    if (status === 'SCHEDULED' && (!scheduledAt || Number.isNaN(scheduledAt.getTime()))) {
+      return res.status(400).json({ message: 'Valid schedule date is required for scheduled notices' });
+    }
+
+    const visibleFor = normalizeArray(req.body.visibleFor)
+      .map((item) => item.toUpperCase())
+      .filter((item) => VALID_ROLES.includes(item));
+    if (!visibleFor.length) {
+      return res.status(400).json({ message: 'At least one target audience is required' });
+    }
+
+    const grades = normalizeGrades(req.body.grades);
+    const channels = normalizeChannels(req.body.channels);
+    let bodyAttachments = [];
+    const attachmentsPayload = req.body.existingAttachments || req.body.attachments;
+    if (attachmentsPayload) {
+      if (Array.isArray(attachmentsPayload)) {
+        bodyAttachments = normalizeAttachments(attachmentsPayload);
+      } else if (typeof attachmentsPayload === 'string') {
+        const trimmed = attachmentsPayload.trim();
+        if (trimmed.startsWith('[')) {
+          try {
+            bodyAttachments = normalizeAttachments(JSON.parse(trimmed));
+          } catch (_error) {
+            bodyAttachments = [];
+          }
+        }
+      }
+    }
+
+    const files = Array.isArray(req.files) ? req.files : [];
+    if (files.length && !isCloudinaryConfigured()) {
+      return res.status(400).json({ message: 'Cloudinary configuration is required to upload attachments' });
+    }
+
+    if (files.length) {
+      const folder = `${getCloudinaryFolder('notice')}/${notice._id}`;
+      const publicIdPrefix = `notice-${slugify(notice._id) || notice._id}`;
+      for (const file of files) {
+        const uploaded = await uploadFileToCloudinary({
+          file,
+          folder,
+          publicIdPrefix,
+        });
+        if (uploaded) {
+          const format = resolveAttachmentFormat(file, uploaded);
+          const mimeType = resolveAttachmentMimeType(file, uploaded);
+          const resourceType = resolveAttachmentResourceType(file, uploaded);
+          uploadedAttachments.push({
+            name: file.originalname,
+            size: `${Math.max(1, Math.round(file.size / 1024))} KB`,
+            sizeBytes: file.size,
+            url: uploaded.url,
+            publicId: uploaded.publicId,
+            format,
+            resourceType,
+            mimeType,
+            uploadedAt: new Date(),
+          });
+        }
+      }
+    }
+
+    const wasPublished = notice.status === 'PUBLISHED';
+    notice.title = title;
+    notice.content = content;
+    notice.status = status;
+    notice.visibleFor = visibleFor;
+    notice.grades = grades;
+    notice.channels = channels;
+    notice.attachments = [...bodyAttachments, ...uploadedAttachments];
+    notice.scheduledAt = status === 'SCHEDULED' ? scheduledAt : null;
+    notice.publishedAt = status === 'PUBLISHED' ? new Date() : null;
+    await notice.save();
+
+    if (status === 'PUBLISHED' && !wasPublished) {
+      const recipients = await resolveRecipients({ visibleFor, grades });
+      if (channels.includes('EMAIL')) {
+        await sendNoticeEmails({ notice, recipients });
+      }
+    }
+
+    const hydrated = await Notice.findById(notice._id).populate('createdBy', 'name email role');
+    return res.json(hydrated);
+  } catch (error) {
+    if (uploadedAttachments.length) {
+      await Promise.allSettled(
+        uploadedAttachments.map((item) => deleteCloudinaryAsset(item.publicId, item.resourceType || 'raw'))
+      );
+    }
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   listNotices,
   createNotice,
+  updateNotice,
 };

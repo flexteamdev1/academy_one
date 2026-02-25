@@ -31,8 +31,10 @@ const NoticeForm = ({
   submitting,
   onSubmit,
   showErrors,
+  mode = 'create',
 }) => {
   const hasBodyContent = Boolean(stripHtml(form.body));
+  const isEditing = mode === 'edit';
 
   const toggleAudience = (audience) => {
     setForm((prev) => {
@@ -88,10 +90,10 @@ const NoticeForm = ({
     <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
       <DialogContent sx={{ p: { xs: 2, md: 3 } }}>
         <Typography variant="h4" sx={{ mb: 0.5 }}>
-          Create New Notice
+          {isEditing ? 'Edit Notice' : 'Create New Notice'}
         </Typography>
         <Typography sx={{ color: 'text.secondary', mb: 2.5 }}>
-          Draft an announcement for students, teachers, or parents.
+          {isEditing ? 'Update this draft notice before publishing.' : 'Draft an announcement for students, teachers, or parents.'}
         </Typography>
 
         <PageCard sx={{ p: 2.5 }}>
@@ -284,7 +286,7 @@ const NoticeForm = ({
               onClick={() => onSubmit('draft')}
               disabled={submitting || !form.title.trim() || !hasBodyContent || !form.audiences.length}
             >
-              Save Draft
+              {isEditing ? 'Update Draft' : 'Save Draft'}
             </Button>
             <Button
               variant="contained"
@@ -297,7 +299,7 @@ const NoticeForm = ({
                 !form.audiences.length
               }
             >
-              {submitting ? 'Submitting...' : 'Publish Notice'}
+              {submitting ? 'Submitting...' : (isEditing ? 'Publish Update' : 'Publish Notice')}
             </Button>
           </Stack>
         </PageCard>

@@ -12,36 +12,24 @@ import {
 } from '@mui/material';
 import SchoolOutlined from '@mui/icons-material/SchoolOutlined';
 import HowToRegOutlined from '@mui/icons-material/HowToRegOutlined';
-import SettingsOutlined from '@mui/icons-material/SettingsOutlined';
-import ContactSupportOutlined from '@mui/icons-material/ContactSupportOutlined';
 import { NavLink } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
 import navigation from '../../data/navigation';
 import { useUIDispatch, useUIState } from '../../context/UIContext';
-import { getUserInfo, getUserRole } from '../../utils/auth';
+import { getUserRole } from '../../utils/auth';
 
 const drawerWidth = 260;
 const DEFAULT_ROLE = '';
-const ALL_ROLES = ['super_admin', 'admin', 'teacher', 'student', 'parent'];
 
 const secondaryItems = [
   { label: 'Teachers', icon: SchoolOutlined, roles: ['super_admin', 'admin'] },
   { label: 'Admissions', icon: HowToRegOutlined, roles: ['super_admin', 'admin'] },
 ];
 
-const systemItems = [
-  { label: 'Settings', icon: SettingsOutlined, roles: ['super_admin', 'admin'] },
-  { label: 'Support', icon: ContactSupportOutlined, roles: ALL_ROLES },
-];
-
 const SidebarContent = ({
   onNavigate,
-  onToggleProfile,
-  profileOpen,
-  onLogout,
   visibleNavigation,
   visibleSecondaryItems,
-  visibleSystemItems,
   portalLabel,
 }) => (
   <Stack sx={{ height: '100%' }}>
@@ -154,49 +142,6 @@ const SidebarContent = ({
           </ListItemButton>
         );
       })}
-
-      <Box sx={{ mt: 1.5, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-        <Typography
-          sx={{
-            px: 1.5,
-            mb: 1,
-            color: 'text.secondary',
-            fontSize: '0.62rem',
-            fontWeight: 700,
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-          }}
-        >
-          Systems
-        </Typography>
-        {visibleSystemItems.map((item) => {
-          const Icon = item.icon;
-          return (
-            <ListItemButton
-              key={item.label}
-              sx={{
-                mb: 1,
-                borderRadius: (theme) => theme.shape.borderRadius,
-                px: 1.5,
-                py: 1.1,
-                color: 'text.secondary',
-                '&:hover': {
-                  backgroundColor: (theme) => theme.palette.action.hover,
-                  color: 'text.primary',
-                },
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 34, color: 'inherit' }}>
-                <Icon fontSize="small" />
-              </ListItemIcon>
-              <ListItemText
-                primary={item.label}
-                primaryTypographyProps={{ fontWeight: 500, fontSize: '0.88rem' }}
-              />
-            </ListItemButton>
-          );
-        })}
-      </Box>
     </List>
 
   </Stack>
@@ -207,7 +152,6 @@ const Sidebar = () => {
   const { mobileSidebarOpen } = useUIState();
   const dispatch = useUIDispatch();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
-  const userInfo = getUserInfo();
   const userRole = getUserRole() || DEFAULT_ROLE;
   const portalLabelByRole = {
     super_admin: 'Super Admin Portal',
@@ -225,7 +169,6 @@ const Sidebar = () => {
   const visibleSecondaryItems = secondaryItems
     .filter(canAccess)
     .filter((item) => !primaryLabels.has(String(item.label || '').trim().toLowerCase()));
-  const visibleSystemItems = systemItems.filter(canAccess);
 
   const closeMobileSidebar = () => {
     if (!isDesktop) {
@@ -254,7 +197,6 @@ const Sidebar = () => {
           onNavigate={closeMobileSidebar}
           visibleNavigation={visibleNavigation}
           visibleSecondaryItems={visibleSecondaryItems}
-          visibleSystemItems={visibleSystemItems}
           portalLabel={portalLabel}
         />
       </Drawer>

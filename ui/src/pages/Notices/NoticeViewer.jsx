@@ -4,13 +4,10 @@ import {
   Button,
   Chip,
   Divider,
-  IconButton,
   Stack,
   Typography,
 } from '@mui/material';
 import EditOutlined from '@mui/icons-material/EditOutlined';
-import ContentCopyOutlined from '@mui/icons-material/ContentCopyOutlined';
-import MoreHorizOutlined from '@mui/icons-material/MoreHorizOutlined';
 import AttachFileOutlined from '@mui/icons-material/AttachFileOutlined';
 import PageCard from '../../components/common/PageCard';
 import NoticeViewerSkeleton from '../../components/skeletons/NoticeViewerSkeleton';
@@ -27,7 +24,8 @@ const isPdfAttachment = (attachment) => {
 const NoticeViewer = ({
   selectedNotice,
   loading,
-  canCreate,
+  canEdit,
+  onEdit,
   getStatusColor,
   statusLabel,
   formatDate,
@@ -47,9 +45,15 @@ const NoticeViewer = ({
 
           <Stack direction="row" spacing={0.6}>
             <Chip size="small" color={getStatusColor(selectedNotice.status)} label={statusLabel(selectedNotice.status)} />
-            {canCreate ? <Button size="small" startIcon={<EditOutlined fontSize="small" />}>Edit</Button> : null}
-            {canCreate ? <Button size="small" startIcon={<ContentCopyOutlined fontSize="small" />}>Duplicate</Button> : null}
-            {canCreate ? <IconButton size="small"><MoreHorizOutlined fontSize="small" /></IconButton> : null}
+            {canEdit ? (
+              <Button
+                size="small"
+                startIcon={<EditOutlined fontSize="small" />}
+                onClick={onEdit}
+              >
+                Edit
+              </Button>
+            ) : null}
           </Stack>
         </Stack>
 
@@ -160,13 +164,6 @@ const NoticeViewer = ({
             </Stack>
           </>
         ) : null}
-
-        <Typography sx={{ fontSize: '0.74rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'text.secondary', mb: 0.7 }}>
-          Delivery Channels
-        </Typography>
-        <Typography sx={{ color: 'text.secondary', fontSize: '0.86rem' }}>
-          Sent via {(selectedNotice.channels || []).map((item) => channelLabelMap[item] || item).join(', ').toLowerCase() || 'in-app notification'}.
-        </Typography>
       </>
     ) : (
       <Stack alignItems="center" justifyContent="center" sx={{ height: '100%' }}>

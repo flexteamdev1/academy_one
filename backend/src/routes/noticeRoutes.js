@@ -1,6 +1,6 @@
 const express = require('express');
 
-const { listNotices, createNotice } = require('../controllers/notice.controller');
+const { listNotices, createNotice, updateNotice } = require('../controllers/notice.controller');
 const { protect, authorize } = require('../middleware/auth');
 const { uploadNoticeAttachments } = require('../middleware/upload');
 const { ROLES } = require('../constants/roles');
@@ -19,6 +19,12 @@ router.post(
   authorize(ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.TEACHER),
   uploadNoticeAttachments.array('attachments', 10),
   createNotice
+);
+router.put(
+  '/:id',
+  authorize(ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.TEACHER),
+  uploadNoticeAttachments.array('attachments', 10),
+  updateNotice
 );
 
 module.exports = router;
