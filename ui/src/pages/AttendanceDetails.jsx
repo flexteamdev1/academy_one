@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Typography,
@@ -33,6 +33,7 @@ import { getAttendance } from '../services/attendanceService';
 import { listClasses } from '../services/classService';
 import { getUserInfo, getUserRole } from '../utils/auth';
 import { filterClassesForTeacher, getTeacherId, normalizeSectionName } from '../utils/teacherAccess';
+import { ATTENDANCE_STATUS } from '../constants/enums';
 
 const AttendanceDetails = () => {
   const { classId, sectionName, date } = useParams();
@@ -43,6 +44,8 @@ const AttendanceDetails = () => {
 
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({ attendance: null, students: [], stats: {} });
+  const [query, setQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -86,6 +89,40 @@ const AttendanceDetails = () => {
     validateAccess();
   }, [teacherId, classId, sectionName, navigate]);
 
+  const stats = data.stats || {};
+  const totalStudents = data.students.length;
+  const presentCount = stats.present || 0;
+  const absentCount = stats.absent || 0;
+  const lateCount = stats.late || 0;
+  const attendanceRate = totalStudents ? Math.round((presentCount / totalStudents) * 100) : 0;
+
+  const statusById = useMemo(() => {
+    const map = new Map();
+    (data.attendance?.records || []).forEach((record) => {
+      map.set(String(record.studentId), record.status);
+    });
+    return map;
+  }, [data.attendance]);
+
+  const filteredStudents = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    return (data.students || []).filter((student) => {
+      const status = statusById.get(String(student._id)) || ATTENDANCE_STATUS.PRESENT;
+      if (statusFilter !== 'ALL' && status !== statusFilter) return false;
+      if (!normalizedQuery) return true;
+      const haystack = [
+        student.name,
+        student.admissionNo,
+        student.email,
+        student.rollNo,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(normalizedQuery);
+    });
+  }, [data.students, query, statusFilter, statusById]);
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
@@ -126,7 +163,7 @@ const AttendanceDetails = () => {
               Section {sectionName} Overview
             </Typography>
             <Stack direction="row" spacing={2} sx={{ color: '#6b7280' }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>👨‍🏫 Sarah Jenkins</Typography>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>👨‍🏫 Class Teacher</Typography>
               <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>•</Typography>
               <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>📅 {new Date(date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</Typography>
             </Stack>
@@ -168,10 +205,10 @@ const AttendanceDetails = () => {
         {/* Hero Stats */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
           {[
-            { label: 'COMPLIANCE RATE', value: '88%', sub: '+2.1% ↑', color: '#00c853', chart: true },
-            { label: 'ENROLLMENT', value: data.students.length, sub: 'Registered Students', icon: <PeopleIcon sx={{ color: alpha('#5346e0', 0.1), fontSize: 40 }} /> },
-            { label: 'PRESENT', value: '28', sub: 'On Schedule', icon: <CheckCircleIcon sx={{ color: '#00c853', fontSize: 32 }} /> },
-            { label: 'ABSENT', value: '04', sub: 'Requires Following', icon: <ErrorIcon sx={{ color: '#ff3d00', fontSize: 32 }} /> }
+            { label: 'COMPLIANCE RATE', value: `${attendanceRate}%`, sub: totalStudents ? `${presentCount} of ${totalStudents} present` : 'No records', color: '#00c853', chart: true },
+            { label: 'ENROLLMENT', value: totalStudents, sub: 'Registered Students', icon: <PeopleIcon sx={{ color: alpha('#5346e0', 0.1), fontSize: 40 }} /> },
+            { label: 'PRESENT', value: presentCount, sub: 'On Schedule', icon: <CheckCircleIcon sx={{ color: '#00c853', fontSize: 32 }} /> },
+            { label: 'ABSENT', value: absentCount, sub: 'Requires Following', icon: <ErrorIcon sx={{ color: '#ff3d00', fontSize: 32 }} /> }
           ].map((stat, i) => (
             <Grid item xs={12} md={3} key={i}>
               <Paper elevation={0} sx={{ p: 3, borderRadius: '24px', border: '1px solid #e3e8f1', bgcolor: '#fff', height: '100%' }}>
@@ -182,7 +219,7 @@ const AttendanceDetails = () => {
                     <Typography variant="caption" sx={{ color: stat.color || '#9ca3af', fontWeight: 700 }}>{stat.sub}</Typography>
                   </Box>
                   {stat.chart ? (
-                    <CircularProgress variant="determinate" value={88} sx={{ color: '#5346e0' }} size={48} thickness={6} />
+                    <CircularProgress variant="determinate" value={attendanceRate} sx={{ color: '#5346e0' }} size={48} thickness={6} />
                   ) : stat.icon}
                 </Stack>
               </Paper>
@@ -257,6 +294,8 @@ const AttendanceDetails = () => {
             placeholder="Lookup student by name or ID..."
             fullWidth
             size="small"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -267,21 +306,27 @@ const AttendanceDetails = () => {
             }}
           />
           <Stack direction="row" sx={{ bgcolor: '#fff', borderRadius: '16px', p: 0.7, border: '1px solid #e3e8f1', minWidth: 'max-content' }}>
-            {['All', 'Present', 'Absent', 'Late'].map((t) => (
+            {[
+              { label: 'All', value: 'ALL' },
+              { label: 'Present', value: ATTENDANCE_STATUS.PRESENT },
+              { label: 'Absent', value: ATTENDANCE_STATUS.ABSENT },
+              { label: 'Late', value: ATTENDANCE_STATUS.LATE },
+            ].map((t) => (
               <Button
-                key={t}
+                key={t.value}
                 size="small"
+                onClick={() => setStatusFilter(t.value)}
                 sx={{
                   borderRadius: '12px',
                   px: 3,
                   fontWeight: 800,
                   fontSize: '13px',
-                  color: t === 'All' ? '#5346e0' : '#6b7280',
-                  bgcolor: t === 'All' ? alpha('#5346e0', 0.08) : 'transparent',
-                  '&:hover': { bgcolor: t === 'All' ? alpha('#5346e0', 0.12) : '#f9fafb' }
+                  color: statusFilter === t.value ? '#5346e0' : '#6b7280',
+                  bgcolor: statusFilter === t.value ? alpha('#5346e0', 0.08) : 'transparent',
+                  '&:hover': { bgcolor: statusFilter === t.value ? alpha('#5346e0', 0.12) : '#f9fafb' }
                 }}
               >
-                {t}
+                {t.label}
               </Button>
             ))}
           </Stack>
@@ -298,13 +343,20 @@ const AttendanceDetails = () => {
               <Grid item xs={1} sx={{ textAlign: 'right' }}><Typography sx={{ fontSize: '11px', fontWeight: 800, color: '#9ca3af', letterSpacing: '0.8px' }}>ACTION</Typography></Grid>
             </Grid>
           </Box>
-          {data.students.map((student, idx) => {
-            const status = (data.attendance?.records?.find(r => r.studentId === student._id)?.status || 'PRESENT');
+          {filteredStudents.map((student, idx) => {
+            const status = statusById.get(String(student._id)) || ATTENDANCE_STATUS.PRESENT;
+            const tone = status === ATTENDANCE_STATUS.PRESENT
+              ? { bg: alpha('#00c853', 0.1), fg: '#00c853' }
+              : status === ATTENDANCE_STATUS.LATE
+                ? { bg: alpha('#ff9100', 0.12), fg: '#ff9100' }
+                : { bg: alpha('#ff3d00', 0.12), fg: '#ff3d00' };
             return (
               <Box key={student._id}>
                 <Grid container alignItems="center" sx={{ px: 5, py: 3, bgcolor: '#fff', transition: 'all 0.2s', '&:hover': { bgcolor: alpha('#5346e0', 0.01) } }}>
                   <Grid item xs={2}>
-                    <Typography sx={{ fontWeight: 800, color: '#9ca3af', fontSize: '13px' }}>#STU-{1000 + idx}</Typography>
+                    <Typography sx={{ fontWeight: 800, color: '#9ca3af', fontSize: '13px' }}>
+                      {student.rollNo ? `#${String(student.rollNo).padStart(3, '0')}` : student.admissionNo || `#STU-${1000 + idx}`}
+                    </Typography>
                   </Grid>
                   <Grid item xs={3}>
                     <Stack direction="row" spacing={3} alignItems="center">
@@ -322,8 +374,8 @@ const AttendanceDetails = () => {
                       sx={{
                         borderRadius: '8px',
                         fontWeight: 900,
-                        bgcolor: status === 'PRESENT' ? alpha('#00c853', 0.1) : alpha('#ff3d00', 0.1),
-                        color: status === 'PRESENT' ? '#00c853' : '#ff3d00',
+                        bgcolor: tone.bg,
+                        color: tone.fg,
                         fontSize: '11px',
                         height: 28,
                         px: 1
@@ -333,9 +385,9 @@ const AttendanceDetails = () => {
                   <Grid item xs={3}>
                     <Stack direction="row" spacing={3} alignItems="center">
                       <Box sx={{ flexGrow: 1, height: 6, bgcolor: '#f3f4f6', borderRadius: 3, overflow: 'hidden' }}>
-                        <Box sx={{ width: '92%', height: '100%', bgcolor: '#00c853', borderRadius: 3 }} />
+                        <Box sx={{ width: `${attendanceRate}%`, height: '100%', bgcolor: '#00c853', borderRadius: 3 }} />
                       </Box>
-                      <Typography sx={{ fontWeight: 900, fontSize: '14px', color: '#6b7280' }}>92%</Typography>
+                      <Typography sx={{ fontWeight: 900, fontSize: '14px', color: '#6b7280' }}>{attendanceRate}%</Typography>
                     </Stack>
                   </Grid>
                   <Grid item xs={1} sx={{ textAlign: 'right' }}>

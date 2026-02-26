@@ -7,9 +7,9 @@ const toServiceError = (error, fallback) => {
   throw wrapped;
 };
 
-export const loginUser = async ({ email, password }) => {
+export const loginUser = async ({ email, password, remember }) => {
   try {
-    const response = await apiClient.post('/auth/login', { email, password });
+    const response = await apiClient.post('/auth/login', { email, password, remember });
     return response.data;
   } catch (error) {
     toServiceError(error, 'Login failed');
@@ -34,5 +34,26 @@ export const changePassword = async ({ currentPassword, newPassword }) => {
     return response.data;
   } catch (error) {
     toServiceError(error, 'Failed to change password');
+  }
+};
+
+export const requestPasswordReset = async ({ email }) => {
+  try {
+    const response = await apiClient.post('/auth/forgot-password', { email });
+    return response.data;
+  } catch (error) {
+    toServiceError(error, 'Failed to request password reset');
+  }
+};
+
+export const resetPassword = async ({ token, newPassword }) => {
+  try {
+    const response = await apiClient.post('/auth/reset-password', {
+      token,
+      newPassword,
+    });
+    return response.data;
+  } catch (error) {
+    toServiceError(error, 'Failed to reset password');
   }
 };

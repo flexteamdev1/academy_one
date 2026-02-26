@@ -1,5 +1,9 @@
 const nodemailer = require('nodemailer');
-const { buildCredentialsEmailContent, buildNoticeEmailContent } = require('./emailTemplates');
+const {
+  buildCredentialsEmailContent,
+  buildPasswordResetEmailContent,
+  buildNoticeEmailContent,
+} = require('./emailTemplates');
 
 const mailConfigFromEnv = () => {
   const host = process.env.SMTP_HOST || process.env.EMAIL_HOST;
@@ -224,10 +228,47 @@ const sendNoticeEmail = async ({ to, recipientName, title, content, portalUrl })
   }
 };
 
+const sendPasswordResetEmail = async ({ to, recipientName, resetUrl }) => {
+  if (!to || !isMailConfigured()) {
+    return {
+      sent: false,
+      reason: 'mail_not_configured_or_recipient_missing',
+      configured: isMailConfigured(),
+    };
+  }
+
+  const transporter = getTransporter();
+  const config = mailConfigFromEnv();
+  const mailContent = buildPasswordResetEmailContent({
+    recipientName,
+    resetUrl,
+    portalUrl: process.env.FRONTEND_URL || '#',
+  });
+
+  try {
+    await transporter.sendMail({
+      from: config.from,
+      to,
+      subject: mailContent.subject,
+      text: mailContent.text,
+      html: mailContent.html,
+    });
+    return { sent: true };
+  } catch (error) {
+    return {
+      sent: false,
+      reason: 'smtp_send_failed',
+      detail: error.message,
+      recipient: to,
+    };
+  }
+};
+
 module.exports = {
   isMailConfigured,
   getMailHealth,
   sendTestEmail,
   sendCredentialsEmail,
+  sendPasswordResetEmail,
   sendNoticeEmail,
 };

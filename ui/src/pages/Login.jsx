@@ -5,10 +5,15 @@ import {
   Button,
   Card,
   Checkbox,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControlLabel,
   IconButton,
   InputAdornment,
   Link,
+  Snackbar,
   Stack,
   TextField,
   Typography,
@@ -22,7 +27,8 @@ import GroupOutlined from '@mui/icons-material/GroupOutlined';
 import SchoolOutlined from '@mui/icons-material/SchoolOutlined';
 import PersonOutlineOutlined from '@mui/icons-material/PersonOutlineOutlined';
 import { useNavigate } from 'react-router-dom';
-import { loginUser } from '../services/authService';
+import { loginUser, requestPasswordReset } from '../services/authService';
+import { setStoredUserInfo } from '../utils/auth';
 
 const BrandIcon = ({ size = 48 }) => (
   <svg viewBox="0 0 48 48" fill="currentColor" width={size} height={size} xmlns="http://www.w3.org/2000/svg">
@@ -39,6 +45,10 @@ const LoginPage = () => {
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -53,9 +63,10 @@ const LoginPage = () => {
       const response = await loginUser({
         email: formData.email,
         password: formData.password,
+        remember,
       });
 
-      localStorage.setItem('userInfo', JSON.stringify({ ...response, remember }));
+      setStoredUserInfo({ ...response, remember }, remember);
       if (response?.mustChangePassword) {
         navigate('/profile');
       } else {
@@ -69,6 +80,44 @@ const LoginPage = () => {
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const openForgotDialog = () => {
+    setError('');
+    setForgotEmail(formData.email || '');
+    setForgotOpen(true);
+  };
+
+  const submitForgotPassword = async (event) => {
+    if (event?.preventDefault) {
+      event.preventDefault();
+    }
+    if (!/^\S+@\S+\.\S+$/.test(String(forgotEmail || '').trim())) {
+      setToast({
+        open: true,
+        message: 'Enter a valid email address',
+        severity: 'error',
+      });
+      return;
+    }
+    setForgotLoading(true);
+    try {
+      const response = await requestPasswordReset({ email: forgotEmail });
+      setToast({
+        open: true,
+        message: response?.message || 'If that email is registered, a reset link will be sent.',
+        severity: 'success',
+      });
+      setForgotOpen(false);
+    } catch (err) {
+      setToast({
+        open: true,
+        message: err.message || 'Failed to request password reset',
+        severity: 'error',
+      });
+    } finally {
+      setForgotLoading(false);
     }
   };
 
@@ -252,7 +301,17 @@ const LoginPage = () => {
                     <Typography sx={{ fontSize: '0.67rem', fontWeight: 800, color: (theme) => theme.palette.grey[500], textTransform: 'uppercase', letterSpacing: '0.12em' }}>
                       Password
                     </Typography>
-                    <Link href="#" underline="hover" sx={{ fontSize: '0.67rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'primary.main' }}>
+                    <Link
+                      component="button"
+                      type="button"
+                      underline="hover"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        openForgotDialog();
+                      }}
+                      sx={{ fontSize: '0.67rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'primary.main' }}
+                    >
                       Forgot?
                     </Link>
                   </Stack>
@@ -328,6 +387,46 @@ const LoginPage = () => {
           </Box>
         </Stack>
       </Box>
+
+      <Dialog open={forgotOpen} onClose={() => setForgotOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>Reset Password</DialogTitle>
+        <DialogContent>
+          <Stack spacing={1.6} component="form" onSubmit={submitForgotPassword} sx={{ mt: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              Enter your account email to receive a password reset link.
+            </Typography>
+            <TextField
+              label="Email"
+              type="email"
+              value={forgotEmail}
+              onChange={(e) => setForgotEmail(e.target.value)}
+              required
+              fullWidth
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setForgotOpen(false)} disabled={forgotLoading}>Close</Button>
+          <Button onClick={submitForgotPassword} variant="contained" disabled={forgotLoading}>
+            {forgotLoading ? 'Sending...' : 'Send Link'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={toast.open}
+        autoHideDuration={3500}
+        onClose={() => setToast((prev) => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert
+          onClose={() => setToast((prev) => ({ ...prev, open: false }))}
+          severity={toast.severity}
+          sx={{ width: '100%' }}
+        >
+          {toast.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

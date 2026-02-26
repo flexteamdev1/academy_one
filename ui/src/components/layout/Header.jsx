@@ -15,7 +15,7 @@ import {
 import MenuOutlined from '@mui/icons-material/MenuOutlined';
 import LogoutOutlined from '@mui/icons-material/LogoutOutlined';
 import { useUIDispatch, useUIState } from '../../context/UIContext';
-import { getUserInfo, getUserRole } from '../../utils/auth';
+import { clearStoredUserInfo, getUserInfo, getUserRole } from '../../utils/auth';
 import { useNavigate } from 'react-router-dom';
 
 const Header = ({ title, breadcrumb = 'Main Dashboard' }) => {
@@ -30,7 +30,7 @@ const Header = ({ title, breadcrumb = 'Main Dashboard' }) => {
   const userRoleLabel = String(userRole || 'user').replace('_', ' ');
 
   const handleLogout = () => {
-    localStorage.removeItem('userInfo');
+    clearStoredUserInfo();
     navigate('/login', { replace: true });
   };
   const handleProfileNavigate = (path) => {

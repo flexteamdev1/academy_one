@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Alert, Box, Button, Stack, TextField, Typography } from '@mui/material';
 import PageCard from '../components/common/PageCard';
 import { changePassword } from '../services/authService';
-import { getUserInfo, getUserRole } from '../utils/auth';
+import { getUserInfo, getUserRole, setStoredUserInfo } from '../utils/auth';
 
 const ChangePassword = () => {
   const user = getUserInfo();
@@ -35,7 +35,7 @@ const ChangePassword = () => {
       setSuccess(response.message || 'Password changed');
       setForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
       const nextUser = { ...user, mustChangePassword: false };
-      localStorage.setItem('userInfo', JSON.stringify(nextUser));
+      setStoredUserInfo(nextUser, Boolean(user?.remember));
     } catch (err) {
       setError(err.message || 'Failed to change password');
     } finally {

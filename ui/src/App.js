@@ -6,6 +6,7 @@ import { GlobalStyles } from '@mui/material';
 import theme from './theme';
 
 import LoginPage from './pages/Login';
+import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import UserDashboard from './pages/UserDashboard';
 import TeacherDashboard from './pages/TeacherDashboard';
@@ -29,13 +30,13 @@ import Notices from './pages/Notices';
 import NotFound from './pages/NotFound';
 import MainLayout from './components/layout/MainLayout';
 import { UIProvider } from './context/UIContext';
-import { getUserInfo, getUserRole } from './utils/auth';
+import { getStoredUserInfo, getUserInfo, getUserRole } from './utils/auth';
 
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const location = useLocation();
-  const userInfo = localStorage.getItem('userInfo');
-  if (!userInfo) {
+  const userInfo = getStoredUserInfo();
+  if (!userInfo || !userInfo?.token) {
     return <Navigate to="/login" replace />;
   }
 
@@ -102,6 +103,7 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route
               path="/"
               element={

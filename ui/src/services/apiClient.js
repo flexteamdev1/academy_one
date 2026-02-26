@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getStoredUserInfo } from '../utils/auth';
 
 const apiClient = axios.create({
   baseURL: 'http://localhost:5000/api',
@@ -9,7 +10,7 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use((config) => {
   try {
-    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    const userInfo = getStoredUserInfo();
     const token = userInfo?.token;
     const academicYearId = String(localStorage.getItem('selectedAcademicYearId') || '').trim();
 

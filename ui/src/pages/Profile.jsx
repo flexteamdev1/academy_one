@@ -12,7 +12,7 @@ import PageCard from '../components/common/PageCard';
 import { changePassword } from '../services/authService';
 import { useUIState } from '../context/UIContext';
 import { getLinkedStudents } from '../services/userService';
-import { getUserInfo, getUserRole } from '../utils/auth';
+import { getUserInfo, getUserRole, setStoredUserInfo } from '../utils/auth';
 
 const Profile = () => {
   const { selectedAcademicYearId } = useUIState();
@@ -51,7 +51,7 @@ const Profile = () => {
       setSuccess(response.message || 'Password changed');
       setForm({ currentPassword: '', newPassword: '' });
       const nextUser = { ...user, mustChangePassword: false };
-      localStorage.setItem('userInfo', JSON.stringify(nextUser));
+      setStoredUserInfo(nextUser, Boolean(user?.remember));
     } catch (err) {
       setError(err.message || 'Failed to change password');
     }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Box,
   Typography,
@@ -14,6 +14,8 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   Popover,
+  Menu,
+  MenuItem,
 } from '@mui/material';
 import {
   CalendarToday as CalendarIcon,
@@ -23,11 +25,12 @@ import {
   KeyboardArrowLeft as PrevIcon,
   KeyboardArrowRight as NextIcon,
   CloudUpload as SubmitIcon,
-  Lock as LockIcon
+  Lock as LockIcon,
+  ExpandMore as ExpandMoreIcon
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getAttendance, upsertAttendance } from '../services/attendanceService';
-import { ATTENDANCE_STATUS } from '../constants/enums';
+import { ATTENDANCE_STATUS, CLASS_STATUS, STUDENT_STATUS } from '../constants/enums';
 import { listClasses } from '../services/classService';
 import { getUserInfo, getUserRole } from '../utils/auth';
 import { filterClassesForTeacher, getTeacherId, normalizeSectionName } from '../utils/teacherAccess';
@@ -45,6 +48,12 @@ const MarkStudentAttendance = () => {
   const teacherId = role === 'teacher' ? getTeacherId(user) : '';
 
   const [loading, setLoading] = useState(true);
+  const [loadingClasses, setLoadingClasses] = useState(true);
+  const [classCatalog, setClassCatalog] = useState([]);
+  const [assignedSectionsByClass, setAssignedSectionsByClass] = useState({});
+  const [selectedClassId, setSelectedClassId] = useState('');
+  const [selectedSection, setSelectedSection] = useState('');
+  const [selectedDate, setSelectedDate] = useState(today);
   const [students, setStudents] = useState([]);
   const [statusById, setStatusById] = useState({});
   const [remarksById, setRemarksById] = useState({});
@@ -52,16 +61,84 @@ const MarkStudentAttendance = () => {
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [currentStudentId, setCurrentStudentId] = useState(null);
+  const [classAnchorEl, setClassAnchorEl] = useState(null);
+  const dateInputRef = useRef(null);
+
+  const normalizedSectionParam = normalizeSectionName(sectionName);
+
+  useEffect(() => {
+    const loadClasses = async () => {
+      setLoadingClasses(true);
+      try {
+        const response = await listClasses({ page: 1, limit: 200, status: CLASS_STATUS.ACTIVE });
+        const items = response.items || [];
+        const filtered = filterClassesForTeacher(items, teacherId);
+        setClassCatalog(filtered.classes);
+        setAssignedSectionsByClass(filtered.assignedSectionsByClass);
+        if (!filtered.classes.length) {
+          navigate('/attendance', { replace: true });
+        }
+      } catch (err) {
+        console.error('Failed to fetch classes:', err);
+        navigate('/attendance', { replace: true });
+      } finally {
+        setLoadingClasses(false);
+      }
+    };
+    loadClasses();
+  }, [teacherId, navigate]);
+
+  const classOptions = useMemo(() => (
+    classCatalog.flatMap((item) => {
+      const sections = assignedSectionsByClass[item._id]?.length
+        ? assignedSectionsByClass[item._id]
+        : (item.sections || []).map((section) => normalizeSectionName(section.name)).filter(Boolean);
+      return sections.map((section) => ({
+        classId: item._id,
+        className: item.name,
+        sectionName: section,
+        label: `${item.name}-${section}`,
+      }));
+    })
+  ), [classCatalog, assignedSectionsByClass]);
+
+  useEffect(() => {
+    if (!classOptions.length) return;
+    const isAllowedClass = classCatalog.some((item) => String(item._id) === String(classId));
+    const allowedSections = assignedSectionsByClass[classId] || [];
+    const isAllowedSection = !allowedSections.length || allowedSections.includes(normalizedSectionParam);
+
+    if (classId && normalizedSectionParam && isAllowedClass && isAllowedSection) {
+      setSelectedClassId(String(classId));
+      setSelectedSection(normalizedSectionParam);
+      return;
+    }
+
+    const first = classOptions[0];
+    if (first) {
+      setSelectedClassId(String(first.classId));
+      setSelectedSection(first.sectionName);
+    }
+  }, [classOptions, classCatalog, classId, normalizedSectionParam, assignedSectionsByClass]);
+
+  useEffect(() => {
+    if (!selectedClassId || !selectedSection) return;
+    if (String(classId) !== String(selectedClassId) || normalizeSectionName(sectionName) !== selectedSection) {
+      navigate(`/attendance/mark/${selectedClassId}/${selectedSection}`, { replace: true });
+    }
+  }, [selectedClassId, selectedSection, classId, sectionName, navigate]);
 
   useEffect(() => {
     const fetchRoster = async () => {
+      if (!selectedClassId || !selectedSection || !selectedDate) return;
       setLoading(true);
       try {
         const res = await getAttendance({
-          classId,
-          sectionName,
-          date: today,
-          includeStudents: true
+          classId: selectedClassId,
+          sectionName: selectedSection,
+          date: selectedDate,
+          includeStudents: true,
+          status: STUDENT_STATUS.ACTIVE,
         });
         setStudents(res.students || []);
 
@@ -80,29 +157,7 @@ const MarkStudentAttendance = () => {
       }
     };
     fetchRoster();
-  }, [classId, sectionName, today]);
-
-  useEffect(() => {
-    if (!teacherId) return;
-    const validateAccess = async () => {
-      try {
-        const response = await listClasses({ page: 1, limit: 200 });
-        const filtered = filterClassesForTeacher(response.items || [], teacherId);
-        const allowedClass = filtered.classes.find((item) => String(item._id) === String(classId));
-        if (!allowedClass) {
-          navigate('/attendance', { replace: true });
-          return;
-        }
-        const allowedSections = filtered.assignedSectionsByClass[String(classId)] || [];
-        if (allowedSections.length && !allowedSections.includes(normalizeSectionName(sectionName))) {
-          navigate('/attendance', { replace: true });
-        }
-      } catch (_err) {
-        navigate('/attendance', { replace: true });
-      }
-    };
-    validateAccess();
-  }, [teacherId, classId, sectionName, navigate]);
+  }, [selectedClassId, selectedSection, selectedDate]);
 
   const stats = useMemo(() => {
     const counts = { present: 0, absent: 0, late: 0, total: students.length };
@@ -137,9 +192,9 @@ const MarkStudentAttendance = () => {
         remarks: remarksById[s._id] || ''
       }));
       await upsertAttendance({
-        classId,
-        sectionName,
-        date: today,
+        classId: selectedClassId,
+        sectionName: selectedSection,
+        date: selectedDate,
         records
       });
       navigate('/attendance');
@@ -155,15 +210,35 @@ const MarkStudentAttendance = () => {
     setCurrentStudentId(studentId);
   };
 
-  const classLabel = useMemo(() => {
-    if (classId && sectionName) return `Grade ${classId}-${sectionName}`;
-    if (classId) return String(classId);
-    return 'Class';
-  }, [classId, sectionName]);
+  const selectedOption = useMemo(
+    () => classOptions.find((option) => (
+      String(option.classId) === String(selectedClassId) && option.sectionName === selectedSection
+    )),
+    [classOptions, selectedClassId, selectedSection]
+  );
 
-  const todayLabel = `Today, ${formatShortDate(today)}`;
+  const classLabel = selectedOption?.label || 'Select Class';
 
-  if (loading) {
+  const safeDate = selectedDate || today;
+  const todayLabel = safeDate === today
+    ? `Today, ${formatShortDate(safeDate)}`
+    : `Date, ${formatShortDate(safeDate)}`;
+
+  const getHistoryLink = () => {
+    if (!selectedClassId || !selectedSection) return '/attendance';
+    return `/attendance/details/${selectedClassId}/${selectedSection}/${safeDate}`;
+  };
+
+  const openDatePicker = () => {
+    if (!dateInputRef.current) return;
+    if (typeof dateInputRef.current.showPicker === 'function') {
+      dateInputRef.current.showPicker();
+    } else {
+      dateInputRef.current.focus();
+    }
+  };
+
+  if (loading || loadingClasses) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
         <CircularProgress />
@@ -174,16 +249,17 @@ const MarkStudentAttendance = () => {
   return (
     <Box
       sx={{
-        bgcolor: '#f5f6fa',
+        bgcolor: '#f6f7fb',
         minHeight: '100vh',
-        py: 2,
-        mx: { xs: -1.5, md: -3 }
+        py: { xs: 2, md: 3 },
+        px: { xs: 1.5, md: 3 }
       }}
     >
       <Box
         sx={{
           width: '100%',
-          px: { xs: 2, md: 3 },
+          maxWidth: 1180,
+          mx: 'auto',
           pb: 2
         }}
       >
@@ -197,16 +273,18 @@ const MarkStudentAttendance = () => {
           }}
         >
           {/* Filter Bar */}
-          <Paper elevation={0} sx={{ p: 2.2, borderRadius: '14px', border: '1px solid #e6e9f0', mb: 2.5, bgcolor: '#fff' }}>
+          <Paper elevation={0} sx={{ p: 2.4, borderRadius: '16px', border: '1px solid #e6e9f0', mb: 2.5, bgcolor: '#fff', boxShadow: '0 12px 30px rgba(16,24,40,0.06)' }}>
             <Grid container spacing={3} alignItems="center">
               <Grid item>
                 <Typography sx={{ fontSize: '11px', fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', mb: 1.5, letterSpacing: '0.8px' }}>
                   SELECT CLASS
                 </Typography>
-                <Stack direction="row" spacing={1.2}>
+                <Stack direction="row" spacing={1.2} sx={{ position: 'relative' }}>
                   <Button
                     variant="outlined"
                     disableElevation
+                    onClick={(event) => setClassAnchorEl(event.currentTarget)}
+                    endIcon={<ExpandMoreIcon sx={{ fontSize: 18 }} />}
                     sx={{
                       borderRadius: '12px',
                       bgcolor: '#f8fafc',
@@ -233,6 +311,7 @@ const MarkStudentAttendance = () => {
                     variant="outlined"
                     disableElevation
                     startIcon={<CalendarIcon sx={{ fontSize: 18 }} />}
+                    onClick={openDatePicker}
                     sx={{
                       borderRadius: '12px',
                       bgcolor: '#eceeff',
@@ -248,10 +327,25 @@ const MarkStudentAttendance = () => {
                   >
                     {todayLabel}
                   </Button>
+                  <TextField
+                    type="date"
+                    inputRef={dateInputRef}
+                    value={safeDate}
+                    onChange={(e) => setSelectedDate(e.target.value || today)}
+                    inputProps={{ max: today }}
+                    sx={{
+                      position: 'absolute',
+                      opacity: 0,
+                      width: 1,
+                      height: 1,
+                      pointerEvents: 'none'
+                    }}
+                  />
                   <Button
                     variant="outlined"
                     startIcon={<HistoryIcon sx={{ fontSize: 18 }} />}
-                    onClick={() => navigate(`/attendance/details/${classId}/${sectionName}/${today}`)}
+                    onClick={() => navigate(getHistoryLink())}
+                    disabled={!selectedClassId || !selectedSection}
                     sx={{
                       borderRadius: '12px',
                       borderColor: '#e5e7eb',
@@ -273,6 +367,7 @@ const MarkStudentAttendance = () => {
                   variant="outlined"
                   startIcon={<CheckCircleIcon sx={{ color: '#344054' }} />}
                   onClick={handleMarkAllPresent}
+                  disabled={!students.length}
                   sx={{
                     borderRadius: '12px',
                     borderColor: '#e5e7eb',
@@ -291,8 +386,8 @@ const MarkStudentAttendance = () => {
           </Paper>
 
           {/* Table Container */}
-          <Paper elevation={0} sx={{ borderRadius: '14px', border: '1px solid #e6e9f0', overflow: 'hidden', bgcolor: '#fff' }}>
-            <Box sx={{ p: 2, bgcolor: '#f9fafb', borderBottom: '1px solid #e6e9f0' }}>
+          <Paper elevation={0} sx={{ borderRadius: '16px', border: '1px solid #e6e9f0', overflow: 'hidden', bgcolor: '#fff', boxShadow: '0 16px 40px rgba(16,24,40,0.06)' }}>
+            <Box sx={{ p: 2.2, bgcolor: '#f9fafb', borderBottom: '1px solid #e6e9f0' }}>
               <Grid container sx={{ px: 2 }}>
                 <Grid item xs={2}><Typography sx={{ fontSize: '10px', fontWeight: 800, color: '#9ca3af', letterSpacing: '1px' }}>ROLL NO</Typography></Grid>
                 <Grid item xs={4}><Typography sx={{ fontSize: '10px', fontWeight: 800, color: '#9ca3af', letterSpacing: '1px' }}>STUDENT PROFILE</Typography></Grid>
@@ -309,7 +404,7 @@ const MarkStudentAttendance = () => {
 
                 return (
                   <Box key={student._id} sx={{ transition: 'all 0.2s', borderBottom: '1px solid #f3f4f6', '&:hover': { bgcolor: '#fcfcfd' } }}>
-                    <Grid container alignItems="center" sx={{ px: 3, py: 2 }}>
+                    <Grid container alignItems="center" sx={{ px: 3, py: 2.2 }}>
                       <Grid item xs={2}>
                         <Typography sx={{ fontWeight: 700, color: '#9ca3af', fontSize: '14px' }}>#{String(rollValue).padStart(3, '0')}</Typography>
                       </Grid>
@@ -389,7 +484,7 @@ const MarkStudentAttendance = () => {
             </Box>
 
             {/* Footer info */}
-            <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: '#f9fafb' }}>
+            <Box sx={{ p: 2.2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: '#f9fafb' }}>
               <Typography sx={{ color: '#98a2b3', fontSize: '12.5px', fontWeight: 700 }}>
                 Showing {students.length} of {students.length} students in {classLabel}
               </Typography>
@@ -424,9 +519,9 @@ const MarkStudentAttendance = () => {
             mt: 2.5,
             bgcolor: '#fff',
             borderTop: '1px solid #e6e9f0',
-            px: 2.5,
+            px: 3,
             py: 2,
-            borderRadius: '14px',
+            borderRadius: '16px',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -518,6 +613,29 @@ const MarkStudentAttendance = () => {
           Save Remark
         </Button>
       </Popover>
+
+      <Menu
+        anchorEl={classAnchorEl}
+        open={Boolean(classAnchorEl)}
+        onClose={() => setClassAnchorEl(null)}
+        PaperProps={{ sx: { borderRadius: '14px', mt: 1, minWidth: 220 } }}
+      >
+        {classOptions.map((option) => (
+          <MenuItem
+            key={`${option.classId}-${option.sectionName}`}
+            selected={String(option.classId) === String(selectedClassId) && option.sectionName === selectedSection}
+            onClick={() => {
+              setSelectedClassId(String(option.classId));
+              setSelectedSection(option.sectionName);
+              setClassAnchorEl(null);
+            }}
+            sx={{ fontSize: '13px', fontWeight: 700, color: '#344054' }}
+          >
+            {option.label}
+          </MenuItem>
+        ))}
+      </Menu>
+
     </Box>
   );
 };
