@@ -315,12 +315,14 @@ const createStudent = async (req, res) => {
     const studentPassword = randomPassword();
     const parentPassword = randomPassword();
 
+    const studentUserStatus =
+      req.body.status === STUDENT_STATUS.BLOCKED ? USER_STATUS.BLOCKED : USER_STATUS.ACTIVE;
     studentUser = await User.create({
       name: studentName,
       email: studentLoginId,
       password: studentPassword,
       role: ROLES.STUDENT,
-      status: USER_STATUS.ACTIVE,
+      status: studentUserStatus,
       mustChangePassword: true,
     });
     createdStudentUser = true;
@@ -468,7 +470,7 @@ const createStudent = async (req, res) => {
     const studentMail = await sendCredentialsEmail({
       to: studentRecipient,
       roleLabel: 'Student',
-      loginId: studentLoginId,
+      loginId: admissionNo,
       password: studentPassword,
       studentName,
       templateType: 'student',
@@ -625,6 +627,18 @@ const updateStudent = async (req, res) => {
     });
 
     const updated = await StudentProfile.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true });
+
+    if (updateData.status && existing.userId) {
+      const nextUserStatus =
+        updateData.status === STUDENT_STATUS.BLOCKED
+          ? USER_STATUS.BLOCKED
+          : updateData.status === STUDENT_STATUS.ACTIVE
+            ? USER_STATUS.ACTIVE
+            : null;
+      if (nextUserStatus) {
+        await User.findByIdAndUpdate(existing.userId, { status: nextUserStatus });
+      }
+    }
 
     res.json(updated);
   } catch (error) {

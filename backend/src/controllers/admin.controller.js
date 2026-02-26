@@ -1,8 +1,18 @@
 const User = require('../models/User');
 const { ROLES } = require('../constants/roles');
 const { USER_STATUS } = require('../constants/enums');
+const { sendCredentialsEmail } = require('../utils/mailer');
 
 const normalizeEmail = (value) => String(value || '').trim().toLowerCase();
+
+const randomPassword = (length = 10) => {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
+  let output = '';
+  for (let i = 0; i < length; i += 1) {
+    output += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return output;
+};
 
 const listAdmins = async (req, res) => {
   try {
@@ -49,10 +59,14 @@ const createAdmin = async (req, res) => {
     const name = String(req.body.name || '').trim();
     const email = normalizeEmail(req.body.email);
     const phone = String(req.body.phone || '').trim();
-    const password = String(req.body.password || '');
+    const password = randomPassword();
 
-    if (!name || !email || !password) {
-      return res.status(400).json({ message: 'Name, email, and password are required' });
+    if (!name || !email) {
+      return res.status(400).json({ message: 'Name and email are required' });
+    }
+
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      return res.status(400).json({ message: 'Invalid email address' });
     }
 
     const emailExists = await User.findOne({ email });
@@ -74,7 +88,19 @@ const createAdmin = async (req, res) => {
       password,
       role: ROLES.ADMIN,
       status: USER_STATUS.ACTIVE,
-      mustChangePassword: false,
+      mustChangePassword: true,
+    });
+
+    const portalUrl = process.env.ADMIN_PORTAL_URL || process.env.FRONTEND_URL || '';
+    await sendCredentialsEmail({
+      to: email,
+      roleLabel: 'Admin',
+      loginId: email,
+      password,
+      templateType: 'admin',
+      recipientName: name || 'Admin',
+      systemId: email,
+      portalUrl,
     });
 
     res.status(201).json(user);

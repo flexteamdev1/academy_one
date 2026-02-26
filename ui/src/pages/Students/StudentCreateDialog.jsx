@@ -235,6 +235,7 @@ const StudentFormDialog = ({
               onChange={(e) => setForm((prev) => ({ ...prev, status: e.target.value }))}
             >
               <MenuItem value={STUDENT_STATUS.ACTIVE}>Active</MenuItem>
+              <MenuItem value={STUDENT_STATUS.BLOCKED}>Blocked</MenuItem>
               <MenuItem value={STUDENT_STATUS.DROPPED}>Dropped</MenuItem>
               <MenuItem value={STUDENT_STATUS.PASSED_OUT}>Passed Out</MenuItem>
             </TextField>

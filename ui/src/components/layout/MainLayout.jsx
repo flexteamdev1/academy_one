@@ -1,13 +1,37 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Box } from '@mui/material';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import navigation from '../../data/navigation';
+import { getMyProfile } from '../../services/authService';
 
 const MainLayout = () => {
   const location = useLocation();
   const current = navigation.find((item) => item.path === location.pathname);
+
+  useEffect(() => {
+    let alive = true;
+    let intervalId;
+
+    const ping = async () => {
+      try {
+        await getMyProfile();
+      } catch (_err) {
+        // handled by apiClient interceptor
+      }
+    };
+
+    if (alive) {
+      ping();
+      intervalId = setInterval(ping, 60000);
+    }
+
+    return () => {
+      alive = false;
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, []);
 
   return (
     <Box

@@ -99,6 +99,7 @@ const TeacherFormDialog = ({
           <TextField select label="Status" fullWidth value={form.status} onChange={(e) => setForm((prev) => ({ ...prev, status: e.target.value }))}>
             <MenuItem value={TEACHER_STATUS.ACTIVE}>Active</MenuItem>
             <MenuItem value={TEACHER_STATUS.INACTIVE}>On Leave</MenuItem>
+            <MenuItem value={TEACHER_STATUS.BLOCKED}>Blocked</MenuItem>
           </TextField>
         </Stack>
       </Stack>

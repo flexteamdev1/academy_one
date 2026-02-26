@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getStoredUserInfo } from '../utils/auth';
+import { clearStoredUserInfo, getStoredUserInfo } from '../utils/auth';
 
 const apiClient = axios.create({
   baseURL: 'http://localhost:5000/api',
@@ -26,5 +26,28 @@ apiClient.interceptors.request.use((config) => {
 
   return config;
 });
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error?.response?.status;
+    const code = error?.response?.data?.code;
+    const shouldLogout =
+      status === 401 || code === 'ACCOUNT_BLOCKED' || code === 'ACCOUNT_SUSPENDED';
+
+    if (shouldLogout) {
+      clearStoredUserInfo();
+      try {
+        if (window.location.pathname !== '/login') {
+          window.location.replace('/login');
+        }
+      } catch (_err) {
+        // ignore navigation errors
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
 
 export default apiClient;

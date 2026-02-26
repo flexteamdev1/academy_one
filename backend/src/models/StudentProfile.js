@@ -92,37 +92,6 @@ const studentProfileSchema = new mongoose.Schema({
     type: Date
   },
 
-  houseClub: {
-    type: String,
-    trim: true
-  },
-
-  houseClubRole: {
-    type: String,
-    trim: true
-  },
-
-  gpaScore: {
-    type: Number,
-    min: 0,
-    max: 5.0
-  },
-
-  gpaRank: {
-    type: String,
-    trim: true
-  },
-
-  classroom: {
-    type: String,
-    trim: true
-  },
-
-  classroomWing: {
-    type: String,
-    trim: true
-  },
-
   address: {
     street: String,
     city: String,

@@ -16,6 +16,7 @@ export const USER_STATUS = {
 
 export const STUDENT_STATUS = {
   ACTIVE: 'ACTIVE',
+  BLOCKED: 'BLOCKED',
   DROPPED: 'DROPPED',
   PASSED_OUT: 'PASSED_OUT',
 };
@@ -29,6 +30,7 @@ export const STUDENT_GENDER = {
 export const TEACHER_STATUS = {
   ACTIVE: 'ACTIVE',
   INACTIVE: 'INACTIVE',
+  BLOCKED: 'BLOCKED',
 };
 
 export const CLASS_STATUS = {

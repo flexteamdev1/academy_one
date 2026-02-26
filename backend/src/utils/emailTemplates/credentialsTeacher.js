@@ -15,7 +15,7 @@ const buildTeacherTemplate = (payload) => {
     `Login ID: ${d.loginId}`,
     `Temporary Password: ${d.password}`,
     '',
-    `Login URL: ${d.portalUrl}`,
+    `Login URL: ${d.portalLoginUrl}`,
     '',
     'Important security notice:',
     '- Change your password immediately on first login.',
@@ -30,9 +30,9 @@ const buildTeacherTemplate = (payload) => {
       <tr><td align="center">
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:720px;background:#ffffff;border:1px solid #efd8bd;border-radius:16px;overflow:hidden;">
           <tr>
-            <td style="background:#efcaa5;padding:28px 20px;text-align:center;">
-              <div style="width:120px;height:120px;margin:0 auto 14px;background:#f2f2f2;"></div>
-              <h1 style="margin:0;color:#e9795e;font-size:46px;font-weight:700;">Welcome to the Faculty Portal</h1>
+            <td style="background:#d7dceb;padding:28px 20px;text-align:center;">
+              ${d.logoUrl ? `<img src="${escapeHtml(d.logoUrl)}" alt="${escapeHtml(d.schoolName)} logo" style="display:block;width:96px;height:96px;margin:0 auto 14px;object-fit:contain;border-radius:14px;border:1px solid #f0e6d9;" />` : ''}
+              <h1 style="margin:0;color:#3c466a;font-size:46px;font-weight:700;">Welcome to the Faculty Portal</h1>
             </td>
           </tr>
           <tr>
@@ -48,7 +48,7 @@ const buildTeacherTemplate = (payload) => {
                 <tr><td style="padding:10px 18px;border-top:1px solid #f0e6d9;">Temporary Password:</td><td style="padding:10px 18px;border-top:1px solid #f0e6d9;text-align:right;font-weight:700;color:#ed7b5f;">${escapeHtml(d.password)}</td></tr>
               </table>
               <p style="text-align:center;margin:0 0 24px;">
-                <a href="${escapeHtml(d.portalUrl)}" style="display:inline-block;background:#e76f51;color:#fff;text-decoration:none;padding:13px 28px;border-radius:30px;font-weight:700;">Access Faculty Portal</a>
+                <a href="${escapeHtml(d.portalLoginUrl)}" style="display:inline-block;background:#e76f51;color:#fff;text-decoration:none;padding:13px 28px;border-radius:30px;font-weight:700;">Access Faculty Portal</a>
               </p>
               <div style="background:#f7f7f7;border-radius:10px;padding:14px 16px;">
                 <h3 style="margin:0 0 10px;font-size:26px;font-style:italic;">Important Security Notice:</h3>

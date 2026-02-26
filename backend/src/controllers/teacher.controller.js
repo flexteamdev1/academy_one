@@ -167,13 +167,15 @@ const createTeacher = async (req, res) => {
         teacherUser = existingUser;
       } else {
         generatedPassword = randomPassword();
+        const initialUserStatus =
+          req.body.status === TEACHER_STATUS.BLOCKED ? USER_STATUS.BLOCKED : USER_STATUS.ACTIVE;
         teacherUser = await User.create({
           name: `${req.body.firstName || ''} ${req.body.lastName || ''}`.trim() || 'Teacher',
           email: normalizedEmail,
           phone: req.body.phone,
           password: generatedPassword,
           role: ROLES.TEACHER,
-          status: USER_STATUS.ACTIVE,
+          status: initialUserStatus,
           mustChangePassword: true,
         });
         createdTeacherUser = true;
@@ -309,6 +311,18 @@ const updateTeacher = async (req, res) => {
     });
 
     const updated = await Teacher.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true });
+
+    if (updateData.status && existing.userId) {
+      const nextUserStatus =
+        updateData.status === TEACHER_STATUS.BLOCKED
+          ? USER_STATUS.BLOCKED
+          : updateData.status === TEACHER_STATUS.ACTIVE
+            ? USER_STATUS.ACTIVE
+            : null;
+      if (nextUserStatus) {
+        await User.findByIdAndUpdate(existing.userId, { status: nextUserStatus });
+      }
+    }
 
     res.json(updated);
   } catch (error) {

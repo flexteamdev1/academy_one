@@ -68,7 +68,7 @@ const LoginPage = () => {
 
       setStoredUserInfo({ ...response, remember }, remember);
       if (response?.mustChangePassword) {
-        navigate('/profile');
+        navigate('/change-password');
       } else {
         navigate('/');
       }
@@ -170,10 +170,8 @@ const LoginPage = () => {
               p: 4,
               borderRadius: theme.shape.borderRadius,
               boxShadow: 'none',
-              border: '1px solid',
-              borderColor: theme.palette.action.hover,
-              backgroundColor: theme.palette.action.hover,
-              backdropFilter: 'blur(8px)',
+              border: 'none',
+              backgroundColor: "transparent",
               textAlign: 'center',
             })}
           >
@@ -277,13 +275,13 @@ const LoginPage = () => {
               <Stack spacing={2.6}>
                 <Box>
                   <Typography sx={{ mb: 1, ml: 0.8, fontSize: '0.67rem', fontWeight: 800, color: (theme) => theme.palette.grey[500], textTransform: 'uppercase', letterSpacing: '0.12em' }}>
-                    User Email
+                    Email or Admission No
                   </Typography>
                   <TextField
                     fullWidth
                     name="email"
-                    type="email"
-                    placeholder="name@school.edu"
+                    type="text"
+                    placeholder="name@school.edu or A00123"
                     value={formData.email}
                     onChange={handleChange}
                     InputProps={{

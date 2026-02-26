@@ -98,6 +98,13 @@ const statusChipSx = (status, theme) => {
       borderColor: theme.palette.success.main,
     };
   }
+  if (status === STUDENT_STATUS.BLOCKED) {
+    return {
+      backgroundColor: theme.palette.error.light,
+      color: theme.palette.error.main,
+      borderColor: theme.palette.error.main,
+    };
+  }
 
   return {
     backgroundColor: theme.palette.grey[100],

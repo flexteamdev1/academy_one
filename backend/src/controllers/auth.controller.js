@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const StudentProfile = require('../models/StudentProfile');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { ROLES } = require('../constants/roles');
@@ -28,7 +29,7 @@ const registerUser = async (req, res) => {
       });
     }
 
-    const mustChangePassword = [ROLES.TEACHER, ROLES.STUDENT, ROLES.PARENT].includes(role);
+    const mustChangePassword = [ROLES.TEACHER, ROLES.STUDENT, ROLES.PARENT, ROLES.ADMIN].includes(role);
     const user = await User.create({
       name,
       email,
@@ -55,11 +56,23 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     const { email, password, remember } = req.body;
-    const user = await User.findOne({ email }).select('+password');
+    const identifier = String(email || '').trim().toLowerCase();
+    let user = null;
+
+    if (identifier.includes('@')) {
+      user = await User.findOne({ email: identifier }).select('+password');
+    } else if (identifier) {
+      const studentProfile = await StudentProfile.findOne({
+        admissionNo: { $regex: `^${identifier}$`, $options: 'i' },
+      }).select('userId');
+      if (studentProfile?.userId) {
+        user = await User.findById(studentProfile.userId).select('+password');
+      }
+    }
 
     if (!user) {
       return res.status(400).json({
-        message: 'Invalid credentials (email)',
+        message: 'Invalid credentials',
       });
     }
 
@@ -71,12 +84,20 @@ const loginUser = async (req, res) => {
       });
     }
 
+    if (user.status === 'BLOCKED') {
+      return res.status(403).json({ message: 'Account is blocked', code: 'ACCOUNT_BLOCKED' });
+    }
+    if (user.status === 'SUSPENDED') {
+      return res.status(403).json({ message: 'Account is suspended', code: 'ACCOUNT_SUSPENDED' });
+    }
+
     const expiresIn = remember ? '30d' : '7d';
     res.json({
       id: user._id,
       email: user.email,
       role: user.role,
       name: user.name,
+      status: user.status,
       mustChangePassword: !!user.mustChangePassword,
       token: generateToken(user._id, expiresIn),
     });
@@ -140,6 +161,12 @@ const forgotPassword = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'Email is not registered' });
     }
+    if (user.status === 'BLOCKED') {
+      return res.status(403).json({ message: 'Account is blocked', code: 'ACCOUNT_BLOCKED' });
+    }
+    if (user.status === 'SUSPENDED') {
+      return res.status(403).json({ message: 'Account is suspended', code: 'ACCOUNT_SUSPENDED' });
+    }
 
     const token = crypto.randomBytes(32).toString('hex');
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
@@ -190,6 +217,12 @@ const resetPassword = async (req, res) => {
 
     if (!user) {
       return res.status(400).json({ message: 'Invalid or expired reset token' });
+    }
+    if (user.status === 'BLOCKED') {
+      return res.status(403).json({ message: 'Account is blocked', code: 'ACCOUNT_BLOCKED' });
+    }
+    if (user.status === 'SUSPENDED') {
+      return res.status(403).json({ message: 'Account is suspended', code: 'ACCOUNT_SUSPENDED' });
     }
 
     user.password = newPassword;

@@ -12,10 +12,10 @@ const buildStudentTemplate = (payload) => {
     'Account Details:',
     `Role: ${d.role}`,
     `System ID: ${d.systemId}`,
-    `Login ID: ${d.loginId}`,
+    `Admission No: ${d.loginId}`,
     `Temporary Password: ${d.password}`,
     '',
-    `Login URL: ${d.portalUrl}`,
+    `Login URL: ${d.portalLoginUrl}`,
     '',
     "What's inside your portal?",
     '- Daily schedule and classroom assignments.',
@@ -31,9 +31,9 @@ const buildStudentTemplate = (payload) => {
       <tr><td align="center">
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:680px;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;">
           <tr>
-            <td style="background:#8a9a5b;padding:26px 20px;text-align:center;">
-              <div style="width:66px;height:66px;border-radius:50%;margin:0 auto 10px;border:2px solid rgba(255,255,255,0.35);background:rgba(10,45,20,0.35);"></div>
-              <h1 style="margin:0;color:#eef4df;font-size:52px;line-height:1.05;">${escapeHtml(d.schoolName)}</h1>
+            <td style="background:#d7dceb;padding:26px 20px;text-align:center;">
+              ${d.logoUrl ? `<img src="${escapeHtml(d.logoUrl)}" alt="${escapeHtml(d.schoolName)} logo" style="display:block;width:72px;height:72px;margin:0 auto 10px;object-fit:contain;border-radius:50%;border:2px solid rgba(255,255,255,0.35);" />` : ''}
+              <h1 style="margin:0;color:#3c466a;font-size:52px;line-height:1.05;">${escapeHtml(d.schoolName)}</h1>
             </td>
           </tr>
           <tr>
@@ -45,11 +45,11 @@ const buildStudentTemplate = (payload) => {
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-left:4px solid #8a9a5b;border-radius:10px;background:#f5f6f7;margin-bottom:24px;">
                 <tr><td colspan="2" style="padding:16px 18px 8px;color:#7f8f4f;font-weight:700;letter-spacing:1px;font-size:12px;">ACCOUNT DETAILS</td></tr>
                 <tr><td style="padding:10px 18px;border-top:1px solid #e4e7ea;color:#6b7280;">Role:</td><td style="padding:10px 18px;border-top:1px solid #e4e7ea;text-align:right;font-weight:700;">${escapeHtml(d.role)}</td></tr>
-                <tr><td style="padding:10px 18px;border-top:1px solid #e4e7ea;color:#6b7280;">System ID:</td><td style="padding:10px 18px;border-top:1px solid #e4e7ea;text-align:right;font-weight:700;">${escapeHtml(d.systemId)}</td></tr>
+                <tr><td style="padding:10px 18px;border-top:1px solid #e4e7ea;color:#6b7280;">Admission No:</td><td style="padding:10px 18px;border-top:1px solid #e4e7ea;text-align:right;font-weight:700;">${escapeHtml(d.loginId)}</td></tr>
                 <tr><td style="padding:10px 18px;border-top:1px solid #e4e7ea;color:#6b7280;">Temporary Password:</td><td style="padding:10px 18px;border-top:1px solid #e4e7ea;text-align:right;font-weight:700;color:#111827;">${escapeHtml(d.password)}</td></tr>
               </table>
               <p style="text-align:center;margin:0 0 14px;">
-                <a href="${escapeHtml(d.portalUrl)}" style="display:inline-block;background:#e2725b;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:700;">Login to Student Portal</a>
+                <a href="${escapeHtml(d.portalLoginUrl)}" style="display:inline-block;background:#e2725b;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:700;">Login to Student Portal</a>
               </p>
               <p style="margin:0 0 22px;text-align:center;color:#9ca3af;font-style:italic;font-size:13px;">
                 Note: For security reasons, you will be prompted to change your password upon first login.

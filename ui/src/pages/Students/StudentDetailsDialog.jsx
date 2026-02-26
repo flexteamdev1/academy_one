@@ -24,11 +24,19 @@ const formatDate = (value) => {
 };
 
 const getStatusColor = (status, theme) => {
-  if (String(status || '').toUpperCase() === 'ACTIVE') {
+  const normalized = String(status || '').toUpperCase();
+  if (normalized === 'ACTIVE') {
     return {
       backgroundColor: theme.palette.success.light,
       color: theme.palette.success.dark,
       borderColor: theme.palette.success.main,
+    };
+  }
+  if (normalized === 'BLOCKED') {
+    return {
+      backgroundColor: theme.palette.error.light,
+      color: theme.palette.error.dark,
+      borderColor: theme.palette.error.main,
     };
   }
   return {
@@ -91,7 +99,9 @@ const StudentDetailsDialog = ({
                 borderColor: theme.palette.grey[50],
                 backgroundColor: String(student?.status || '').toUpperCase() === 'ACTIVE'
                   ? theme.palette.success.main
-                  : theme.palette.grey[300],
+                  : String(student?.status || '').toUpperCase() === 'BLOCKED'
+                    ? theme.palette.error.main
+                    : theme.palette.grey[300],
               })}
             />
           </Box>

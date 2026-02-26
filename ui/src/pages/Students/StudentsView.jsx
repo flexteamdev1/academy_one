@@ -162,6 +162,7 @@ const StudentsView = ({
               <Select value={status} onChange={(e) => { setStatus(e.target.value); }} sx={{ backgroundColor: (theme) => theme.palette.grey[50] }}>
                 <MenuItem value={FILTER_ALL}>All Status</MenuItem>
                 <MenuItem value={STUDENT_STATUS.ACTIVE}>Active</MenuItem>
+                <MenuItem value={STUDENT_STATUS.BLOCKED}>Blocked</MenuItem>
                 <MenuItem value={STUDENT_STATUS.DROPPED}>Dropped</MenuItem>
                 <MenuItem value={STUDENT_STATUS.PASSED_OUT}>Passed Out</MenuItem>
               </Select>

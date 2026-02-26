@@ -135,6 +135,7 @@ const TeachersView = ({
           <MenuItem value={FILTER_ALL}>All Statuses</MenuItem>
           <MenuItem value={TEACHER_STATUS.ACTIVE}>Active</MenuItem>
           <MenuItem value={TEACHER_STATUS.INACTIVE}>On Leave</MenuItem>
+          <MenuItem value={TEACHER_STATUS.BLOCKED}>Blocked</MenuItem>
         </TextField>
         <Button type="submit" variant="outlined" startIcon={<FilterListOutlined />}>
           Apply

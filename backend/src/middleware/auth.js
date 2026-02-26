@@ -19,6 +19,15 @@ const protect = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     req.user = await User.findById(decoded.id).select('-password');
+    if (!req.user) {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+    if (req.user.status === 'BLOCKED') {
+      return res.status(403).json({ message: 'Account is blocked', code: 'ACCOUNT_BLOCKED' });
+    }
+    if (req.user.status === 'SUSPENDED') {
+      return res.status(403).json({ message: 'Account is suspended', code: 'ACCOUNT_SUSPENDED' });
+    }
 
     next();
   } catch (err) {

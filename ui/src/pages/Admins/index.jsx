@@ -13,7 +13,6 @@ const emptyForm = {
   name: '',
   email: '',
   phone: '',
-  password: '',
   status: USER_STATUS.ACTIVE,
 };
 
@@ -95,7 +94,7 @@ const Admins = () => {
   }, []);
 
   const handleDialogSubmit = useCallback(async () => {
-    if (!form.name.trim() || !form.email.trim() || (dialogMode === 'create' && !form.password.trim())) {
+    if (!form.name.trim() || !form.email.trim()) {
       setShowErrors(true);
       setToast({ open: true, severity: 'error', message: 'Please complete all required fields' });
       return;
@@ -103,13 +102,18 @@ const Admins = () => {
 
     setSubmitting(true);
     try {
-      const payload = {
-        name: form.name.trim(),
-        email: form.email.trim(),
-        phone: form.phone.trim(),
-        status: form.status,
-        password: dialogMode === 'create' ? form.password : undefined,
-      };
+      const payload =
+        dialogMode === 'create'
+          ? {
+              name: form.name.trim(),
+              email: form.email.trim(),
+            }
+          : {
+              name: form.name.trim(),
+              email: form.email.trim(),
+              phone: form.phone.trim(),
+              status: form.status,
+            };
 
       if (dialogMode === 'create') {
         await createAdmin(payload);

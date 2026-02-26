@@ -24,6 +24,7 @@ const buildNoticeEmailContent = (payload) => {
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:680px;background:#ffffff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;">
           <tr>
             <td style="padding:28px 32px;background:#0f172a;color:#fff;">
+              ${d.logoUrl ? `<img src="${escapeHtml(d.logoUrl)}" alt="${escapeHtml(d.schoolName)} logo" style="display:block;width:48px;height:48px;margin:0 0 10px;object-fit:contain;border-radius:8px;background:#ffffff;" />` : ''}
               <h1 style="margin:0;font-size:22px;font-weight:700;">${escapeHtml(d.schoolName)}</h1>
               <p style="margin:6px 0 0;font-size:14px;color:#cbd5f5;">New Notice</p>
             </td>

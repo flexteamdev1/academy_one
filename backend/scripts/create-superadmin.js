@@ -30,11 +30,12 @@ const run = async () => {
   }
 
   const user = await User.create({
+    name: name || 'Super Admin',
     email,
+    phone,
     password,
     role: ROLES.SUPER_ADMIN,
-    profile: { name, phone },
-    mustChangePassword: true,
+    mustChangePassword: false,
   });
 
   console.log("Super Admin Created:", user.email);

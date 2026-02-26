@@ -7,30 +7,11 @@ import theme from './theme';
 
 import LoginPage from './pages/Login';
 import ResetPassword from './pages/ResetPassword';
-import Dashboard from './pages/Dashboard';
-import UserDashboard from './pages/UserDashboard';
-import TeacherDashboard from './pages/TeacherDashboard';
-import Students from './pages/Students';
-import Teachers from './pages/Teachers';
-import Admins from './pages/Admins';
-import Classes from './pages/Classes';
-import AcademicYears from './pages/AcademicYears';
-import Enrollment from './pages/Enrollment';
-import Profile from './pages/Profile';
-import ChangePassword from './pages/ChangePassword';
-import ModernStudentProfile from './pages/ModernStudentProfile';
-import StudentAttendance from './pages/StudentAttendance';
-import MarkStudentAttendance from './pages/MarkStudentAttendance';
-import AttendanceDetails from './pages/AttendanceDetails';
-import StudentAttendanceRecords from './pages/StudentAttendanceRecords';
-import AttendanceView from './pages/AttendanceView';
-import TeacherStudentManagement from './pages/TeacherStudentManagement';
-import Fees from './pages/Fees';
-import Notices from './pages/Notices';
 import NotFound from './pages/NotFound';
 import MainLayout from './components/layout/MainLayout';
 import { UIProvider } from './context/UIContext';
 import { getStoredUserInfo, getUserInfo, getUserRole } from './utils/auth';
+import { APP_ROUTES } from './routes/appRoutes';
 
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
@@ -42,7 +23,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
 
   const user = getUserInfo();
   const role = getUserRole();
-  const mustForceChange = ['student', 'parent', 'teacher'].includes(role);
+  const mustForceChange = ['student', 'parent', 'teacher', 'admin'].includes(role);
   const allowedPasswordRoutes = ['/profile', '/change-password'];
   if (mustForceChange && user?.mustChangePassword && !allowedPasswordRoutes.includes(location.pathname)) {
     return <Navigate to="/change-password" replace />;
@@ -55,30 +36,18 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   return children;
 };
 
-const HomeLanding = () => {
-  const role = getUserRole();
-  if (role === 'student' || role === 'parent') return <UserDashboard />;
-  if (role === 'teacher') return <Navigate to="/teacher-dashboard" replace />;
-  return <Dashboard />;
-};
+const renderProtectedRoute = (route) => {
+  const key = route.index ? 'index' : route.path || route.element?.type?.name || 'route';
+  const element = route.roles ? (
+    <ProtectedRoute allowedRoles={route.roles}>{route.element}</ProtectedRoute>
+  ) : (
+    route.element
+  );
 
-const ProfileLanding = () => {
-  const role = getUserRole();
-  if (role === 'student' || role === 'parent') {
-    return <ModernStudentProfile />;
+  if (route.index) {
+    return <Route key={key} index element={element} />;
   }
-  return <Profile />;
-};
-
-const AttendanceLanding = () => {
-  const role = getUserRole();
-  if (role === 'teacher' || role === 'admin' || role === 'super_admin') {
-    return <StudentAttendance />;
-  }
-  if (role === 'student' || role === 'parent') {
-    return <StudentAttendanceRecords />;
-  }
-  return <AttendanceView />;
+  return <Route key={key} path={route.path} element={element} />;
 };
 
 function App() {
@@ -112,25 +81,7 @@ function App() {
                 </ProtectedRoute>
               }
             >
-              <Route index element={<ProtectedRoute allowedRoles={['super_admin', 'admin', 'teacher', 'student', 'parent']}><HomeLanding /></ProtectedRoute>} />
-              <Route path="teacher-dashboard" element={<ProtectedRoute allowedRoles={['super_admin', 'admin', 'teacher']}><TeacherDashboard /></ProtectedRoute>} />
-              <Route path="students" element={<ProtectedRoute allowedRoles={['super_admin', 'admin']}><Students /></ProtectedRoute>} />
-              <Route path="teacher/students" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherStudentManagement /></ProtectedRoute>} />
-              <Route path="students/:id/profile" element={<ProtectedRoute allowedRoles={['super_admin', 'admin', 'teacher']}><ModernStudentProfile /></ProtectedRoute>} />
-              <Route path="teachers" element={<ProtectedRoute allowedRoles={['super_admin', 'admin']}><Teachers /></ProtectedRoute>} />
-              <Route path="admins" element={<ProtectedRoute allowedRoles={['super_admin']}><Admins /></ProtectedRoute>} />
-              <Route path="classes" element={<ProtectedRoute allowedRoles={['super_admin', 'admin']}><Classes /></ProtectedRoute>} />
-              <Route path="academic-years" element={<ProtectedRoute allowedRoles={['super_admin', 'admin']}><AcademicYears /></ProtectedRoute>} />
-              <Route path="enrollment" element={<ProtectedRoute allowedRoles={['super_admin', 'admin', 'teacher']}><Enrollment /></ProtectedRoute>} />
-              <Route path="attendance" element={<ProtectedRoute allowedRoles={['super_admin', 'admin', 'teacher', 'student', 'parent']}><AttendanceLanding /></ProtectedRoute>} />
-              <Route path="attendance/mark/:classId/:sectionName" element={<ProtectedRoute allowedRoles={['super_admin', 'admin', 'teacher']}><MarkStudentAttendance /></ProtectedRoute>} />
-              <Route path="attendance/details/:classId/:sectionName/:date" element={<ProtectedRoute allowedRoles={['super_admin', 'admin', 'teacher']}><AttendanceDetails /></ProtectedRoute>} />
-              <Route path="fees" element={<ProtectedRoute allowedRoles={['super_admin', 'admin', 'student', 'parent']}><Fees /></ProtectedRoute>} />
-              <Route path="notices" element={<ProtectedRoute allowedRoles={['super_admin', 'admin', 'teacher', 'student', 'parent']}><Notices /></ProtectedRoute>} />
-              <Route path="profile" element={<ProtectedRoute allowedRoles={['super_admin', 'admin', 'teacher', 'student', 'parent']}><ProfileLanding /></ProtectedRoute>} />
-              <Route path="change-password" element={<ProtectedRoute allowedRoles={['super_admin', 'admin', 'teacher', 'student', 'parent']}><ChangePassword /></ProtectedRoute>} />
-              <Route path="my-students" element={<Navigate to="/profile" replace />} />
-              <Route path="*" element={<NotFound />} />
+              {APP_ROUTES.map(renderProtectedRoute)}
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

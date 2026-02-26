@@ -57,30 +57,17 @@ const AdminFormDialog = ({
             value={form.phone}
             onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
           />
-          {dialogMode === 'create' ? (
-            <TextField
-              label="Password"
-              type="password"
-              fullWidth
-              required
-              value={form.password}
-              onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))}
-              error={showErrors && !form.password.trim()}
-              helperText={showErrors && !form.password.trim() ? 'Required' : ' '}
-            />
-          ) : (
-            <TextField
-              select
-              label="Status"
-              fullWidth
-              value={form.status}
-              onChange={(e) => setForm((prev) => ({ ...prev, status: e.target.value }))}
-            >
-              <MenuItem value={USER_STATUS.ACTIVE}>Active</MenuItem>
-              <MenuItem value={USER_STATUS.BLOCKED}>Blocked</MenuItem>
-              <MenuItem value={USER_STATUS.SUSPENDED}>Suspended</MenuItem>
-            </TextField>
-          )}
+          <TextField
+            select
+            label="Status"
+            fullWidth
+            value={form.status}
+            onChange={(e) => setForm((prev) => ({ ...prev, status: e.target.value }))}
+          >
+            <MenuItem value={USER_STATUS.ACTIVE}>Active</MenuItem>
+            <MenuItem value={USER_STATUS.BLOCKED}>Blocked</MenuItem>
+            <MenuItem value={USER_STATUS.SUSPENDED}>Suspended</MenuItem>
+          </TextField>
         </Stack>
       </Stack>
     </Stack>
