@@ -6,6 +6,7 @@ import TeacherDashboard from '../pages/TeacherDashboard';
 import Students from '../pages/Students';
 import Teachers from '../pages/Teachers';
 import Admins from '../pages/Admins';
+import Parents from '../pages/Parents';
 import Classes from '../pages/Classes';
 import AcademicYears from '../pages/AcademicYears';
 import Enrollment from '../pages/Enrollment';
@@ -72,6 +73,7 @@ const APP_ROUTES = [
   { path: 'teacher/students', element: <TeacherStudentManagement />, roles: [ROLES.TEACHER] },
   { path: 'students/:id/profile', element: <ModernStudentProfile />, roles: ROLE_GROUPS.STAFF },
   { path: 'teachers', element: <Teachers />, roles: ROLE_GROUPS.ADMIN_ONLY },
+  { path: 'parents', element: <Parents />, roles: ROLE_GROUPS.ADMIN_ONLY },
   { path: 'admins', element: <Admins />, roles: ROLE_GROUPS.SUPER_ONLY },
   { path: 'classes', element: <Classes />, roles: ROLE_GROUPS.ADMIN_ONLY },
   { path: 'academic-years', element: <AcademicYears />, roles: ROLE_GROUPS.ADMIN_ONLY },

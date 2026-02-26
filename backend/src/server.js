@@ -28,6 +28,7 @@ app.use("/api/notices", require("./routes/noticeRoutes"));
 app.use("/api/leads", require("./routes/leadRoutes"));
 app.use("/api/admins", require("./routes/adminRoutes"));
 app.use("/api/attendance", require("./routes/attendanceRoutes"));
+app.use("/api/parents", require("./routes/parentRoutes"));
 
 // Home
 app.get("/", (req, res) => {

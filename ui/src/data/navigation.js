@@ -8,6 +8,7 @@ import CampaignOutlined from '@mui/icons-material/CampaignOutlined';
 import ReceiptLongOutlined from '@mui/icons-material/ReceiptLongOutlined';
 import HowToRegOutlined from '@mui/icons-material/HowToRegOutlined';
 import AdminPanelSettingsOutlined from '@mui/icons-material/AdminPanelSettingsOutlined';
+import FamilyRestroomOutlined from '@mui/icons-material/FamilyRestroomOutlined';
 
 const navigation = [
   {
@@ -48,6 +49,14 @@ const navigation = [
     icon: SchoolOutlined,
     headerTitle: 'Teacher Management',
     breadcrumb: 'Teachers Directory',
+    roles: ['super_admin', 'admin'],
+  },
+  {
+    label: 'Parents',
+    path: '/parents',
+    icon: FamilyRestroomOutlined,
+    headerTitle: 'Parent Management',
+    breadcrumb: 'Parents Directory',
     roles: ['super_admin', 'admin'],
   },
   {
