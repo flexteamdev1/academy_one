@@ -10,6 +10,7 @@ import {
   getStudentStats,
   listStudents,
   updateStudent,
+  resetStudentPassword,
 } from '../../services/studentService';
 import { listClasses } from '../../services/classService';
 import { getUserRole } from '../../utils/auth';
@@ -117,6 +118,7 @@ const Students = () => {
   const { selectedAcademicYearId } = useUIState();
   const role = getUserRole();
   const canManage = role === USER_ROLES.SUPER_ADMIN || role === USER_ROLES.ADMIN;
+  const canResetPassword = [USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.TEACHER].includes(role);
   const [students, setStudents] = useState([]);
   const [stats, setStats] = useState({
     attendanceRate: 0,
@@ -150,6 +152,8 @@ const Students = () => {
   const [classCatalog, setClassCatalog] = useState([]);
 
   const [deleteState, setDeleteState] = useState({ open: false, id: '', name: '' });
+  const [resetState, setResetState] = useState({ open: false, id: '', name: '', email: '' });
+  const [resetting, setResetting] = useState(false);
   const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
 
   const totalPages = Math.max(1, Math.ceil(total / LIMIT));
@@ -387,6 +391,28 @@ const Students = () => {
     }
   };
 
+  const handleResetPassword = async () => {
+    if (!resetState.id) return;
+    setResetting(true);
+    try {
+      const res = await resetStudentPassword(resetState.id);
+      setToast({
+        open: true,
+        severity: 'success',
+        message: res?.message || 'Temporary password sent to parent email',
+      });
+      setResetState({ open: false, id: '', name: '', email: '' });
+    } catch (err) {
+      setToast({
+        open: true,
+        severity: 'error',
+        message: err.message || 'Unable to reset student password',
+      });
+    } finally {
+      setResetting(false);
+    }
+  };
+
   return (
     <Box>
       <StudentsView
@@ -419,6 +445,15 @@ const Students = () => {
         metricSpec={metricSpec}
         stats={stats}
         statusChipSx={statusChipSx}
+        canResetPassword={canResetPassword}
+        onResetPassword={(student) =>
+          setResetState({
+            open: true,
+            id: student._id,
+            name: student.name || 'this student',
+            email: student.parentId?.email || student.fatherEmail || student.motherEmail || '',
+          })
+        }
       />
 
       {canManage ? (
@@ -454,6 +489,18 @@ const Students = () => {
           />
         </>
       ) : null}
+
+      <DeleteConfirmDialog
+        open={resetState.open}
+        onClose={() => setResetState({ open: false, id: '', name: '', email: '' })}
+        onConfirm={handleResetPassword}
+        confirming={resetting}
+        title="Reset Student Password?"
+        itemName={resetState.name}
+        description={`A temporary password will be generated and emailed to ${resetState.email || 'the parent email on file'}. The student will be required to change it on first login.`}
+        confirmLabel="Send Temporary Password"
+        cancelLabel="Cancel"
+      />
 
       <StudentDetailsDialog
         open={viewDialogOpen}

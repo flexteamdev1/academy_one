@@ -39,6 +39,7 @@ import { useUIState } from '../context/UIContext';
 import { ATTENDANCE_STATUS, CLASS_STATUS, STUDENT_STATUS } from '../constants/enums';
 import { getUserInfo, getUserRole } from '../utils/auth';
 import { filterClassesForTeacher, getTeacherId, normalizeSectionName } from '../utils/teacherAccess';
+import { useNavigate } from 'react-router-dom';
 
 const toISODate = (value) => new Date(value).toISOString().slice(0, 10);
 
@@ -48,6 +49,7 @@ const StudentAttendance = () => {
   const role = getUserRole();
   const teacherId = role === 'teacher' ? getTeacherId(user) : '';
   const today = toISODate(new Date());
+  const navigate = useNavigate();
 
   const [selectedDate] = useState(today);
   const [selectedClassId, setSelectedClassId] = useState('');
@@ -69,6 +71,11 @@ const StudentAttendance = () => {
   const [currentStudentId, setCurrentStudentId] = useState(null);
 
   const canEdit = selectedDate === today;
+
+  const getHistoryLink = () => {
+    if (!selectedClassId || !selectedSection) return '/attendance';
+    return `/attendance/history/${selectedClassId}/${selectedSection}`;
+  };
 
   // Load Classes
   useEffect(() => {
@@ -308,6 +315,7 @@ const StudentAttendance = () => {
               <Button
                 variant="outlined"
                 startIcon={<HistoryIcon sx={{ fontSize: 18 }} />}
+                onClick={() => navigate(getHistoryLink())}
                 sx={{
                   borderRadius: '14px',
                   borderColor: '#e3e8f1',
@@ -349,44 +357,83 @@ const StudentAttendance = () => {
 
       {/* Student List Section */}
       <Paper elevation={0} sx={{ borderRadius: '28px', border: '1px solid #e3e8f1', overflow: 'hidden', bgcolor: '#fff' }}>
-        <Box sx={{ p: 4, bgcolor: '#fcfcfd', borderBottom: '1px solid #e3e8f1', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Grid container sx={{ flex: 1, px: 2 }}>
-            <Grid item xs={2}><Typography sx={{ fontSize: '11px', fontWeight: 800, color: '#9ca3af', letterSpacing: '1px' }}>ROLL NO</Typography></Grid>
-            <Grid item xs={4}><Typography sx={{ fontSize: '11px', fontWeight: 800, color: '#9ca3af', letterSpacing: '1px' }}>STUDENT PROFILE</Typography></Grid>
-            <Grid item xs={4} sx={{ textAlign: 'center' }}><Typography sx={{ fontSize: '11px', fontWeight: 800, color: '#9ca3af', letterSpacing: '1px' }}>ATTENDANCE STATUS</Typography></Grid>
-            <Grid item xs={2} sx={{ textAlign: 'right' }}><Typography sx={{ fontSize: '11px', fontWeight: 800, color: '#9ca3af', letterSpacing: '1px' }}>REMARKS</Typography></Grid>
-          </Grid>
+        <Box sx={{ p: 4, bgcolor: '#fcfcfd', borderBottom: '1px solid #e3e8f1', display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr auto' }, gap: 2, alignItems: 'center' }}>
+          <Box sx={{ px: 2, display: 'grid', gridTemplateColumns: { xs: '1fr', md: '120px 2.4fr 2.8fr 120px' }, columnGap: 2, alignItems: 'center' }}>
+            <Typography sx={{ fontSize: '11px', fontWeight: 800, color: '#9ca3af', letterSpacing: '1px' }}>ROLL NO</Typography>
+            <Typography sx={{ fontSize: '11px', fontWeight: 800, color: '#9ca3af', letterSpacing: '1px' }}>STUDENT PROFILE</Typography>
+            <Typography sx={{ fontSize: '11px', fontWeight: 800, color: '#9ca3af', letterSpacing: '1px', textAlign: { md: 'center' } }}>ATTENDANCE STATUS</Typography>
+            <Typography sx={{ fontSize: '11px', fontWeight: 800, color: '#9ca3af', letterSpacing: '1px', textAlign: { md: 'right' } }}>REMARKS</Typography>
+          </Box>
           <TextField
             size="small"
             placeholder="Search..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            sx={{ ml: 4, width: 220, '& .MuiOutlinedInput-root': { borderRadius: '14px', bgcolor: '#fff', fontSize: '14px' } }}
+            sx={{ width: { xs: '100%', md: 240 }, '& .MuiOutlinedInput-root': { borderRadius: '14px', bgcolor: '#fff', fontSize: '14px' } }}
             InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon sx={{ fontSize: 18, color: '#9ca3af' }} /></InputAdornment> }}
           />
         </Box>
 
         <Box sx={{ minHeight: '400px', position: 'relative' }}>
           {loadingRoster && <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0 }} />}
+          {!loadingRoster && visibleStudents.length === 0 ? (
+            <Box
+              sx={{
+                py: 10,
+                textAlign: 'center',
+                color: '#9ca3af',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 1.2
+              }}
+            >
+              <Box
+                sx={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: '18px',
+                  bgcolor: '#f3f4f6',
+                  display: 'grid',
+                  placeItems: 'center',
+                  color: '#9ca3af',
+                  fontSize: 28,
+                  fontWeight: 900
+                }}
+              >
+                ∅
+              </Box>
+              <Typography sx={{ fontWeight: 800, color: '#374151' }}>No students found</Typography>
+              <Typography sx={{ fontSize: '14px', color: '#9ca3af', maxWidth: 360 }}>
+                There are no active students in this class/section for the selected date.
+              </Typography>
+            </Box>
+          ) : null}
           {visibleStudents.map((student, idx) => {
             const isExcused = student.name.includes('(Medical Leave)');
             const status = statusById[student._id] || ATTENDANCE_STATUS.PRESENT;
 
             return (
-              <Box key={student._id} sx={{ transition: 'all 0.2s', borderBottom: '1px solid #f8f9fa', '&:hover': { bgcolor: '#fcfcfd' } }}>
-                <Grid container alignItems="center" sx={{ px: 5, py: 3 }}>
-                  <Grid item xs={2}>
-                    <Typography sx={{ fontWeight: 700, color: '#9ca3af', fontSize: '14px' }}>#{String(idx + 1).padStart(3, '0')}</Typography>
-                  </Grid>
-                  <Grid item xs={4}>
-                    <Stack direction="row" spacing={2.5} alignItems="center">
-                      <Avatar src={student.profilePhotoUrl} sx={{ width: 44, height: 44, border: '2px solid #fcfcfd', boxShadow: '0 2px 6px rgba(0,0,0,0.06)' }} />
-                      <Typography sx={{ fontWeight: 800, color: isExcused ? '#9ca3af' : '#374151', fontSize: '15px' }}>
-                        {student.name} {isExcused && <LockIcon sx={{ fontSize: 16, ml: 1, verticalAlign: 'middle', color: '#9ca3af' }} />}
-                      </Typography>
-                    </Stack>
-                  </Grid>
-                  <Grid item xs={4} sx={{ display: 'flex', justifyContent: 'center' }}>
+              <Box
+                key={student._id}
+                sx={{
+                  transition: 'all 0.2s',
+                  borderBottom: '1px solid #f1f5f9',
+                  bgcolor: idx % 2 === 0 ? '#fff' : '#fbfcff',
+                  '&:hover': { bgcolor: '#f3f6ff' }
+                }}
+              >
+                <Box sx={{ px: 5, py: 3, display: 'grid', gridTemplateColumns: { xs: '1fr', md: '120px 2.4fr 2.8fr 120px' }, columnGap: 2, rowGap: { xs: 1.5, md: 0 }, alignItems: 'center' }}>
+                  <Typography sx={{ fontWeight: 700, color: '#9ca3af', fontSize: '14px' }}>
+                    #{String(idx + 1).padStart(3, '0')}
+                  </Typography>
+                  <Stack direction="row" spacing={2.5} alignItems="center">
+                    <Avatar src={student.profilePhotoUrl} sx={{ width: 44, height: 44, border: '2px solid #fcfcfd', boxShadow: '0 2px 6px rgba(0,0,0,0.06)' }} />
+                    <Typography sx={{ fontWeight: 800, color: isExcused ? '#9ca3af' : '#374151', fontSize: '15px' }}>
+                      {student.name} {isExcused && <LockIcon sx={{ fontSize: 16, ml: 1, verticalAlign: 'middle', color: '#9ca3af' }} />}
+                    </Typography>
+                  </Stack>
+                  <Box sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'center' } }}>
                     {isExcused ? (
                       <Chip label="EXCUSED" sx={{ bgcolor: '#f1f3f4', color: '#5f6368', fontWeight: 800, borderRadius: '50px', fontSize: '11px', px: 2 }} />
                     ) : (
@@ -406,9 +453,9 @@ const StudentAttendance = () => {
                             textTransform: 'uppercase',
                             fontWeight: 800,
                             fontSize: '11px',
-                            px: 3.5,
+                            px: 3,
                             py: 0.8,
-                            minWidth: 100,
+                            minWidth: 90,
                             color: '#9ca3af',
                             '&.Mui-selected': {
                               color: '#fff',
@@ -425,16 +472,16 @@ const StudentAttendance = () => {
                         <ToggleButton value={ATTENDANCE_STATUS.ABSENT}>ABSENT</ToggleButton>
                       </ToggleButtonGroup>
                     )}
-                  </Grid>
-                  <Grid item xs={2} sx={{ textAlign: 'right' }}>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
                     <IconButton
                       onClick={(e) => handleRemarksClick(e, student._id)}
                       sx={{ color: remarksById[student._id] ? '#5346e0' : '#d1d5db', transition: 'all 0.2s' }}
                     >
                       <RemarksIcon sx={{ fontSize: 22 }} />
                     </IconButton>
-                  </Grid>
-                </Grid>
+                  </Box>
+                </Box>
               </Box>
             );
           })}

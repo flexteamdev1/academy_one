@@ -308,19 +308,17 @@ const AcademicYears = () => {
             ) : null}
           </Stack>
 
-          <Grid container spacing={2} sx={{ mb: 3 }}>
+          <Grid direction={{ xs: 'column', md: 'row' }} container spacing={2} sx={{ mb: 3 }}>
             {metrics.map((metric) => {
               const Icon = metric.icon;
               return (
-                <Grid item xs={12} sm={6} lg={3} key={metric.key} sx={{ display: 'flex' }}>
                   <StatCard
                     label={metric.title}
                     value={metric.value}
                     icon={Icon}
                     iconColor={metric.color}
-                    sx={{ boxShadow: 'none' }}
+                    sx={{ boxShadow: 'none', flex: 1 }}
                   />
-                </Grid>
               );
             })}
           </Grid>

@@ -226,7 +226,7 @@ const MarkStudentAttendance = () => {
 
   const getHistoryLink = () => {
     if (!selectedClassId || !selectedSection) return '/attendance';
-    return `/attendance/details/${selectedClassId}/${selectedSection}/${safeDate}`;
+    return `/attendance/history/${selectedClassId}/${selectedSection}`;
   };
 
   const openDatePicker = () => {

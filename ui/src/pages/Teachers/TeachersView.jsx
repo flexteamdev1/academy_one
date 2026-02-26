@@ -85,27 +85,25 @@ const TeachersView = ({
       </Stack>
     </Stack>
 
-    <Grid container spacing={2} sx={{ mb: 3 }}>
+    <Grid direction={{ xs: 'column', md: 'row' }} container spacing={2} sx={{ mb: 3 }}>
       {[
         { label: 'Active Staff', value: stats.active, icon: HowToRegOutlined, tone: 'success.main' },
         { label: 'Departments', value: stats.departments, icon: MenuBookOutlined, tone: 'info.main' },
         { label: 'Certified', value: `${stats.certified}%`, icon: VerifiedOutlined, tone: 'secondary.main' },
         { label: 'On Leave', value: stats.onLeave, icon: HistoryOutlined, tone: 'warning.main' },
       ].map((stat, index) => (
-        <Grid item xs={12} sm={6} md={3} key={stat.label} sx={{ display: 'flex' }}>
           <StatCard
             label={stat.label}
             value={stat.value}
             icon={stat.icon}
             iconColor={stat.tone}
             sx={{
-              width: '100%',
+              flex: 1,
               boxShadow: '0px 8px 18px rgba(31, 42, 55, 0.06)',
               animation: 'fadeUp 450ms ease both',
               animationDelay: `${index * 70}ms`,
             }}
           />
-        </Grid>
       ))}
     </Grid>
 
@@ -150,7 +148,7 @@ const TeachersView = ({
             const fullName = `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim();
 
             return (
-              <Grid item xs={12} sm={6} lg={4} xl={3} key={teacher._id}>
+              <Grid item xs={12} key={teacher._id}>
                 <PageCard
                   sx={{
                     overflow: 'hidden',

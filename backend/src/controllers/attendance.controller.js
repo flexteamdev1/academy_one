@@ -16,6 +16,11 @@ const parseDate = (value) => {
   return date;
 };
 
+const normalizeRemarks = (value) => {
+  if (value === null || value === undefined) return '';
+  return String(value).trim().slice(0, 500);
+};
+
 const normalizeRecords = (records = []) => {
   const list = Array.isArray(records) ? records : [];
   const seen = new Set();
@@ -24,6 +29,7 @@ const normalizeRecords = (records = []) => {
     .map((item) => ({
       studentId: item?.studentId,
       status: toUpper(item?.status),
+      remarks: normalizeRemarks(item?.remarks),
     }))
     .filter((item) => {
       if (!item.studentId) return false;
@@ -126,10 +132,6 @@ const getAttendanceSummary = async (req, res) => {
     const date = parseDate(req.query.date) || parseDate(new Date());
     const academicYearId = req.query.academicYearId;
 
-    if (!academicYearId) {
-      return res.status(400).json({ message: 'academicYearId is required' });
-    }
-
     // 1. Fetch all active classes
     const classes = await Class.find({
       academicYearId,
@@ -208,15 +210,78 @@ const getAttendanceSummary = async (req, res) => {
   }
 };
 
+const getClassAttendanceHistory = async (req, res) => {
+  try {
+    const classId = req.query.classId;
+    const sectionName = toUpper(req.query.sectionName);
+    let startDate = parseDate(req.query.startDate);
+    let endDate = parseDate(req.query.endDate) || parseDate(new Date());
+
+    if (!classId || !sectionName) {
+      return res.status(400).json({ message: 'classId and sectionName are required' });
+    }
+
+    if (!endDate) {
+      endDate = parseDate(new Date());
+    }
+
+    if (!startDate) {
+      startDate = new Date(endDate);
+      startDate.setDate(startDate.getDate() - 30);
+      startDate.setHours(0, 0, 0, 0);
+    }
+
+    if (startDate > endDate) {
+      const temp = startDate;
+      startDate = endDate;
+      endDate = temp;
+    }
+
+    const studentCount = await StudentProfile.countDocuments({
+      classId,
+      sectionName,
+      status: STUDENT_STATUS.ACTIVE
+    });
+
+    const attendanceRecords = await Attendance.find({
+      classId,
+      sectionName,
+      date: { $gte: startDate, $lte: endDate }
+    }).sort({ date: -1 });
+
+    const items = attendanceRecords.map((record) => {
+      const stats = buildStats(record.records || []);
+      const attendanceRate = studentCount > 0 ? (stats.present / studentCount) * 100 : 0;
+
+      return {
+        _id: record._id,
+        date: record.date,
+        stats,
+        studentCount,
+        attendanceRate: parseFloat(attendanceRate.toFixed(1)),
+        markedBy: record.markedBy,
+        isLocked: !!record.isLocked
+      };
+    });
+
+    return res.json({
+      classId,
+      sectionName,
+      studentCount,
+      startDate,
+      endDate,
+      items,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 const getMyAttendance = async (req, res) => {
   try {
     const month = parseInt(req.query.month) || new Date().getMonth();
     const year = parseInt(req.query.year) || new Date().getFullYear();
     const academicYearId = req.query.academicYearId;
-
-    if (!academicYearId) {
-      return res.status(400).json({ message: 'academicYearId is required' });
-    }
 
     // 1. Find student profile for the user
     let studentProfile;
@@ -309,5 +374,6 @@ module.exports = {
   getAttendance,
   upsertAttendance,
   getAttendanceSummary,
+  getClassAttendanceHistory,
   getMyAttendance,
 };

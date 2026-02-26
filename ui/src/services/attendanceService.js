@@ -34,6 +34,15 @@ export const getAttendanceSummary = async (params = {}) => {
   }
 };
 
+export const getAttendanceHistory = async (params = {}) => {
+  try {
+    const response = await apiClient.get('/attendance/history', { params });
+    return response.data;
+  } catch (error) {
+    toServiceError(error, 'Failed to fetch attendance history');
+  }
+};
+
 export const getMyAttendance = async (params = {}) => {
   try {
     const response = await apiClient.get('/attendance/my-attendance', { params });

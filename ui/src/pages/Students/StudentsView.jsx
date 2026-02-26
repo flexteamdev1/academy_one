@@ -26,6 +26,7 @@ import FilterListOutlined from '@mui/icons-material/FilterListOutlined';
 import DeleteOutlineOutlined from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlined from '@mui/icons-material/EditOutlined';
 import VisibilityOutlined from '@mui/icons-material/VisibilityOutlined';
+import LockResetOutlined from '@mui/icons-material/LockResetOutlined';
 import { NavLink } from 'react-router-dom';
 import ChevronLeftRounded from '@mui/icons-material/ChevronLeftRounded';
 import ChevronRightRounded from '@mui/icons-material/ChevronRightRounded';
@@ -64,6 +65,8 @@ const StudentsView = ({
   metricSpec,
   stats,
   statusChipSx,
+  canResetPassword,
+  onResetPassword,
 }) => (
   loading ? (
     <StudentsSkeleton />
@@ -270,6 +273,15 @@ const StudentsView = ({
                     >
                       <VisibilityOutlined fontSize="small" />
                     </IconButton>
+                    {canResetPassword ? (
+                      <IconButton
+                        size="small"
+                        onClick={() => onResetPassword?.(student)}
+                        sx={{ color: (theme) => theme.palette.primary.main }}
+                      >
+                        <LockResetOutlined fontSize="small" />
+                      </IconButton>
+                    ) : null}
                     <IconButton
                       size="small"
                       disabled={!canManage}
@@ -332,22 +344,6 @@ const StudentsView = ({
           </Stack>
         </Stack>
       </PageCard>
-
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, minmax(0, 1fr))' }, gap: 2 }}>
-        {metricSpec.map((metric) => {
-          const MetricIcon = metric.icon;
-          return (
-            <StatCard
-              key={metric.key}
-              label={metric.title}
-              value={metric.formatter(stats[metric.key])}
-              icon={MetricIcon}
-              iconColor="text.secondary"
-              sx={{ boxShadow: 'none' }}
-            />
-          );
-        })}
-      </Box>
     </>
   )
 );

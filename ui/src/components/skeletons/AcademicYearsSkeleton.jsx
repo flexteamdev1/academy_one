@@ -23,7 +23,7 @@ const AcademicYearsSkeleton = () => (
     <Grid container spacing={2} sx={{ mb: 3 }}>
       {Array.from({ length: 4 }).map((_, idx) => (
         <Grid item xs={12} sm={6} lg={3} key={`year-metric-${idx}`}>
-          <PageCard sx={{ p: 2, boxShadow: 'none' }}>
+          <PageCard sx={{ p: 2, boxShadow: 'none', flex: 1 }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.3 }}>
               <Skeleton variant="text" width={90} height={16} />
               <Skeleton variant="circular" width={28} height={28} />

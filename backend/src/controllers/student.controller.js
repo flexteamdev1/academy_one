@@ -18,7 +18,7 @@ const {
   slugify,
   uploadImageToCloudinary,
 } = require('../utils/media');
-const { sendCredentialsEmail } = require('../utils/mailer');
+const { sendCredentialsEmail, sendTemporaryPasswordEmail } = require('../utils/mailer');
 
 const normalizeEmail = (value) => {
   return String(value || '').trim().toLowerCase();
@@ -79,6 +79,21 @@ const generateAdmissionNo = async () => {
     if (!exists) return candidate;
     seq += 1;
   }
+};
+
+const resolveStudentUser = async (studentProfile) => {
+  if (!studentProfile) return null;
+  if (studentProfile.userId) {
+    const user = await User.findById(studentProfile.userId);
+    if (user) return user;
+  }
+  const admissionNo = String(studentProfile.admissionNo || '').trim();
+  const candidates = [
+    studentProfile.email,
+    admissionNo ? `${admissionNo.toLowerCase()}@student.local` : '',
+  ].filter(Boolean);
+  if (!candidates.length) return null;
+  return User.findOne({ email: { $in: candidates } });
 };
 
 const listStudents = async (req, res) => {
@@ -652,6 +667,56 @@ const updateStudent = async (req, res) => {
   }
 };
 
+const resetStudentPassword = async (req, res) => {
+  try {
+    const studentId = req.params.id;
+    const student = await StudentProfile.findById(studentId).populate('parentId');
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    const parentEmail =
+      student.parentId?.email ||
+      student.fatherEmail ||
+      student.motherEmail ||
+      '';
+    if (!parentEmail) {
+      return res.status(400).json({ message: 'Parent email not found for this student' });
+    }
+
+    const studentUser = await resolveStudentUser(student);
+    if (!studentUser) {
+      return res.status(404).json({ message: 'Student login account not found' });
+    }
+
+    const tempPassword = randomPassword();
+    studentUser.password = tempPassword;
+    studentUser.mustChangePassword = true;
+    await studentUser.save();
+
+    const parentName = student.parentId
+      ? `${student.parentId.firstName || ''} ${student.parentId.lastName || ''}`.trim()
+      : student.fatherName || student.motherName || 'Parent';
+
+    const studentPortalUrl = process.env.STUDENT_PORTAL_URL || process.env.FRONTEND_URL || '';
+    const mailResult = await sendTemporaryPasswordEmail({
+      to: parentEmail,
+      recipientName: parentName,
+      studentName: student.name,
+      loginId: student.admissionNo,
+      password: tempPassword,
+      portalUrl: studentPortalUrl,
+    });
+
+    return res.json({
+      message: 'Temporary password sent to parent email',
+      mail: mailResult,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 const updateMyStudent = async (req, res) => {
   try {
     const existing = await StudentProfile.findById(req.params.id);
@@ -794,5 +859,6 @@ module.exports = {
   createStudent,
   updateStudent,
   updateMyStudent,
+  resetStudentPassword,
   deleteStudent,
 };

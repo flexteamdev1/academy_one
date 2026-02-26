@@ -74,3 +74,12 @@ export const deleteStudent = async (id) => {
     toServiceError(error, 'Failed to delete student');
   }
 };
+
+export const resetStudentPassword = async (id) => {
+  try {
+    const response = await apiClient.post(`/students/${id}/reset-password`);
+    return response.data;
+  } catch (error) {
+    toServiceError(error, 'Failed to reset student password');
+  }
+};

@@ -1,7 +1,17 @@
 const normalizeSectionName = (value) => String(value || '').toUpperCase().trim();
 
 const getTeacherId = (user) => (
-  String(user?._id || user?.id || user?.user?._id || user?.user?.id || '')
+  String(
+    user?.teacherId?._id ||
+    user?.teacherId ||
+    user?.teacher?._id ||
+    user?.teacher?.id ||
+    user?._id ||
+    user?.id ||
+    user?.user?._id ||
+    user?.user?.id ||
+    ''
+  )
 );
 
 const getSectionTeacherId = (section) => (
@@ -36,11 +46,26 @@ const buildAssignedSectionsByClass = (classes, teacherId) => {
   }, {});
 };
 
+const buildAllSectionsByClass = (classes) => (
+  (classes || []).reduce((acc, item) => {
+    const allSections = (item.sections || [])
+      .map((section) => normalizeSectionName(section.name))
+      .filter(Boolean);
+    if (allSections.length) {
+      acc[item._id] = Array.from(new Set(allSections));
+    }
+    return acc;
+  }, {})
+);
+
 const filterClassesForTeacher = (classes, teacherId) => {
   if (!teacherId) {
     return { classes: classes || [], assignedSectionsByClass: {} };
   }
   const assignedSectionsByClass = buildAssignedSectionsByClass(classes, teacherId);
+  if (!Object.keys(assignedSectionsByClass).length && (classes || []).length) {
+    return { classes: classes || [], assignedSectionsByClass: buildAllSectionsByClass(classes) };
+  }
   const filtered = (classes || []).filter((item) => Boolean(assignedSectionsByClass[item._id]));
   return { classes: filtered, assignedSectionsByClass };
 };

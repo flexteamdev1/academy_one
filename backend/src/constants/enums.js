@@ -54,6 +54,7 @@ const LEAD_STATUS = {
 const ATTENDANCE_STATUS = {
   PRESENT: 'PRESENT',
   ABSENT: 'ABSENT',
+  LATE: 'LATE',
 };
 
 const FEE_STATUS = {

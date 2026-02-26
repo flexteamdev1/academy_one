@@ -16,6 +16,7 @@ import ModernStudentProfile from '../pages/ModernStudentProfile';
 import StudentAttendance from '../pages/StudentAttendance';
 import MarkStudentAttendance from '../pages/MarkStudentAttendance';
 import AttendanceDetails from '../pages/AttendanceDetails';
+import ClassAttendanceHistory from '../pages/ClassAttendanceHistory';
 import StudentAttendanceRecords from '../pages/StudentAttendanceRecords';
 import AttendanceView from '../pages/AttendanceView';
 import TeacherStudentManagement from '../pages/TeacherStudentManagement';
@@ -80,6 +81,7 @@ const APP_ROUTES = [
   { path: 'enrollment', element: <Enrollment />, roles: ROLE_GROUPS.STAFF },
   { path: 'attendance', element: <AttendanceLanding />, roles: ROLE_GROUPS.PORTAL },
   { path: 'attendance/mark/:classId/:sectionName', element: <MarkStudentAttendance />, roles: ROLE_GROUPS.STAFF },
+  { path: 'attendance/history/:classId/:sectionName', element: <ClassAttendanceHistory />, roles: ROLE_GROUPS.STAFF },
   { path: 'attendance/details/:classId/:sectionName/:date', element: <AttendanceDetails />, roles: ROLE_GROUPS.STAFF },
   { path: 'fees', element: <Fees />, roles: [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.STUDENT, ROLES.PARENT] },
   { path: 'notices', element: <Notices />, roles: ROLE_GROUPS.PORTAL },

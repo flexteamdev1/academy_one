@@ -3,6 +3,7 @@ const {
   buildCredentialsEmailContent,
   buildPasswordResetEmailContent,
   buildNoticeEmailContent,
+  buildTempPasswordEmailContent,
 } = require('./emailTemplates');
 
 const mailConfigFromEnv = () => {
@@ -264,11 +265,51 @@ const sendPasswordResetEmail = async ({ to, recipientName, resetUrl }) => {
   }
 };
 
+const sendTemporaryPasswordEmail = async ({ to, recipientName, studentName, loginId, password, portalUrl }) => {
+  if (!to || !isMailConfigured()) {
+    return {
+      sent: false,
+      reason: 'mail_not_configured_or_recipient_missing',
+      configured: isMailConfigured(),
+    };
+  }
+
+  const transporter = getTransporter();
+  const config = mailConfigFromEnv();
+  const mailContent = buildTempPasswordEmailContent({
+    recipientName,
+    studentName,
+    loginId,
+    password,
+    portalUrl,
+    roleLabel: 'Student',
+  });
+
+  try {
+    await transporter.sendMail({
+      from: config.from,
+      to,
+      subject: mailContent.subject,
+      text: mailContent.text,
+      html: mailContent.html,
+    });
+    return { sent: true };
+  } catch (error) {
+    return {
+      sent: false,
+      reason: 'smtp_send_failed',
+      detail: error.message,
+      recipient: to,
+    };
+  }
+};
+
 module.exports = {
   isMailConfigured,
   getMailHealth,
   sendTestEmail,
   sendCredentialsEmail,
   sendPasswordResetEmail,
+  sendTemporaryPasswordEmail,
   sendNoticeEmail,
 };

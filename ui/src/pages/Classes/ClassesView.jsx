@@ -95,19 +95,17 @@ const ClassesView = ({
       ) : null}
     </Stack>
 
-    <Grid container spacing={2} sx={{ mb: 3 }}>
+    <Grid direction={{ xs: 'column', md: 'row' }} container spacing={2} sx={{ mb: 3 }}>
       {metricCards.map((metric) => {
         const Icon = metric.icon;
         return (
-          <Grid item xs={12} sm={6} lg={3} key={metric.key} sx={{ display: 'flex' }}>
             <StatCard
               label={metric.label}
               value={metric.value}
               icon={Icon}
               iconColor={metric.color}
-              sx={{ boxShadow: 'none', width: '100%' }}
+              sx={{ boxShadow: 'none', flex: 1 }}
             />
-          </Grid>
         );
       })}
     </Grid>

@@ -184,12 +184,6 @@ const Header = ({ title, breadcrumb = 'Main Dashboard' }) => {
             <MenuItem onClick={() => handleProfileNavigate('/profile')} sx={{ py: 1.2 }}>
               <Typography sx={{ fontWeight: 600 }}>Profile</Typography>
             </MenuItem>
-            <MenuItem onClick={() => handleProfileNavigate('/settings')} sx={{ py: 1.2 }}>
-              <Typography sx={{ fontWeight: 600 }}>Settings</Typography>
-            </MenuItem>
-            <MenuItem onClick={() => handleProfileNavigate('/support')} sx={{ py: 1.2 }}>
-              <Typography sx={{ fontWeight: 600 }}>Support</Typography>
-            </MenuItem>
             <Divider />
             <MenuItem onClick={handleLogout} sx={{ py: 1.2 }}>
               <Stack direction="row" spacing={1.2} alignItems="center">
