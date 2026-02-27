@@ -11,7 +11,6 @@ import {
   TextField,
   InputAdornment,
   Divider,
-  Switch,
   Chip,
   CircularProgress,
   alpha,
@@ -23,9 +22,6 @@ import {
   Notifications as NotifyIcon,
   Search as SearchIcon,
   MoreVert as MoreIcon,
-  CheckCircle as CheckCircleIcon,
-  Error as ErrorIcon,
-  People as PeopleIcon,
   EventNote as YearIcon,
   ArrowBack as BackIcon
 } from '@mui/icons-material';

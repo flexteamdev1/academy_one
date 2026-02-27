@@ -67,7 +67,6 @@ const TeacherStudentManagement = () => {
   const navigate = useNavigate();
   const user = getUserInfo();
   const teacherId = getTeacherId(user);
-  const [classes, setClasses] = useState([]);
   const [assignedClasses, setAssignedClasses] = useState([]);
   const [assignedSectionsByClass, setAssignedSectionsByClass] = useState({});
   const [students, setStudents] = useState([]);
@@ -84,12 +83,10 @@ const TeacherStudentManagement = () => {
         if (selectedAcademicYearId) params.academicYearId = selectedAcademicYearId;
         const response = await listClasses(params);
         const items = response.items || [];
-        setClasses(items);
         const filtered = filterClassesForTeacher(items, teacherId);
         setAssignedClasses(filtered.classes);
         setAssignedSectionsByClass(filtered.assignedSectionsByClass);
       } catch (_err) {
-        setClasses([]);
         setAssignedClasses([]);
         setAssignedSectionsByClass({});
       }

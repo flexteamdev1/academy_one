@@ -19,7 +19,6 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import DownloadOutlined from '@mui/icons-material/DownloadOutlined';
 import PersonAddAlt1Outlined from '@mui/icons-material/PersonAddAlt1Outlined';
 import SearchOutlined from '@mui/icons-material/SearchOutlined';
 import FilterListOutlined from '@mui/icons-material/FilterListOutlined';
@@ -33,7 +32,6 @@ import ChevronRightRounded from '@mui/icons-material/ChevronRightRounded';
 import PageCard from '../../components/common/PageCard';
 import AppTableHead from '../../components/common/AppTableHead';
 import StudentsSkeleton from '../../components/skeletons/StudentsSkeleton';
-import StatCard from '../../components/common/StatCard';
 
 const StudentsView = ({
   canManage,

@@ -182,6 +182,7 @@ const Students = () => {
     } finally {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, appliedGrade, appliedSection, appliedStatus, appliedQ, selectedAcademicYearId]);
 
   useEffect(() => {

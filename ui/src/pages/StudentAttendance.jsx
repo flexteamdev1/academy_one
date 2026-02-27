@@ -31,7 +31,6 @@ import {
   CloudUpload as SubmitIcon,
   Lock as LockIcon,
   Search as SearchIcon,
-  EventNote as YearIcon
 } from '@mui/icons-material';
 import { listClasses } from '../services/classService';
 import { getAttendance, upsertAttendance } from '../services/attendanceService';

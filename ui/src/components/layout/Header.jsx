@@ -3,7 +3,6 @@ import {
   AppBar,
   Avatar,
   Box,
-  Button,
   Divider,
   IconButton,
   Menu,
@@ -14,13 +13,12 @@ import {
 } from '@mui/material';
 import MenuOutlined from '@mui/icons-material/MenuOutlined';
 import LogoutOutlined from '@mui/icons-material/LogoutOutlined';
-import { useUIDispatch, useUIState } from '../../context/UIContext';
+import { useUIDispatch } from '../../context/UIContext';
 import { clearStoredUserInfo, getUserInfo, getUserRole } from '../../utils/auth';
 import { useNavigate } from 'react-router-dom';
 
 const Header = ({ title, breadcrumb = 'Main Dashboard' }) => {
   const dispatch = useUIDispatch();
-  const { selectedAcademicYearId } = useUIState();
   const [profileAnchor, setProfileAnchor] = useState(null);
   const navigate = useNavigate();
   const userInfo = getUserInfo();

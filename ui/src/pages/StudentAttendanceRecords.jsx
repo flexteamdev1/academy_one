@@ -15,7 +15,6 @@ import {
   ChevronLeft as PrevIcon,
   ChevronRight as NextIcon,
   AssessmentOutlined as StatsIcon,
-  HelpOutline as AppealIcon
 } from '@mui/icons-material';
 import { getMyAttendance } from '../services/attendanceService';
 import { useUIState } from '../context/UIContext';
@@ -25,7 +24,6 @@ const StudentAttendanceRecords = () => {
   const { selectedAcademicYearId } = useUIState();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({ student: {}, stats: {}, dailyRecords: [] });
-  const [error, setError] = useState('');
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const today = useMemo(() => new Date(), []);
@@ -34,7 +32,6 @@ const StudentAttendanceRecords = () => {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      setError('');
       try {
         const params = { month: currentMonth, year: currentYear };
         if (selectedAcademicYearId) {
@@ -44,7 +41,6 @@ const StudentAttendanceRecords = () => {
         setData(res);
       } catch (err) {
         console.error('Failed to fetch personal attendance:', err);
-        setError(err.message || 'Failed to fetch attendance');
       } finally {
         setLoading(false);
       }
@@ -125,10 +121,6 @@ const StudentAttendanceRecords = () => {
 
   const studentInfo = data.student || {};
   const stats = data.stats || {};
-  const hasRecords = Boolean(data.dailyRecords && data.dailyRecords.length);
-  const friendlyError = error && error.includes('academicYearId')
-    ? 'Attendance data is still syncing. Please refresh in a moment.'
-    : error;
 
   return (
     <Box sx={{ p: 4, bgcolor: '#f8fafd', minHeight: '100vh' }}>

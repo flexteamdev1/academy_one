@@ -19,8 +19,6 @@ import {
   Male as MaleIcon,
   Female as FemaleIcon,
   LocationOnOutlined as AddressIcon,
-  AccountTreeOutlined as HouseIcon,
-  MilitaryTechOutlined as GpaIcon,
   BadgeOutlined as ParentIcon,
   LocalPhoneOutlined as PhoneIcon,
   EmailOutlined as EmailIcon,

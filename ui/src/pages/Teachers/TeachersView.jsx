@@ -144,7 +144,6 @@ const TeachersView = ({
     {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
         <Grid container spacing={2.2}>
           {teachers.map((teacher, index) => {
-            const tone = colorTrack[index % colorTrack.length];
             const fullName = `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim();
 
             return (

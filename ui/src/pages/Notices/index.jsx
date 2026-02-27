@@ -379,6 +379,7 @@ const Notices = () => {
 
   useEffect(() => {
     loadNotices();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, statusTab, audienceFilter, gradeFilter]);
 
   useEffect(() => {
