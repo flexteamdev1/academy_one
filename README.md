@@ -38,10 +38,6 @@ JWT_SECRET=your_jwt_secret
 
 # Frontend URLs used in emails
 FRONTEND_URL=http://localhost:3000
-STUDENT_PORTAL_URL=http://localhost:3000
-PARENT_PORTAL_URL=http://localhost:3000
-TEACHER_PORTAL_URL=http://localhost:3000
-ADMIN_PORTAL_URL=http://localhost:3000
 
 # Branding
 SCHOOL_NAME=Academy One
