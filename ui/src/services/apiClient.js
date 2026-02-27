@@ -1,8 +1,10 @@
 import axios from 'axios';
 import { clearStoredUserInfo, getStoredUserInfo } from '../utils/auth';
 
+const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000/api';
+
 const apiClient = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: apiBaseUrl,
   headers: {
     'Content-Type': 'application/json',
   },
