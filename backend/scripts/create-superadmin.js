@@ -5,32 +5,27 @@ require("dotenv").config({
 });
 
 
-const connectDB = require("../src/config/db");
 const { ROLES } = require("../src/constants/roles");
 const User = require("../src/models/User");
 
-const run = async () => {
-  await connectDB();
-
+const createSuperAdmin = async () => {
   const email = process.env.SUPERADMIN_EMAIL;
   const password = process.env.SUPERADMIN_PASSWORD;
   const name = process.env.SUPERADMIN_NAME;
   const phone = process.env.SUPERADMIN_PHONE;
 
   if (!email || !password) {
-    console.error("Missing superadmin credentials");
-    process.exit(1);
+    throw new Error("Missing superadmin credentials");
   }
 
   const existing = await User.findOne({ email });
 
   if (existing) {
-    console.log("Super admin already exists");
-    process.exit(0);
+    return { created: false, email: existing.email };
   }
 
   const user = await User.create({
-    name: name || 'Super Admin',
+    name: name || "Super Admin",
     email,
     phone,
     password,
@@ -38,8 +33,27 @@ const run = async () => {
     mustChangePassword: false,
   });
 
-  console.log("Super Admin Created:", user.email);
-  process.exit(0);
+  return { created: true, email: user.email };
 };
 
-run();
+module.exports = { createSuperAdmin };
+
+if (require.main === module) {
+  const run = async () => {
+    const connectDB = require("../src/config/db");
+    await connectDB();
+
+    const result = await createSuperAdmin();
+    if (result.created) {
+      console.log("Super Admin Created:", result.email);
+    } else {
+      console.log("Super admin already exists");
+    }
+    process.exit(0);
+  };
+
+  run().catch((err) => {
+    console.error(err.message || err);
+    process.exit(1);
+  });
+}
