@@ -50,23 +50,34 @@ const TeachersSkeleton = () => (
     </PageCard>
 
     <Grid container spacing={2.2}>
-      {Array.from({ length: 8 }).map((_, idx) => (
-        <Grid item xs={12} sm={6} lg={4} xl={3} key={`teacher-card-${idx}`}>
-          <PageCard sx={{ p: 2.2 }}>
-            <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
-              <Skeleton variant="circular" width={56} height={56} />
-              <Box sx={{ flex: 1 }}>
-                <Skeleton variant="text" width="70%" height={20} />
-                <Skeleton variant="text" width="45%" height={18} />
-              </Box>
-            </Stack>
-            <Skeleton variant="text" width="80%" height={16} />
-            <Skeleton variant="text" width="60%" height={16} />
-            <Skeleton variant="text" width="50%" height={16} />
-            <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-              <Skeleton variant="rectangular" width={70} height={26} sx={{ borderRadius: 1 }} />
-              <Skeleton variant="rectangular" width={70} height={26} sx={{ borderRadius: 1 }} />
-            </Stack>
+      {Array.from({ length: 6 }).map((_, idx) => (
+        <Grid item xs={12} key={`teacher-card-${idx}`}>
+          <PageCard sx={{ overflow: 'hidden', borderRadius: (theme) => theme.shape.borderRadius }}>
+            <Box sx={{ height: 8, bgcolor: 'divider' }} />
+            <Box sx={{ p: 2.2 }}>
+              <Stack direction="row" justifyContent="space-between" sx={{ mb: 1.8 }}>
+                <Skeleton variant="circular" width={64} height={64} />
+                <Stack direction="row" spacing={0.8}>
+                  <Skeleton variant="rectangular" width={28} height={28} sx={{ borderRadius: 1 }} />
+                  <Skeleton variant="rectangular" width={28} height={28} sx={{ borderRadius: 1 }} />
+                  <Skeleton variant="rectangular" width={28} height={28} sx={{ borderRadius: 1 }} />
+                </Stack>
+              </Stack>
+
+              <Skeleton variant="text" width="45%" height={22} />
+              <Skeleton variant="text" width="30%" height={16} />
+
+              <Stack spacing={1.1} sx={{ mt: 2.2 }}>
+                <Skeleton variant="text" width="60%" height={18} />
+                <Skeleton variant="text" width="50%" height={18} />
+                <Skeleton variant="text" width="40%" height={18} />
+              </Stack>
+
+              <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+                <Skeleton variant="rectangular" width={80} height={26} sx={{ borderRadius: 999 }} />
+                <Skeleton variant="rectangular" width={90} height={26} sx={{ borderRadius: 999 }} />
+              </Stack>
+            </Box>
           </PageCard>
         </Grid>
       ))}

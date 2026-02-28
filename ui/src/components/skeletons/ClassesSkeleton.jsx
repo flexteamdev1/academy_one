@@ -73,6 +73,27 @@ const ClassesSkeleton = () => (
           </Stack>
         ))}
       </Box>
+
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        spacing={1.4}
+        justifyContent="space-between"
+        alignItems={{ sm: 'center' }}
+        sx={{
+          px: 2,
+          py: 1.5,
+          borderTop: '1px solid',
+          borderColor: (theme) => theme.palette.grey[100],
+          backgroundColor: (theme) => theme.palette.grey[50],
+        }}
+      >
+        <Skeleton variant="text" width={220} height={16} />
+        <Stack direction="row" spacing={0.8} alignItems="center">
+          <Skeleton variant="rectangular" width={28} height={28} sx={{ borderRadius: 1 }} />
+          <Skeleton variant="rectangular" width={56} height={28} sx={{ borderRadius: 1 }} />
+          <Skeleton variant="rectangular" width={28} height={28} sx={{ borderRadius: 1 }} />
+        </Stack>
+      </Stack>
     </PageCard>
   </>
 );
