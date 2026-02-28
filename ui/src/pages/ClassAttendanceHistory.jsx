@@ -177,6 +177,16 @@ const ClassAttendanceHistory = () => {
     };
   }, [history]);
 
+  const formatHistoryDate = (dateStr) => {
+    if (!dateStr) return '';
+    const [year, month, day] = dateStr.slice(0, 10).split('-').map(Number);
+    return new Date(year, month - 1, day).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
   const getStatusChip = (item) => {
     if (item.isLocked) {
       return <Chip size="small" icon={<LockIcon sx={{ fontSize: 14 }} />} label="Locked" sx={{ bgcolor: '#eef2ff', color: '#4338ca', fontWeight: 700 }} />;
@@ -339,7 +349,7 @@ const ClassAttendanceHistory = () => {
 
             <Box>
               {(history.items || []).map((item) => {
-                const dateLabel = new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                const dateLabel = formatHistoryDate(item.date);
                 const attendanceRate = item.attendanceRate || 0;
                 const targetColor = attendanceRate >= 95 ? '#16a34a' : attendanceRate >= 85 ? '#f59e0b' : '#ef4444';
 
@@ -365,7 +375,7 @@ const ClassAttendanceHistory = () => {
                         <Button
                           size="small"
                           endIcon={<ArrowIcon sx={{ fontSize: 16 }} />}
-                          onClick={() => navigate(`/attendance/details/${selectedClassId}/${selectedSection}/${toISODate(item.date)}`)}
+                          onClick={() => navigate(`/attendance/details/${selectedClassId}/${selectedSection}/${item.date.slice(0, 10)}`)}
                           sx={{ textTransform: 'none', fontWeight: 700, color: '#5346e0' }}
                         >
                           View

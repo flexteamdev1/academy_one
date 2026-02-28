@@ -19,6 +19,7 @@ import { FILTER_ALL, STUDENT_GENDER, STUDENT_STATUS, USER_ROLES } from '../../co
 import StudentsView from './StudentsView';
 import StudentFormDialog from './StudentCreateDialog';
 import StudentDetailsDialog from './StudentDetailsDialog';
+import ResetPasswordDialog from './ResetPasswordDialog';
 
 const LIMIT = 10;
 
@@ -455,6 +456,17 @@ const Students = () => {
             email: student.parentId?.email || student.fatherEmail || student.motherEmail || '',
           })
         }
+        onResetFilters={() => {
+          setQ('');
+          setGrade(FILTER_ALL);
+          setSection(FILTER_ALL);
+          setStatus(FILTER_ALL);
+          setAppliedQ('');
+          setAppliedGrade(FILTER_ALL);
+          setAppliedSection(FILTER_ALL);
+          setAppliedStatus(FILTER_ALL);
+          setPage(1);
+        }}
       />
 
       {canManage ? (
@@ -491,16 +503,13 @@ const Students = () => {
         </>
       ) : null}
 
-      <DeleteConfirmDialog
+      <ResetPasswordDialog
         open={resetState.open}
         onClose={() => setResetState({ open: false, id: '', name: '', email: '' })}
         onConfirm={handleResetPassword}
         confirming={resetting}
         title="Reset Student Password?"
         itemName={resetState.name}
-        description={`A temporary password will be generated and emailed to ${resetState.email || 'the parent email on file'}. The student will be required to change it on first login.`}
-        confirmLabel="Send Temporary Password"
-        cancelLabel="Cancel"
       />
 
       <StudentDetailsDialog

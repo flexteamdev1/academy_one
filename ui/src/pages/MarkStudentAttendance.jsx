@@ -1,32 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Box,
-  Typography,
-  Stack,
-  Grid,
-  Button,
-  Avatar,
-  IconButton,
-  TextField,
-  Chip,
-  Paper,
-  CircularProgress,
-  ToggleButton,
-  ToggleButtonGroup,
-  Popover,
-  Menu,
-  MenuItem,
+  Box, Typography, Stack, Grid, Button, Avatar, IconButton, TextField,
+  Chip, Paper, CircularProgress, ToggleButton, ToggleButtonGroup, Popover, Menu, MenuItem
 } from '@mui/material';
 import {
-  CalendarToday as CalendarIcon,
-  RotateLeft as HistoryIcon,
-  CheckCircle as CheckCircleIcon,
-  ChatBubbleOutline as RemarksIcon,
-  KeyboardArrowLeft as PrevIcon,
-  KeyboardArrowRight as NextIcon,
-  CloudUpload as SubmitIcon,
-  Lock as LockIcon,
-  ExpandMore as ExpandMoreIcon
+  CalendarToday as CalendarIcon, RotateLeft as HistoryIcon,
+  CheckCircle as CheckCircleIcon, ChatBubbleOutline as RemarksIcon,
+  Lock as LockIcon, ExpandMore as ExpandMoreIcon,
+  CloudUpload as SubmitIcon
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getAttendance, upsertAttendance } from '../services/attendanceService';
@@ -42,106 +23,87 @@ const formatShortDate = (value) =>
 const MarkStudentAttendance = () => {
   const { classId, sectionName } = useParams();
   const navigate = useNavigate();
-  const today = toISODate(new Date());
+  const today = useMemo(() => toISODate(new Date()), []);
+  
   const user = getUserInfo();
   const role = getUserRole();
-  const teacherId = role === 'teacher' ? getTeacherId(user) : '';
+  const teacherId = useMemo(() => role === 'teacher' ? getTeacherId(user) : '', [role, user]);
 
+  // UI State
   const [loading, setLoading] = useState(true);
-  const [loadingClasses, setLoadingClasses] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [classCatalog, setClassCatalog] = useState([]);
   const [assignedSectionsByClass, setAssignedSectionsByClass] = useState({});
-  const [selectedClassId, setSelectedClassId] = useState('');
-  const [selectedSection, setSelectedSection] = useState('');
+  
+  // Selection State
   const [selectedDate, setSelectedDate] = useState(today);
   const [students, setStudents] = useState([]);
   const [statusById, setStatusById] = useState({});
   const [remarksById, setRemarksById] = useState({});
-  const [saving, setSaving] = useState(false);
 
+  // Menu/Popover State
   const [anchorEl, setAnchorEl] = useState(null);
   const [currentStudentId, setCurrentStudentId] = useState(null);
   const [classAnchorEl, setClassAnchorEl] = useState(null);
   const dateInputRef = useRef(null);
 
-  const normalizedSectionParam = normalizeSectionName(sectionName);
-
+  // 1. Initial Load: Fetch Classes
   useEffect(() => {
     const loadClasses = async () => {
-      setLoadingClasses(true);
       try {
         const response = await listClasses({ page: 1, limit: 200, status: CLASS_STATUS.ACTIVE });
-        const items = response.items || [];
-        const filtered = filterClassesForTeacher(items, teacherId);
-        setClassCatalog(filtered.classes);
-        setAssignedSectionsByClass(filtered.assignedSectionsByClass);
-        if (!filtered.classes.length) {
-          navigate('/attendance', { replace: true });
+        const { classes, assignedSectionsByClass: assigned } = filterClassesForTeacher(response.items || [], teacherId);
+        
+        setClassCatalog(classes);
+        setAssignedSectionsByClass(assigned);
+
+        // Redirect if no classId in URL and we have classes available
+        if (!classId && classes.length > 0) {
+          const firstClass = classes[0];
+          const firstSection = assigned[firstClass._id]?.[0] || 
+                         (firstClass.sections?.[0]?.name ? normalizeSectionName(firstClass.sections[0].name) : 'A');
+          navigate(`/attendance/mark/${firstClass._id}/${firstSection}`, { replace: true });
         }
       } catch (err) {
         console.error('Failed to fetch classes:', err);
-        navigate('/attendance', { replace: true });
-      } finally {
-        setLoadingClasses(false);
       }
     };
     loadClasses();
-  }, [teacherId, navigate]);
+  }, [teacherId, navigate, classId]);
 
+  // 2. Build Options for Dropdown
   const classOptions = useMemo(() => (
     classCatalog.flatMap((item) => {
       const sections = assignedSectionsByClass[item._id]?.length
         ? assignedSectionsByClass[item._id]
-        : (item.sections || []).map((section) => normalizeSectionName(section.name)).filter(Boolean);
+        : (item.sections || []).map((s) => normalizeSectionName(s.name)).filter(Boolean);
+      
       return sections.map((section) => ({
-        classId: item._id,
+        classId: String(item._id),
         className: item.name,
         sectionName: section,
-        label: `${item.name}-${section}`,
+        label: `${item.name} - ${section}`,
       }));
     })
   ), [classCatalog, assignedSectionsByClass]);
 
-  useEffect(() => {
-    if (!classOptions.length) return;
-    const isAllowedClass = classCatalog.some((item) => String(item._id) === String(classId));
-    const allowedSections = assignedSectionsByClass[classId] || [];
-    const isAllowedSection = !allowedSections.length || allowedSections.includes(normalizedSectionParam);
-
-    if (classId && normalizedSectionParam && isAllowedClass && isAllowedSection) {
-      setSelectedClassId(String(classId));
-      setSelectedSection(normalizedSectionParam);
-      return;
-    }
-
-    const first = classOptions[0];
-    if (first) {
-      setSelectedClassId(String(first.classId));
-      setSelectedSection(first.sectionName);
-    }
-  }, [classOptions, classCatalog, classId, normalizedSectionParam, assignedSectionsByClass]);
-
-  useEffect(() => {
-    if (!selectedClassId || !selectedSection) return;
-    if (String(classId) !== String(selectedClassId) || normalizeSectionName(sectionName) !== selectedSection) {
-      navigate(`/attendance/mark/${selectedClassId}/${selectedSection}`, { replace: true });
-    }
-  }, [selectedClassId, selectedSection, classId, sectionName, navigate]);
-
+  // 3. Fetch Roster when URL params or Date changes
   useEffect(() => {
     const fetchRoster = async () => {
-      if (!selectedClassId || !selectedSection || !selectedDate) return;
+      if (!classId || !sectionName) return;
       setLoading(true);
       try {
         const res = await getAttendance({
-          classId: selectedClassId,
-          sectionName: selectedSection,
+          classId,
+          sectionName,
           date: selectedDate,
           includeStudents: true,
           status: STUDENT_STATUS.ACTIVE,
         });
+        
         setStudents(res.students || []);
-
+        
+        // Populate initial states
         const initialStatus = {};
         const initialRemarks = {};
         (res.attendance?.records || []).forEach(record => {
@@ -151,36 +113,35 @@ const MarkStudentAttendance = () => {
         setStatusById(initialStatus);
         setRemarksById(initialRemarks);
       } catch (err) {
-        console.error('Failed to fetch roster:', err);
+        console.error('Roster fetch error:', err);
       } finally {
         setLoading(false);
       }
     };
     fetchRoster();
-  }, [selectedClassId, selectedSection, selectedDate]);
+  }, [classId, sectionName, selectedDate]);
 
+  // Stats Logic
   const stats = useMemo(() => {
     const counts = { present: 0, absent: 0, late: 0, total: students.length };
-    Object.values(statusById).forEach(status => {
+    students.forEach(s => {
+      const status = statusById[s._id] || ATTENDANCE_STATUS.PRESENT;
       if (status === ATTENDANCE_STATUS.PRESENT) counts.present++;
-      if (status === ATTENDANCE_STATUS.LATE) counts.late++;
-      if (status === ATTENDANCE_STATUS.ABSENT) counts.absent++;
+      else if (status === ATTENDANCE_STATUS.LATE) counts.late++;
+      else if (status === ATTENDANCE_STATUS.ABSENT) counts.absent++;
     });
     return counts;
   }, [students, statusById]);
 
-  const handleStatusChange = (studentId, status) => {
-    setStatusById(prev => ({ ...prev, [studentId]: status }));
-  };
-
+  // Handlers
   const handleMarkAllPresent = () => {
-    const next = { ...statusById };
+    const nextStatus = { ...statusById };
     students.forEach(s => {
       if (!s.name.includes('(Medical Leave)')) {
-        next[s._id] = ATTENDANCE_STATUS.PRESENT;
+        nextStatus[s._id] = ATTENDANCE_STATUS.PRESENT;
       }
     });
-    setStatusById(next);
+    setStatusById(nextStatus);
   };
 
   const handleFinalize = async () => {
@@ -192,396 +153,202 @@ const MarkStudentAttendance = () => {
         remarks: remarksById[s._id] || ''
       }));
       await upsertAttendance({
-        classId: selectedClassId,
-        sectionName: selectedSection,
+        classId,
+        sectionName,
         date: selectedDate,
         records
       });
       navigate('/attendance');
     } catch (err) {
-      console.error('Failed to save attendance:', err);
+      alert("Failed to save attendance. Please try again.");
     } finally {
       setSaving(false);
     }
   };
 
-  const handleRemarksClick = (event, studentId) => {
-    setAnchorEl(event.currentTarget);
-    setCurrentStudentId(studentId);
-  };
-
-  const selectedOption = useMemo(
-    () => classOptions.find((option) => (
-      String(option.classId) === String(selectedClassId) && option.sectionName === selectedSection
-    )),
-    [classOptions, selectedClassId, selectedSection]
+  const currentClassLabel = useMemo(() => 
+    classOptions.find(o => o.classId === classId && o.sectionName === sectionName)?.label || 'Select Class',
+    [classOptions, classId, sectionName]
   );
 
-  const classLabel = selectedOption?.label || 'Select Class';
-
-  const safeDate = selectedDate || today;
-  const todayLabel = safeDate === today
-    ? `Today, ${formatShortDate(safeDate)}`
-    : `Date, ${formatShortDate(safeDate)}`;
-
-  const getHistoryLink = () => {
-    if (!selectedClassId || !selectedSection) return '/attendance';
-    return `/attendance/history/${selectedClassId}/${selectedSection}`;
-  };
-
-  const openDatePicker = () => {
-    if (!dateInputRef.current) return;
-    if (typeof dateInputRef.current.showPicker === 'function') {
-      dateInputRef.current.showPicker();
-    } else {
-      dateInputRef.current.focus();
-    }
-  };
-
-  if (loading || loadingClasses) {
+  if (loading && students.length === 0) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-        <CircularProgress />
+        <CircularProgress thickness={5} size={50} sx={{ color: '#4c4ee8' }} />
       </Box>
     );
   }
 
   return (
-    <Box
-      sx={{
-        bgcolor: '#f6f7fb',
-        minHeight: '100vh',
-        py: { xs: 2, md: 3 },
-        px: { xs: 1.5, md: 3 }
-      }}
-    >
-      <Box
-        sx={{
-          width: '100%',
-          maxWidth: 1180,
-          mx: 'auto',
-          pb: 2
-        }}
-      >
-        <Box
-          sx={{
-            borderRadius: 0,
-            border: 'none',
-            bgcolor: 'transparent',
-            boxShadow: 'none',
-            p: 0
-          }}
-        >
-          {/* Filter Bar */}
-          <Paper elevation={0} sx={{ p: 2.4, borderRadius: '16px', border: '1px solid #e6e9f0', mb: 2.5, bgcolor: '#fff', boxShadow: '0 12px 30px rgba(16,24,40,0.06)' }}>
-            <Grid container spacing={3} alignItems="center">
-              <Grid item>
-                <Typography sx={{ fontSize: '11px', fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', mb: 1.5, letterSpacing: '0.8px' }}>
-                  SELECT CLASS
-                </Typography>
-                <Stack direction="row" spacing={1.2} sx={{ position: 'relative' }}>
-                  <Button
-                    variant="outlined"
-                    disableElevation
-                    onClick={(event) => setClassAnchorEl(event.currentTarget)}
-                    endIcon={<ExpandMoreIcon sx={{ fontSize: 18 }} />}
-                    sx={{
-                      borderRadius: '12px',
-                      bgcolor: '#f8fafc',
-                      color: '#475467',
-                      borderColor: '#e5e7eb',
-                      fontWeight: 800,
-                      textTransform: 'none',
-                      px: 2.5,
-                      py: 0.8,
-                      fontSize: '13px'
-                    }}
-                  >
-                    {classLabel}
-                  </Button>
-                </Stack>
-              </Grid>
-
-              <Grid item>
-                <Typography sx={{ fontSize: '11px', fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', mb: 1.5, letterSpacing: '0.8px' }}>
-                  ATTENDANCE DATE
-                </Typography>
-                <Stack direction="row" spacing={1.2}>
-                  <Button
-                    variant="outlined"
-                    disableElevation
-                    startIcon={<CalendarIcon sx={{ fontSize: 18 }} />}
-                    onClick={openDatePicker}
-                    sx={{
-                      borderRadius: '12px',
-                      bgcolor: '#eceeff',
-                      color: '#4c5eea',
-                      borderColor: 'transparent',
-                      fontWeight: 700,
-                      textTransform: 'none',
-                      px: 2.5,
-                      py: 0.8,
-                      fontSize: '13px',
-                      '&:hover': { bgcolor: '#e4e7ff', borderColor: 'transparent' }
-                    }}
-                  >
-                    {todayLabel}
-                  </Button>
-                  <TextField
-                    type="date"
-                    inputRef={dateInputRef}
-                    value={safeDate}
-                    onChange={(e) => setSelectedDate(e.target.value || today)}
-                    inputProps={{ max: today }}
-                    sx={{
-                      position: 'absolute',
-                      opacity: 0,
-                      width: 1,
-                      height: 1,
-                      pointerEvents: 'none'
-                    }}
-                  />
-                  <Button
-                    variant="outlined"
-                    startIcon={<HistoryIcon sx={{ fontSize: 18 }} />}
-                    onClick={() => navigate(getHistoryLink())}
-                    disabled={!selectedClassId || !selectedSection}
-                    sx={{
-                      borderRadius: '12px',
-                      borderColor: '#e5e7eb',
-                      color: '#667085',
-                      fontWeight: 700,
-                      textTransform: 'none',
-                      px: 2.5,
-                      py: 0.8,
-                      fontSize: '13px'
-                    }}
-                  >
-                    History
-                  </Button>
-                </Stack>
-              </Grid>
-
-              <Grid item sx={{ ml: 'auto' }}>
-                <Button
-                  variant="outlined"
-                  startIcon={<CheckCircleIcon sx={{ color: '#344054' }} />}
-                  onClick={handleMarkAllPresent}
-                  disabled={!students.length}
-                  sx={{
-                    borderRadius: '12px',
-                    borderColor: '#e5e7eb',
-                    color: '#475467',
-                    fontWeight: 800,
-                    textTransform: 'none',
-                    px: 3.5,
-                    py: 0.8,
-                    fontSize: '13px'
-                  }}
-                >
-                  Mark All Present
-                </Button>
-              </Grid>
+    <Box sx={{ bgcolor: '#f6f7fb', minHeight: '100vh', py: 3, px: { xs: 2, md: 4 } }}>
+      <Box sx={{ maxWidth: 1100, mx: 'auto' }}>
+        
+        {/* Top Filter Bar */}
+        <Paper elevation={0} sx={{ p: 2.5, borderRadius: 4, mb: 3, border: '1px solid #e6e9f0' }}>
+          <Grid container spacing={2} alignItems="center">
+            <Grid item xs={12} md={4}>
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#9ca3af', letterSpacing: 1 }}>CLASS & SECTION</Typography>
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={(e) => setClassAnchorEl(e.currentTarget)}
+                endIcon={<ExpandMoreIcon />}
+                sx={{ mt: 1, justifyContent: 'space-between', borderRadius: 2, py: 1, borderColor: '#e5e7eb', color: '#374151', fontWeight: 700 }}
+              >
+                {currentClassLabel}
+              </Button>
             </Grid>
-          </Paper>
 
-          {/* Table Container */}
-          <Paper elevation={0} sx={{ borderRadius: '16px', border: '1px solid #e6e9f0', overflow: 'hidden', bgcolor: '#fff', boxShadow: '0 16px 40px rgba(16,24,40,0.06)' }}>
-            <Box sx={{ p: 2.2, bgcolor: '#f9fafb', borderBottom: '1px solid #e6e9f0' }}>
-              <Grid container sx={{ px: 2 }}>
-                <Grid item xs={2}><Typography sx={{ fontSize: '10px', fontWeight: 800, color: '#9ca3af', letterSpacing: '1px' }}>ROLL NO</Typography></Grid>
-                <Grid item xs={4}><Typography sx={{ fontSize: '10px', fontWeight: 800, color: '#9ca3af', letterSpacing: '1px' }}>STUDENT PROFILE</Typography></Grid>
-                <Grid item xs={4} sx={{ textAlign: 'center' }}><Typography sx={{ fontSize: '10px', fontWeight: 800, color: '#9ca3af', letterSpacing: '1px' }}>ATTENDANCE STATUS</Typography></Grid>
-                <Grid item xs={2} sx={{ textAlign: 'right' }}><Typography sx={{ fontSize: '10px', fontWeight: 800, color: '#9ca3af', letterSpacing: '1px' }}>REMARKS</Typography></Grid>
-              </Grid>
-            </Box>
+            <Grid item xs={12} md={4}>
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#9ca3af', letterSpacing: 1 }}>DATE</Typography>
+              <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                <Button
+                  variant="contained"
+                  disableElevation
+                  startIcon={<CalendarIcon />}
+                  onClick={() => dateInputRef.current?.showPicker()}
+                  sx={{ borderRadius: 2, bgcolor: '#eceeff', color: '#4c5eea', '&:hover': { bgcolor: '#e0e3ff' } }}
+                >
+                  {selectedDate === today ? 'Today' : formatShortDate(selectedDate)}
+                </Button>
+                <input
+                  type="date"
+                  ref={dateInputRef}
+                  value={selectedDate}
+                  max={today}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  style={{ visibility: 'hidden', width: 0, height: 0 }}
+                />
+                <Button 
+                  variant="outlined" 
+                  startIcon={<HistoryIcon />}
+                  onClick={() => navigate(`/attendance/history/${classId}/${sectionName}`)}
+                  sx={{ borderRadius: 2, borderColor: '#e5e7eb', color: '#667085' }}
+                >
+                  History
+                </Button>
+              </Stack>
+            </Grid>
 
-            <Box sx={{ minHeight: '320px' }}>
-              {students.map((student, idx) => {
+            <Grid item xs={12} md={4} sx={{ textAlign: 'right' }}>
+              <Button
+                variant="outlined"
+                startIcon={<CheckCircleIcon />}
+                onClick={handleMarkAllPresent}
+                sx={{ borderRadius: 2, px: 3, fontWeight: 700, color: '#10b981', borderColor: '#10b981' }}
+              >
+                Mark All Present
+              </Button>
+            </Grid>
+          </Grid>
+        </Paper>
+
+        {/* Attendance Roster */}
+        <Paper elevation={0} sx={{ borderRadius: 4, border: '1px solid #e6e9f0', overflow: 'hidden' }}>
+          <Box sx={{ p: 2, bgcolor: '#f9fafb', borderBottom: '1px solid #e6e9f0', display: { xs: 'none', sm: 'block' } }}>
+            <Grid container sx={{ px: 2 }}>
+              <Grid item xs={1}><Typography variant="caption" sx={{ fontWeight: 800, color: '#9ca3af' }}>ROLL</Typography></Grid>
+              <Grid item xs={4}><Typography variant="caption" sx={{ fontWeight: 800, color: '#9ca3af' }}>STUDENT</Typography></Grid>
+              <Grid item xs={5} sx={{ textAlign: 'center' }}><Typography variant="caption" sx={{ fontWeight: 800, color: '#9ca3af' }}>STATUS</Typography></Grid>
+              <Grid item xs={2} sx={{ textAlign: 'right' }}><Typography variant="caption" sx={{ fontWeight: 800, color: '#9ca3af' }}>NOTES</Typography></Grid>
+            </Grid>
+          </Box>
+
+          <Box sx={{ minHeight: 400 }}>
+            {students.length === 0 ? (
+              <Box sx={{ py: 10, textAlign: 'center', color: '#9ca3af' }}>
+                <Typography>No students found for this section.</Typography>
+              </Box>
+            ) : (
+              students.map((student, idx) => {
                 const isExcused = student.name.includes('(Medical Leave)');
-                const currentStatus = statusById[student._id] || ATTENDANCE_STATUS.PRESENT;
-                const rollValue = student.rollNo || idx + 1;
-
                 return (
-                  <Box key={student._id} sx={{ transition: 'all 0.2s', borderBottom: '1px solid #f3f4f6', '&:hover': { bgcolor: '#fcfcfd' } }}>
-                    <Grid container alignItems="center" sx={{ px: 3, py: 2.2 }}>
-                      <Grid item xs={2}>
-                        <Typography sx={{ fontWeight: 700, color: '#9ca3af', fontSize: '14px' }}>#{String(rollValue).padStart(3, '0')}</Typography>
+                  <Box key={student._id} sx={{ p: 2, borderBottom: '1px solid #f3f4f6', '&:hover': { bgcolor: '#fcfcfd' } }}>
+                    <Grid container alignItems="center">
+                      <Grid item xs={1}>
+                        <Typography sx={{ fontWeight: 700, color: '#9ca3af' }}>{student.rollNo || idx + 1}</Typography>
                       </Grid>
-                      <Grid item xs={4}>
-                        <Stack direction="row" spacing={2.5} alignItems="center">
-                          <Avatar src={student.profilePhotoUrl} sx={{ width: 34, height: 34, border: '2px solid #fff', boxShadow: '0 2px 6px rgba(0,0,0,0.06)' }} />
-                          <Typography sx={{ fontWeight: 800, color: isExcused ? '#9ca3af' : '#344054', fontSize: '14px', fontStyle: isExcused ? 'italic' : 'normal' }}>
-                            {student.name} {isExcused && <LockIcon sx={{ fontSize: 15, ml: 1, verticalAlign: 'middle', color: '#9ca3af' }} />}
+                      <Grid item xs={11} sm={4}>
+                        <Stack direction="row" spacing={2} alignItems="center">
+                          <Avatar src={student.profilePhotoUrl} sx={{ width: 36, height: 36 }} />
+                          <Typography sx={{ fontWeight: 700, fontSize: '0.95rem' }}>
+                            {student.name} {isExcused && <LockIcon sx={{ fontSize: 14, ml: 0.5, color: '#94a3b8' }} />}
                           </Typography>
                         </Stack>
                       </Grid>
-                      <Grid item xs={4} sx={{ display: 'flex', justifyContent: 'center' }}>
+                      <Grid item xs={12} sm={5} sx={{ display: 'flex', justifyContent: 'center', mt: { xs: 2, sm: 0 } }}>
                         {isExcused ? (
-                          <Chip
-                            label="EXCUSED"
-                            sx={{
-                              bgcolor: '#f1f3f4',
-                              color: '#5f6368',
-                              fontWeight: 800,
-                              borderRadius: '50px',
-                              fontSize: '11px',
-                              px: 2
-                            }}
-                          />
+                          <Chip label="EXCUSED" size="small" sx={{ fontWeight: 900, bgcolor: '#f1f5f9' }} />
                         ) : (
                           <ToggleButtonGroup
                             exclusive
-                            value={currentStatus}
-                            onChange={(_, val) => val && handleStatusChange(student._id, val)}
+                            size="small"
+                            value={statusById[student._id] || ATTENDANCE_STATUS.PRESENT}
+                            onChange={(_, val) => val && setStatusById(prev => ({ ...prev, [student._id]: val }))}
                             sx={{
-                              bgcolor: '#f9fafb',
-                              borderRadius: '999px',
-                              p: '3px',
-                              border: '1px solid #e5e7eb',
-                              '& .MuiToggleButton-root': {
-                                border: 'none',
-                                borderRadius: '999px',
-                                textTransform: 'uppercase',
-                                fontWeight: 800,
-                                fontSize: '10px',
-                                px: 2.4,
-                                py: 0.45,
-                                minWidth: 76,
-                                color: '#9ca3af',
-                                '&.Mui-selected': {
-                                  color: '#fff',
-                                  '&:hover': { opacity: 0.92 }
-                                }
-                              },
-                              '& .MuiToggleButton-root[value="PRESENT"].Mui-selected': { bgcolor: '#16b364' },
-                              '& .MuiToggleButton-root[value="LATE"].Mui-selected': { bgcolor: '#f79009' },
-                              '& .MuiToggleButton-root[value="ABSENT"].Mui-selected': { bgcolor: '#f04438' }
+                              '& .MuiToggleButton-root': { px: 2, fontWeight: 700, fontSize: '0.75rem' },
+                              '& .Mui-selected[value="PRESENT"]': { bgcolor: '#10b981 !important', color: 'white' },
+                              '& .Mui-selected[value="LATE"]': { bgcolor: '#f59e0b !important', color: 'white' },
+                              '& .Mui-selected[value="ABSENT"]': { bgcolor: '#ef4444 !important', color: 'white' },
                             }}
                           >
-                            <ToggleButton value={ATTENDANCE_STATUS.PRESENT}>PRESENT</ToggleButton>
-                            <ToggleButton value={ATTENDANCE_STATUS.LATE}>LATE</ToggleButton>
-                            <ToggleButton value={ATTENDANCE_STATUS.ABSENT}>ABSENT</ToggleButton>
+                            <ToggleButton value="PRESENT">PRESENT</ToggleButton>
+                            <ToggleButton value="LATE">LATE</ToggleButton>
+                            <ToggleButton value="ABSENT">ABSENT</ToggleButton>
                           </ToggleButtonGroup>
                         )}
                       </Grid>
-                      <Grid item xs={2} sx={{ textAlign: 'right' }}>
-                        <IconButton
-                          onClick={(e) => handleRemarksClick(e, student._id)}
-                          disabled={isExcused}
-                          sx={{
-                            color: remarksById[student._id] ? '#4c5eea' : '#d1d5db',
-                            transition: 'all 0.2s'
-                          }}
+                      <Grid item xs={12} sm={2} sx={{ textAlign: 'right' }}>
+                        <IconButton 
+                          onClick={(e) => { setAnchorEl(e.currentTarget); setCurrentStudentId(student._id); }}
+                          color={remarksById[student._id] ? "primary" : "default"}
                         >
-                          <RemarksIcon sx={{ fontSize: 20 }} />
+                          <RemarksIcon />
                         </IconButton>
                       </Grid>
                     </Grid>
                   </Box>
                 );
-              })}
-            </Box>
-
-            {/* Footer info */}
-            <Box sx={{ p: 2.2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: '#f9fafb' }}>
-              <Typography sx={{ color: '#98a2b3', fontSize: '12.5px', fontWeight: 700 }}>
-                Showing {students.length} of {students.length} students in {classLabel}
-              </Typography>
-              <Stack direction="row" spacing={1.2}>
-                <IconButton disabled sx={{ border: '1px solid #e5e7eb', borderRadius: '10px', p: 0.6, color: '#d1d5db' }}><PrevIcon fontSize="small" /></IconButton>
-                <IconButton disabled sx={{ border: '1px solid #e5e7eb', borderRadius: '10px', p: 0.6, color: '#475467' }}><NextIcon fontSize="small" /></IconButton>
-              </Stack>
-            </Box>
-          </Paper>
-
-          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center', gap: 3, color: '#98a2b3', fontWeight: 700, fontSize: '11px' }}>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#16b364' }} />
-              <Typography sx={{ fontSize: '11px', fontWeight: 800 }}>PRESENT</Typography>
-            </Stack>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#f79009' }} />
-              <Typography sx={{ fontSize: '11px', fontWeight: 800 }}>LATE</Typography>
-            </Stack>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#f04438' }} />
-              <Typography sx={{ fontSize: '11px', fontWeight: 800 }}>ABSENT</Typography>
-            </Stack>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <LockIcon sx={{ fontSize: 14, color: '#9ca3af' }} />
-              <Typography sx={{ fontSize: '11px', fontWeight: 800 }}>READ ONLY</Typography>
-            </Stack>
+              })
+            )}
           </Box>
+        </Paper>
 
-          {/* Action Footer */}
-          <Box sx={{
-            mt: 2.5,
-            bgcolor: '#fff',
-            borderTop: '1px solid #e6e9f0',
-            px: 3,
-            py: 2,
-            borderRadius: '16px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            boxShadow: '0 8px 18px rgba(16, 24, 40, 0.05)'
-          }}>
-            <Stack direction="row" spacing={4} alignItems="center">
-              <Typography sx={{ fontWeight: 700, color: '#98a2b3', fontSize: '13px' }}>
-                Present: <Box component="span" sx={{ color: '#16b364', ml: 1 }}>{stats.present}</Box>
-              </Typography>
-              <Typography sx={{ fontWeight: 700, color: '#98a2b3', fontSize: '13px' }}>
-                Absent: <Box component="span" sx={{ color: '#f04438', ml: 1 }}>{stats.absent}</Box>
-              </Typography>
-              <Typography sx={{ fontWeight: 700, color: '#98a2b3', fontSize: '13px' }}>
-                Late: <Box component="span" sx={{ color: '#f79009', ml: 1 }}>{stats.late}</Box>
-              </Typography>
-            </Stack>
-
-            <Stack direction="row" spacing={2}>
-              <Button
-                variant="outlined"
-                onClick={() => navigate('/attendance')}
-                sx={{
-                  borderRadius: '12px',
-                  borderColor: '#e5e7eb',
-                  color: '#475467',
-                  textTransform: 'none',
-                  fontWeight: 800,
-                  px: 3.5,
-                  py: 1,
-                  fontSize: '13px',
-                  '&:hover': { borderColor: '#d1d5db', bgcolor: '#f9fafb' }
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="contained"
-                disableElevation
-                onClick={handleFinalize}
-                disabled={saving}
-                startIcon={saving ? <CircularProgress size={18} color="inherit" /> : <SubmitIcon sx={{ fontSize: 18 }} />}
-                sx={{
-                  borderRadius: '12px',
-                  bgcolor: '#4c4ee8',
-                  color: '#fff',
-                  textTransform: 'none',
-                  fontWeight: 800,
-                  px: 4.2,
-                  py: 1,
-                  fontSize: '13px',
-                  boxShadow: '0 8px 16px rgba(76, 78, 232, 0.25)',
-                  '&:hover': { bgcolor: '#3f41cc' }
-                }}
-              >
-                Submit Attendance
-              </Button>
-            </Stack>
-          </Box>
-        </Box>
+        {/* Floating Action Bar */}
+        <Paper elevation={4} sx={{ mt: 3, p: 2, borderRadius: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', bottom: 20 }}>
+          <Stack direction="row" spacing={3} sx={{ display: { xs: 'none', sm: 'flex' } }}>
+            <Typography variant="body2" sx={{ fontWeight: 700 }}>Present: <span style={{ color: '#10b981' }}>{stats.present}</span></Typography>
+            <Typography variant="body2" sx={{ fontWeight: 700 }}>Absent: <span style={{ color: '#ef4444' }}>{stats.absent}</span></Typography>
+          </Stack>
+          <Stack direction="row" spacing={2}>
+            <Button variant="text" onClick={() => navigate('/attendance')} sx={{ fontWeight: 700, color: '#64748b' }}>Discard</Button>
+            <Button 
+              variant="contained" 
+              onClick={handleFinalize} 
+              disabled={saving}
+              startIcon={saving ? <CircularProgress size={16} color="inherit" /> : <SubmitIcon />}
+              sx={{ borderRadius: 2, px: 4, bgcolor: '#4c4ee8', fontWeight: 700 }}
+            >
+              Submit Attendance
+            </Button>
+          </Stack>
+        </Paper>
       </Box>
+
+      {/* Class Selection Menu */}
+      <Menu anchorEl={classAnchorEl} open={Boolean(classAnchorEl)} onClose={() => setClassAnchorEl(null)}>
+        {classOptions.map((opt) => (
+          <MenuItem 
+            key={`${opt.classId}-${opt.sectionName}`}
+            onClick={() => {
+              navigate(`/attendance/mark/${opt.classId}/${opt.sectionName}`);
+              setClassAnchorEl(null);
+            }}
+          >
+            {opt.label}
+          </MenuItem>
+        ))}
+      </Menu>
 
       {/* Remarks Popover */}
       <Popover
@@ -589,53 +356,19 @@ const MarkStudentAttendance = () => {
         anchorEl={anchorEl}
         onClose={() => setAnchorEl(null)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        PaperProps={{ sx: { borderRadius: '16px', p: 3, width: 340, boxShadow: '0 20px 50px rgba(0,0,0,0.12)', border: '1px solid #e6e9f0' } }}
+        PaperProps={{ sx: { p: 2, width: 300, borderRadius: 3 } }}
       >
-        <Typography sx={{ fontWeight: 900, mb: 2, color: '#374151', fontSize: '14px', letterSpacing: '0.5px' }}>ADD REMARK</Typography>
+        <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 800 }}>Add Remark</Typography>
         <TextField
+          fullWidth
           multiline
-          rows={4}
-          fullWidth
-          size="small"
+          rows={3}
           value={remarksById[currentStudentId] || ''}
-          placeholder="Type any specific note about the student's attendance..."
-          onChange={(e) => setRemarksById({ ...remarksById, [currentStudentId]: e.target.value })}
-          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '16px', fontSize: '14px', bgcolor: '#fcfcfd' } }}
+          onChange={(e) => setRemarksById(prev => ({ ...prev, [currentStudentId]: e.target.value }))}
+          placeholder="Note reason for absence or lateness..."
         />
-        <Button
-          fullWidth
-          variant="contained"
-          disableElevation
-          onClick={() => setAnchorEl(null)}
-          sx={{ mt: 2.5, borderRadius: '14px', py: 1.5, textTransform: 'none', fontWeight: 800, bgcolor: '#5346e0' }}
-        >
-          Save Remark
-        </Button>
+        <Button fullWidth variant="contained" onClick={() => setAnchorEl(null)} sx={{ mt: 1, borderRadius: 2 }}>Save</Button>
       </Popover>
-
-      <Menu
-        anchorEl={classAnchorEl}
-        open={Boolean(classAnchorEl)}
-        onClose={() => setClassAnchorEl(null)}
-        PaperProps={{ sx: { borderRadius: '14px', mt: 1, minWidth: 220 } }}
-      >
-        {classOptions.map((option) => (
-          <MenuItem
-            key={`${option.classId}-${option.sectionName}`}
-            selected={String(option.classId) === String(selectedClassId) && option.sectionName === selectedSection}
-            onClick={() => {
-              setSelectedClassId(String(option.classId));
-              setSelectedSection(option.sectionName);
-              setClassAnchorEl(null);
-            }}
-            sx={{ fontSize: '13px', fontWeight: 700, color: '#344054' }}
-          >
-            {option.label}
-          </MenuItem>
-        ))}
-      </Menu>
-
     </Box>
   );
 };

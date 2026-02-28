@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Button, Skeleton, Stack } from '@mui/material';
 import PageCard from '../common/PageCard';
 
-const StudentsSkeleton = () => (
+const AdminsSkeleton = () => (
   <>
     <Stack
       direction={{ xs: 'column', md: 'row' }}
@@ -12,8 +12,8 @@ const StudentsSkeleton = () => (
       sx={{ mb: 3 }}
     >
       <Box>
-        <Skeleton variant="text" width={180} height={36} />
-        <Skeleton variant="text" width={320} height={24} />
+        <Skeleton variant="text" width={160} height={36} />
+        <Skeleton variant="text" width={280} height={24} />
       </Box>
       <Button variant="contained" disabled sx={{ minWidth: 140 }}>
         <Skeleton variant="text" width={80} />
@@ -25,8 +25,6 @@ const StudentsSkeleton = () => (
         <Skeleton variant="rectangular" height={40} sx={{ flex: 1, width: '100%', borderRadius: 1 }} />
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.2} sx={{ width: { xs: '100%', lg: 'auto' } }}>
           <Skeleton variant="rectangular" width={150} height={40} sx={{ borderRadius: 1 }} />
-          <Skeleton variant="rectangular" width={150} height={40} sx={{ borderRadius: 1 }} />
-          <Skeleton variant="rectangular" width={150} height={40} sx={{ borderRadius: 1 }} />
           <Skeleton variant="rectangular" width={90} height={40} sx={{ borderRadius: 1 }} />
         </Stack>
       </Stack>
@@ -34,12 +32,12 @@ const StudentsSkeleton = () => (
 
     <PageCard sx={{ overflow: 'hidden', mb: 3 }}>
       <Box sx={{ px: 2, py: 1.2, borderBottom: '1px solid', borderColor: 'divider' }}>
-        <Skeleton variant="text" width={140} height={20} />
+        <Skeleton variant="text" width={140} height={18} />
       </Box>
       <Box>
         {Array.from({ length: 6 }).map((_, idx) => (
           <Stack
-            key={`student-row-${idx}`}
+            key={`admin-row-${idx}`}
             direction="row"
             spacing={2}
             alignItems="center"
@@ -50,40 +48,28 @@ const StudentsSkeleton = () => (
               borderColor: (theme) => theme.palette.grey[100],
             }}
           >
-            <Skeleton variant="circular" width={40} height={40} />
-            <Box sx={{ flex: 1, minWidth: 180 }}>
-              <Skeleton variant="text" width="55%" height={20} />
-              <Skeleton variant="text" width="35%" height={18} />
+            <Box sx={{ flex: 1 }}>
+              <Skeleton variant="text" width="45%" height={20} />
             </Box>
-            <Skeleton variant="text" width={90} height={18} />
-            <Skeleton variant="text" width={70} height={18} />
-            <Skeleton variant="text" width={70} height={18} />
+            <Skeleton variant="text" width={180} height={18} />
             <Skeleton variant="text" width={120} height={18} />
-            <Skeleton variant="rectangular" width={80} height={24} sx={{ borderRadius: 10 }} />
-            <Stack direction="row" spacing={0.8}>
-              <Skeleton variant="rectangular" width={28} height={28} sx={{ borderRadius: 1 }} />
-              <Skeleton variant="rectangular" width={28} height={28} sx={{ borderRadius: 1 }} />
-              <Skeleton variant="rectangular" width={28} height={28} sx={{ borderRadius: 1 }} />
+            <Skeleton variant="rectangular" width={70} height={24} sx={{ borderRadius: 999 }} />
+            <Stack direction="row" spacing={0.8} sx={{ ml: 'auto' }}>
+              <Skeleton variant="rectangular" width={60} height={28} sx={{ borderRadius: 1 }} />
+              <Skeleton variant="rectangular" width={60} height={28} sx={{ borderRadius: 1 }} />
             </Stack>
           </Stack>
         ))}
       </Box>
 
       <Stack
-        direction={{ xs: 'column', sm: 'row' }}
-        spacing={1.4}
+        direction="row"
+        alignItems="center"
         justifyContent="space-between"
-        alignItems={{ sm: 'center' }}
-        sx={{
-          px: 2,
-          py: 1.5,
-          borderTop: '1px solid',
-          borderColor: (theme) => theme.palette.grey[100],
-          backgroundColor: (theme) => theme.palette.grey[50],
-        }}
+        sx={{ px: 2, py: 1.5 }}
       >
-        <Skeleton variant="text" width={240} height={16} />
-        <Stack direction="row" spacing={0.8} alignItems="center">
+        <Skeleton variant="text" width={160} height={16} />
+        <Stack direction="row" spacing={1} alignItems="center">
           <Skeleton variant="rectangular" width={28} height={28} sx={{ borderRadius: 1 }} />
           <Skeleton variant="rectangular" width={56} height={28} sx={{ borderRadius: 1 }} />
           <Skeleton variant="rectangular" width={28} height={28} sx={{ borderRadius: 1 }} />
@@ -93,4 +79,4 @@ const StudentsSkeleton = () => (
   </>
 );
 
-export default StudentsSkeleton;
+export default AdminsSkeleton;

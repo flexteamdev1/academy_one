@@ -32,6 +32,7 @@ import ChevronRightRounded from '@mui/icons-material/ChevronRightRounded';
 import PageCard from '../../components/common/PageCard';
 import AppTableHead from '../../components/common/AppTableHead';
 import StudentsSkeleton from '../../components/skeletons/StudentsSkeleton';
+import FilterAltOffIcon from '@mui/icons-material/FilterAltOff';
 
 const StudentsView = ({
   canManage,
@@ -65,6 +66,7 @@ const StudentsView = ({
   statusChipSx,
   canResetPassword,
   onResetPassword,
+  onResetFilters,
 }) => (
   loading ? (
     <StudentsSkeleton />
@@ -87,19 +89,6 @@ const StudentsView = ({
         </Box>
 
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.2}>
-          {/* <Button
-          startIcon={<DownloadOutlined />}
-          sx={{
-            backgroundColor: (theme) => theme.palette.success.light,
-            border: '1px solid',
-            borderColor: (theme) => theme.palette.success.main,
-            color: (theme) => theme.palette.success.dark,
-            fontWeight: 700,
-            '&:hover': { backgroundColor: (theme) => theme.palette.success.main },
-          }}
-        >
-          Export List
-        </Button> */}
           <Button
             startIcon={<PersonAddAlt1Outlined />}
             onClick={openCreateDialog}
@@ -175,6 +164,14 @@ const StudentsView = ({
               startIcon={<FilterListOutlined />}
             >
               Apply
+            </Button>
+            <Button
+              type="submit"
+              variant="outlined"
+              startIcon={<FilterAltOffIcon />}
+              onClick={onResetFilters}
+            >
+              Reset
             </Button>
           </Stack>
         </Stack>
