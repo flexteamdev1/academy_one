@@ -166,6 +166,13 @@ const Admins = () => {
         totalPages={totalPages}
         total={total}
         loading={loading}
+        onResetFilters={() => {
+          setQ('');
+          setStatus(FILTER_ALL);
+          setAppliedQ('');
+          setAppliedStatus(FILTER_ALL);
+          setPage(1);
+        }}
       />
 
       {canManage ? (

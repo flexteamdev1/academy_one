@@ -23,6 +23,7 @@ import FilterListOutlined from '@mui/icons-material/FilterListOutlined';
 import ChevronLeftRounded from '@mui/icons-material/ChevronLeftRounded';
 import ChevronRightRounded from '@mui/icons-material/ChevronRightRounded';
 import VisibilityOutlined from '@mui/icons-material/VisibilityOutlined';
+import FilterAltOffIcon from '@mui/icons-material/FilterAltOff';
 import PageCard from '../../components/common/PageCard';
 import AppTableHead from '../../components/common/AppTableHead';
 
@@ -71,6 +72,7 @@ const ParentsView = ({
   loading,
   FILTER_ALL,
   USER_STATUS,
+  onResetFilters,
 }) => (
   <Box>
     <Stack
@@ -115,6 +117,14 @@ const ParentsView = ({
         </FormControl>
         <Button type="submit" variant="outlined" startIcon={<FilterListOutlined />}>
           Apply
+        </Button>
+        <Button
+          type="submit"
+          variant="outlined"
+          startIcon={<FilterAltOffIcon />}
+          onClick={onResetFilters}
+        >
+          Reset
         </Button>
       </Stack>
     </PageCard>

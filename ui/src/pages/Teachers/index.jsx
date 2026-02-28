@@ -203,6 +203,13 @@ const Teachers = () => {
         totalPages={totalPages}
         FILTER_ALL={FILTER_ALL}
         TEACHER_STATUS={TEACHER_STATUS}
+        onResetFilters={() => {
+          setSearchQuery('');
+          setStatus(FILTER_ALL);
+          setAppliedSearchQuery('');
+          setAppliedStatus(FILTER_ALL);
+          setPage(1);
+        }}
       />
 
       <TeacherFormDialog

@@ -24,6 +24,7 @@ import DeleteOutlineOutlined from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlined from '@mui/icons-material/EditOutlined';
 import ChevronLeftRounded from '@mui/icons-material/ChevronLeftRounded';
 import ChevronRightRounded from '@mui/icons-material/ChevronRightRounded';
+import FilterAltOffIcon from '@mui/icons-material/FilterAltOff';
 import PageCard from '../../components/common/PageCard';
 import AppTableHead from '../../components/common/AppTableHead';
 
@@ -68,6 +69,7 @@ const AdminsView = ({
   totalPages,
   total,
   loading,
+  onResetFilters,
 }) => (
   <>
     <Stack
@@ -140,6 +142,15 @@ const AdminsView = ({
 
           <Button type="submit" variant="outlined" startIcon={<FilterListOutlined />}>
             Apply
+          </Button>
+
+          <Button
+            type="submit"
+            variant="outlined"
+            startIcon={<FilterAltOffIcon />}
+            onClick={onResetFilters}
+          >
+            Reset
           </Button>
         </Stack>
       </Stack>

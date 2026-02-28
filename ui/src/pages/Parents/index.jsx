@@ -85,6 +85,13 @@ const Parents = () => {
         loading={loading}
         FILTER_ALL={FILTER_ALL}
         USER_STATUS={USER_STATUS}
+        onResetFilters={() => {
+          setQ('');
+          setStatus(FILTER_ALL);
+          setAppliedQ('');
+          setAppliedStatus(FILTER_ALL);
+          setPage(1);
+        }}
       />
 
       <ParentDetailsDialog

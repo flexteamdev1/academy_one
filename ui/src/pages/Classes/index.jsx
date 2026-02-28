@@ -322,6 +322,12 @@ const Classes = () => {
         total={total}
         LIMIT={LIMIT}
         loading={loading}
+        onResetFilters={() => {
+          setQ('');
+          setStatus(FILTER_ALL);
+          setAcademicYearId(FILTER_ALL);
+          setPage(1);
+        }}
       />
 
       <ClassFormDialog

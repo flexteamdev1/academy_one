@@ -28,6 +28,7 @@ import HowToRegOutlined from '@mui/icons-material/HowToRegOutlined';
 import MenuBookOutlined from '@mui/icons-material/MenuBookOutlined';
 import VerifiedOutlined from '@mui/icons-material/VerifiedOutlined';
 import HistoryOutlined from '@mui/icons-material/HistoryOutlined';
+import FilterAltOffIcon from '@mui/icons-material/FilterAltOff';
 import PageCard from '../../components/common/PageCard';
 import TeachersSkeleton from '../../components/skeletons/TeachersSkeleton';
 import StatCard from '../../components/common/StatCard';
@@ -54,6 +55,7 @@ const TeachersView = ({
   totalPages,
   FILTER_ALL,
   TEACHER_STATUS,
+  onResetFilters,
 }) => (
   loading ? (
     <TeachersSkeleton />
@@ -137,6 +139,14 @@ const TeachersView = ({
         </TextField>
         <Button type="submit" variant="outlined" startIcon={<FilterListOutlined />}>
           Apply
+        </Button>
+        <Button
+          type="submit"
+          variant="outlined"
+          startIcon={<FilterAltOffIcon />}
+          onClick={onResetFilters}
+        >
+          Reset
         </Button>
       </Stack>
     </PageCard>

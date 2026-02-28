@@ -26,6 +26,7 @@ import DeleteOutlineOutlined from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlined from '@mui/icons-material/EditOutlined';
 import ChevronLeftRounded from '@mui/icons-material/ChevronLeftRounded';
 import ChevronRightRounded from '@mui/icons-material/ChevronRightRounded';
+import FilterAltOffIcon from '@mui/icons-material/FilterAltOff';
 import PageCard from '../../components/common/PageCard';
 import AppTableHead from '../../components/common/AppTableHead';
 import ClassesSkeleton from '../../components/skeletons/ClassesSkeleton';
@@ -56,6 +57,7 @@ const ClassesView = ({
   total,
   LIMIT,
   loading,
+  onResetFilters,
 }) => (
   loading ? (
     <ClassesSkeleton />
@@ -177,6 +179,17 @@ const ClassesView = ({
             })}
           >
             <FilterListOutlined />
+          </IconButton>
+          <IconButton
+            onClick={onResetFilters}
+            sx={(theme) => ({
+              borderRadius: theme.shape.borderRadius,
+              border: '1px solid',
+              borderColor: theme.palette.grey[200],
+              backgroundColor: theme.palette.grey[100],
+            })}
+          >
+            <FilterAltOffIcon />
           </IconButton>
         </Stack>
       </Stack>
