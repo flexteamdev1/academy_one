@@ -299,6 +299,7 @@ const Notices = () => {
   const teacherId = role === 'teacher' ? getTeacherId(user) : '';
   const canCreate = ['super_admin', 'admin', 'teacher'].includes(role);
   const isAdmin = ['super_admin', 'admin'].includes(role);
+  const roleAudience = role ? role.toUpperCase() : '';
 
   const [notices, setNotices] = useState([]);
   const [total, setTotal] = useState(0);
@@ -365,9 +366,12 @@ const Notices = () => {
       if (gradeFilter !== 'ALL') params.grade = gradeFilter;
 
       const response = await listNotices(params);
-      const items = (response.items || []).map(normalizeNotice);
-      setNotices(items);
-      setTotal(response.pagination?.total || items.length);
+      const rawItems = (response.items || []).map(normalizeNotice);
+      const scopedItems = (!isAdmin && roleAudience)
+        ? rawItems.filter((item) => item.audiences.includes(roleAudience))
+        : rawItems;
+      setNotices(scopedItems);
+      setTotal(response.pagination?.total || scopedItems.length);
     } catch (err) {
       setError(err.message || 'Failed to load notices');
       setNotices([]);

@@ -205,6 +205,8 @@ const listNotices = async (req, res) => {
     const skip = (page - 1) * limit;
 
     const filter = {};
+    const requesterRole = String(req.user?.role || '').trim().toUpperCase();
+    const canViewAll = requesterRole === ROLES.SUPER_ADMIN || requesterRole === ROLES.ADMIN;
 
     const q = String(req.query.q || '').trim();
     if (q) {
@@ -220,9 +222,13 @@ const listNotices = async (req, res) => {
       filter.status = status;
     }
 
-    const audience = String(req.query.audience || '').trim().toUpperCase();
-    if (audience && VALID_ROLES.includes(audience)) {
-      filter.visibleFor = audience;
+    if (!canViewAll && requesterRole && VALID_ROLES.includes(requesterRole)) {
+      filter.visibleFor = requesterRole;
+    } else {
+      const audience = String(req.query.audience || '').trim().toUpperCase();
+      if (audience && VALID_ROLES.includes(audience)) {
+        filter.visibleFor = audience;
+      }
     }
 
     const grade = String(req.query.grade || '').trim();
