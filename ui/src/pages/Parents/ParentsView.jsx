@@ -26,6 +26,7 @@ import VisibilityOutlined from '@mui/icons-material/VisibilityOutlined';
 import FilterAltOffIcon from '@mui/icons-material/FilterAltOff';
 import PageCard from '../../components/common/PageCard';
 import AppTableHead from '../../components/common/AppTableHead';
+import ParentsSkeleton from '../../components/skeletons/ParentsSkeleton';
 
 const statusChipSx = (status, theme) => {
   if (status === 'ACTIVE') {
@@ -73,8 +74,13 @@ const ParentsView = ({
   FILTER_ALL,
   USER_STATUS,
   onResetFilters,
-}) => (
-  <Box>
+}) => {
+  if (loading) {
+    return <ParentsSkeleton />;
+  }
+
+  return (
+    <Box>
     <Stack
       direction={{ xs: 'column', md: 'row' }}
       spacing={2}
@@ -217,7 +223,8 @@ const ParentsView = ({
         </Stack>
       </Stack>
     </PageCard>
-  </Box>
-);
+    </Box>
+  );
+};
 
 export default ParentsView;
