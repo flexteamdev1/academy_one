@@ -12,7 +12,6 @@ import {
   Typography,
 } from '@mui/material';
 import PageCard from '../../components/common/PageCard';
-import { useNavigate } from 'react-router-dom';
 
 const formatDate = (value) => {
   if (!value) return 'N/A';
@@ -29,21 +28,15 @@ const statusLabel = (status) => {
   return 'Pending';
 };
 
-const AdmissionsCard = ({ admissions, loading = false }) => {
-  const navigate = useNavigate();
-
-  return (
-    <PageCard sx={{ height: '100%', width: '100%', boxShadow: 'none' }}>
-      <CardContent sx={{ p: 0, '&:last-child': { pb: 0 }, height: '100%', display: 'flex', flexDirection: 'column' }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ px: 2.2, py: 2 }}>
-          <Typography sx={{ fontSize: '1.35rem', fontWeight: 800, color: 'text.primary' }}>Recent Admissions</Typography>
-          <Typography
-            sx={{ fontSize: '0.82rem', fontWeight: 700, color: 'primary.main', letterSpacing: '0.06em', cursor: 'pointer' }}
-            onClick={() => navigate('/students')}
-          >
-            VIEW ALL
-          </Typography>
-        </Stack>
+const AdmissionsCard = ({ admissions, loading = false }) => (
+  <PageCard sx={{ height: '100%', width: '100%', boxShadow: 'none' }}>
+    <CardContent sx={{ p: 0, '&:last-child': { pb: 0 }, height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ px: 2.2, py: 2 }}>
+        <Typography sx={{ fontSize: '1.35rem', fontWeight: 800, color: 'text.primary' }}>Recent Admissions</Typography>
+        <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: 'primary.main', letterSpacing: '0.06em' }}>
+          VIEW ALL
+        </Typography>
+      </Stack>
       <Table size="small">
         <TableHead>
           <TableRow sx={{ backgroundColor: 'background.default' }}>
@@ -144,9 +137,8 @@ const AdmissionsCard = ({ admissions, loading = false }) => {
           )})}
         </TableBody>
       </Table>
-      </CardContent>
-    </PageCard>
-  );
-};
+    </CardContent>
+  </PageCard>
+);
 
 export default AdmissionsCard;
