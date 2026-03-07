@@ -35,7 +35,6 @@ import AppTableHead from '../../components/common/AppTableHead';
 import PageCard from '../../components/common/PageCard';
 import StatCard from '../../components/common/StatCard';
 import AppDialog from '../../components/common/AppDialog';
-import AdmissionsSkeleton from '../../components/skeletons/AdmissionsSkeleton';
 import { listClasses } from '../../services/classService';
 import { getUserInfo, getUserRole } from '../../utils/auth';
 import { filterClassesForTeacher, getTeacherId } from '../../utils/teacherAccess';
@@ -404,10 +403,6 @@ const Enrollment = () => {
     });
     return snapshot;
   }, [leads]);
-
-  if (loading) {
-    return <AdmissionsSkeleton />;
-  }
 
   return (
     <Box>

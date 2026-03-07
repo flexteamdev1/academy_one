@@ -27,7 +27,6 @@ import ChevronRightRounded from '@mui/icons-material/ChevronRightRounded';
 import FilterAltOffIcon from '@mui/icons-material/FilterAltOff';
 import PageCard from '../../components/common/PageCard';
 import AppTableHead from '../../components/common/AppTableHead';
-import AdminsSkeleton from '../../components/skeletons/AdminsSkeleton';
 
 const statusChipSx = (status, theme) => {
   if (status === 'ACTIVE') {
@@ -71,13 +70,8 @@ const AdminsView = ({
   total,
   loading,
   onResetFilters,
-}) => {
-  if (loading) {
-    return <AdminsSkeleton />;
-  }
-
-  return (
-    <>
+}) => (
+  <>
     <Stack
       direction={{ xs: 'column', md: 'row' }}
       spacing={2}
@@ -249,8 +243,7 @@ const AdminsView = ({
         </Stack>
       </Stack>
     </PageCard>
-    </>
-  );
-};
+  </>
+);
 
 export default React.memo(AdminsView);

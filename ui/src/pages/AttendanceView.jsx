@@ -3,33 +3,24 @@ import { Alert, Box, Stack, Typography } from '@mui/material';
 import PageCard from '../components/common/PageCard';
 import { getLinkedStudents } from '../services/userService';
 import { useUIState } from '../context/UIContext';
-import AttendanceSkeleton from '../components/skeletons/AttendanceSkeleton';
 
 const AttendanceView = () => {
   const { selectedAcademicYearId } = useUIState();
   const [items, setItems] = useState([]);
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
-      setLoading(true);
       setError('');
       try {
         const response = await getLinkedStudents();
         setItems(response.items || []);
       } catch (err) {
         setError(err.message || 'Failed to load attendance');
-      } finally {
-        setLoading(false);
       }
     };
     load();
   }, [selectedAcademicYearId]);
-
-  if (loading) {
-    return <AttendanceSkeleton />;
-  }
 
   return (
     <Box>
